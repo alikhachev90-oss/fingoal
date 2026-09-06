@@ -3,6 +3,7 @@ import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import { Button, Input, Card, Pill } from '../components/UI'
 import BatteryProgress from '../components/BatteryProgress'
+import GoalReminderButton from '../components/GoalReminderButton'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { computeGoalPlan, MILESTONES, crossedMilestone } from '../lib/finance'
@@ -129,7 +130,10 @@ export default function GoalsScreen() {
                 </div>
               )}
 
-              <Button variant="secondary" onClick={() => addSavings(goal)} type="button">{t('goals.addSavingsToday')}</Button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button variant="secondary" onClick={() => addSavings(goal)} type="button" className="!w-auto flex-1">{t('goals.addSavingsToday')}</Button>
+                <GoalReminderButton goalId={goal.id} />
+              </div>
             </Card>
           )
         })}
