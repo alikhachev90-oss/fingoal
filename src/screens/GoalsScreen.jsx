@@ -4,9 +4,11 @@ import BottomNav from '../components/BottomNav'
 import { Button, Input, Card, Pill } from '../components/UI'
 import BatteryProgress from '../components/BatteryProgress'
 import GoalReminderButton from '../components/GoalReminderButton'
+import TourGuide from '../components/TourGuide'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { computeGoalPlan, MILESTONES, crossedMilestone } from '../lib/finance'
+import { TOURS } from '../lib/tours'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -15,13 +17,14 @@ function fmt(n) {
 const emptyForm = { name: '', targetAmount: '', deadline: '' }
 
 export default function GoalsScreen() {
-  const { user, context, t } = useApp()
+  const { user, context, t, lang } = useApp()
   const [settings, setSettings] = useState(null)
   const [goals, setGoals] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [milestoneHit, setMilestoneHit] = useState(null)
+  const [tourActive, setTourActive] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -80,7 +83,16 @@ export default function GoalsScreen() {
 
   return (
     <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
-      <TopBar title={t('goals.title')} />
+      <TourGuide
+        userId={user?.id}
+        context={context}
+        screenKey="goals"
+        steps={TOURS.goals}
+        lang={lang}
+        active={tourActive}
+        onActiveChange={setTourActive}
+      />
+      <TopBar title={t('goals.title')} onHelp={() => setTourActive(true)} />
       <div className="flex-1 px-4 py-4 space-y-4">
         {milestoneHit && (
           <Card className="bg-primary/10 border-primary/30 text-center">
@@ -107,7 +119,7 @@ export default function GoalsScreen() {
               <BatteryProgress pct={plan?.progressPct || 0} label={t('common.savedOfTarget', { saved: fmt(goal.saved_amount), target: fmt(goal.target_amount) })} />
 
               {plan && (
-                <div className="text-xs text-muted space-y-1 bg-surface2 rounded-lg p-2.5">
+                <div className="text-xs text-muted space-y-1 bg-surface2 rounded-lg p-2.5" data-tour="goals-plan">
                   <p>{t('goals.perDay')}: <span className="text-text font-medium">{t('goals.perDayValue', { amt: fmt(plan.perDay) })}</span> ({t('goals.perMonth', { amt: fmt(plan.perMonth) })})</p>
                   <p>{t('goals.daysLeft')}: {plan.daysLeft}</p>
                   <p>{t('goals.requiredIncomeLabel')}: <span className="text-text font-medium">{fmt(plan.requiredDailyIncome)}</span></p>
@@ -132,7 +144,9 @@ export default function GoalsScreen() {
 
               <div className="flex items-center gap-2 flex-wrap">
                 <Button variant="secondary" onClick={() => addSavings(goal)} type="button" className="!w-auto flex-1">{t('goals.addSavingsToday')}</Button>
-                <GoalReminderButton goalId={goal.id} />
+                <span data-tour="goals-reminder">
+                  <GoalReminderButton goalId={goal.id} />
+                </span>
               </div>
             </Card>
           )
@@ -152,7 +166,7 @@ export default function GoalsScreen() {
             </form>
           </Card>
         ) : (
-          <Button onClick={() => setShowForm(true)} type="button">{t('goals.newGoal')}</Button>
+          <Button onClick={() => setShowForm(true)} type="button" data-tour="goals-new">{t('goals.newGoal')}</Button>
         )}
       </div>
       <BottomNav />

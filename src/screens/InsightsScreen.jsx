@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import { Sparkles, Send, TrendingUp, TrendingDown, Info, Flag, Trophy, Radar, X, Calculator, ChevronRight } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
+import TourGuide from '../components/TourGuide'
 import { Card, Button, IconCircle, EmptyState, ProgressBar } from '../components/UI'
 import { useApp } from '../context/AppContext'
+import { TOURS } from '../lib/tours'
 import * as db from '../lib/db'
 import {
   computeInsights,
@@ -50,6 +52,7 @@ export default function InsightsScreen() {
   const [growthYears, setGrowthYears] = useState('3')
   const [radarTick, setRadarTick] = useState(0)
   const [radarInfoOpen, setRadarInfoOpen] = useState(false)
+  const [tourActive, setTourActive] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -122,7 +125,16 @@ export default function InsightsScreen() {
 
   return (
     <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
-      <TopBar title={t('insights.title')} subtitle={t('insights.subtitle')} />
+      <TourGuide
+        userId={user?.id}
+        context={context}
+        screenKey="insights"
+        steps={TOURS.insights}
+        lang={lang}
+        active={tourActive}
+        onActiveChange={setTourActive}
+      />
+      <TopBar title={t('insights.title')} subtitle={t('insights.subtitle')} onHelp={() => setTourActive(true)} />
       <div className="flex-1 px-4 py-4 space-y-3">
         {cards.length === 0 && (
           <EmptyState icon={Sparkles} title={t('insights.emptyTitle')} subtitle={t('insights.emptySubtitle')} />
@@ -138,7 +150,7 @@ export default function InsightsScreen() {
           )
         })}
 
-        <div className="pt-2">
+        <div className="pt-2" data-tour="insights-radar">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[13px] font-bold tracking-wide text-muted uppercase">{t('radar.title')}</p>
             {radarItems.length > 0 && (
@@ -202,7 +214,7 @@ export default function InsightsScreen() {
           <p className="text-[11px] text-muted mt-2 leading-relaxed">{t('radar.premiumNote')}</p>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2" data-tour="insights-challenge">
           <p className="text-[13px] font-bold tracking-wide text-muted uppercase mb-2">{t('insights.challengeSection')}</p>
           {!activeChallenge && (
             <div className="space-y-2">
@@ -297,7 +309,7 @@ export default function InsightsScreen() {
           </Card>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2" data-tour="insights-tax">
           <Link to="/taxes">
             <Card className="!p-3.5 flex items-center gap-3 hover:border-primary/50">
               <IconCircle icon={Calculator} className="bg-primary/10 text-primary" size={38} iconSize={17} />
@@ -310,7 +322,7 @@ export default function InsightsScreen() {
           </Link>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2" data-tour="insights-ask">
           <p className="text-[13px] font-bold tracking-wide text-muted uppercase mb-2">{t('insights.askSection')}</p>
           <Card className="!p-3 space-y-3">
             <div className="flex gap-2">

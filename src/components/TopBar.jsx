@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Sun, Moon, User, Briefcase, Globe } from 'lucide-react'
+import { Sun, Moon, User, Briefcase, Globe, HelpCircle } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { IconButton } from './UI'
 import { LANGUAGES } from '../i18n/strings'
 
-export default function TopBar({ title, subtitle }) {
+export default function TopBar({ title, subtitle, onHelp }) {
   const { context, toggleContext, theme, setTheme, lang, setLang, t } = useApp()
   const [langOpen, setLangOpen] = useState(false)
 
@@ -16,6 +16,7 @@ export default function TopBar({ title, subtitle }) {
           {subtitle && <p className="text-xs text-muted mt-0.5">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2">
+          {onHelp && <IconButton icon={HelpCircle} onClick={onHelp} aria-label="?" />}
           <div className="relative">
             <IconButton icon={Globe} onClick={() => setLangOpen((o) => !o)} aria-label={t('topbar.language')} />
             {langOpen && (

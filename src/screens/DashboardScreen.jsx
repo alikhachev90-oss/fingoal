@@ -9,12 +9,14 @@ import BatteryProgress from '../components/BatteryProgress'
 import InfoTag from '../components/InfoTag'
 import ReminderButton from '../components/ReminderButton'
 import HabitTipModal from '../components/HabitTipModal'
+import TourGuide from '../components/TourGuide'
 import { Card, Button, ProgressBar, StatTile, IconCircle, EmptyState } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { findCategory, pickLang, CATEGORY_TREE } from '../lib/categories'
 import { computeGoalPlan, computeSafeToSpendToday } from '../lib/finance'
 import { detectHabitTip, dismissHabitTip } from '../lib/habitTips'
+import { TOURS } from '../lib/tours'
 
 // Muted, "graphite" chart colors instead of a harsh stoplight red/amber/green —
 // the pie is informational, not a warning light.
@@ -33,6 +35,7 @@ export default function DashboardScreen() {
   const [streak, setStreak] = useState(0)
   const [checkedInToday, setCheckedInToday] = useState(false)
   const [habitTip, setHabitTip] = useState(null)
+  const [tourActive, setTourActive] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -141,11 +144,22 @@ export default function DashboardScreen() {
   return (
     <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <HabitTipModal tip={habitTip} lang={lang} onClose={closeHabitTip} />
-      <TopBar title={t('dashboard.title')} />
+      <TourGuide
+        userId={user?.id}
+        context={context}
+        screenKey="dashboard"
+        steps={TOURS.dashboard}
+        lang={lang}
+        active={tourActive}
+        onActiveChange={setTourActive}
+      />
+      <TopBar title={t('dashboard.title')} onHelp={() => setTourActive(true)} />
       <div className="flex-1 px-4 py-4 space-y-4">
-        <DailyQuoteCard />
+        <div data-tour="dash-quote">
+          <DailyQuoteCard />
+        </div>
 
-        <Card className="!p-0 overflow-hidden">
+        <Card className="!p-0 overflow-hidden" data-tour="dash-streak">
           <div className="bg-[#181712] px-4 pt-4 pb-5 border-b-2 border-[#d4af37]/70">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -178,7 +192,7 @@ export default function DashboardScreen() {
         </Card>
 
         {monthlyIncome > 0 && (
-          <Card className={`!p-4 flex items-center justify-between !border-l-[3px] ${safeToday.safePerDay >= 0 ? '!border-l-savings bg-savings/5' : '!border-l-wants bg-wants/5'}`}>
+          <Card data-tour="dash-safe-to-spend" className={`!p-4 flex items-center justify-between !border-l-[3px] ${safeToday.safePerDay >= 0 ? '!border-l-savings bg-savings/5' : '!border-l-wants bg-wants/5'}`}>
             <div>
               <p className="text-xs text-muted font-medium uppercase tracking-wide">{t('dashboard.safeToSpend')}</p>
               <p className={`text-2xl font-bold font-num mt-0.5 ${safeToday.safePerDay >= 0 ? 'text-savings' : 'text-wants'}`}>
@@ -213,7 +227,7 @@ export default function DashboardScreen() {
         </div>
 
         {bills.length > 0 && (
-          <Card className="space-y-3">
+          <Card className="space-y-3" data-tour="dash-bills">
             <p className="text-sm font-semibold">{t('bills.title')}</p>
             <div className="space-y-2">
               {bills.map((b) => (
