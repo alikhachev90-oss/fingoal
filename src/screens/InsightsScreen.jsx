@@ -49,6 +49,7 @@ export default function InsightsScreen() {
   const [growthRate, setGrowthRate] = useState('7')
   const [growthYears, setGrowthYears] = useState('3')
   const [radarTick, setRadarTick] = useState(0)
+  const [radarInfoOpen, setRadarInfoOpen] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -87,6 +88,12 @@ export default function InsightsScreen() {
   function handleMarkRadarChecked() {
     recordRadarChecked(user.id, context)
     setRadarTick((v) => v + 1)
+  }
+
+  function handleCheckNow() {
+    recordRadarChecked(user.id, context)
+    setRadarTick((v) => v + 1)
+    setRadarInfoOpen(true)
   }
 
   const defaultMonthly = goals[0] ? Math.max(0, Math.round(goals[0].target_amount ? (goals[0].target_amount - goals[0].saved_amount) / 12 : 0)) : 0
@@ -145,12 +152,22 @@ export default function InsightsScreen() {
             )}
           </div>
           {radarItems.length === 0 ? (
-            <Card className="!p-3.5 flex items-start gap-3">
-              <IconCircle icon={Radar} className="bg-primary/10 text-primary" size={34} iconSize={16} />
-              <div className="min-w-0">
-                <p className="text-sm font-medium">{t('radar.emptyTitle')}</p>
-                <p className="text-xs text-muted mt-0.5">{t('radar.emptySubtitle')}</p>
+            <Card className="!p-3.5 space-y-2.5">
+              <div className="flex items-start gap-3">
+                <IconCircle icon={Radar} className="bg-primary/10 text-primary" size={34} iconSize={16} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{t('radar.emptyTitle')}</p>
+                  <p className="text-xs text-muted mt-0.5">{t('radar.emptySubtitle')}</p>
+                </div>
               </div>
+              {radarInfoOpen && (
+                <p className="text-xs text-muted bg-surface2 rounded-lg px-3 py-2 leading-relaxed">
+                  {t('radar.checkedJustNow')} — {t('radar.checkNowExplain')}
+                </p>
+              )}
+              <Button variant="secondary" onClick={handleCheckNow} type="button">
+                {t('radar.checkNow')}
+              </Button>
             </Card>
           ) : (
             <div className="space-y-2">
