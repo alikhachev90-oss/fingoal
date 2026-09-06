@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Sparkles, Send, TrendingUp, TrendingDown, Info, Flag, Trophy, Radar, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Sparkles, Send, TrendingUp, TrendingDown, Info, Flag, Trophy, Radar, X, Calculator, ChevronRight } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import { Card, Button, IconCircle, EmptyState, ProgressBar } from '../components/UI'
@@ -274,6 +275,19 @@ export default function InsightsScreen() {
               <p className="text-xs text-muted mt-0.5">{t('insights.growthBreakdown', { contrib: fmt(growthResult.contributed), growth: fmt(growthResult.growth) })}</p>
             </div>
           </Card>
+        </div>
+
+        <div className="pt-2">
+          <Link to="/taxes">
+            <Card className="!p-3.5 flex items-center gap-3 hover:border-primary/50">
+              <IconCircle icon={Calculator} className="bg-primary/10 text-primary" size={38} iconSize={17} />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{t('tax.entryTitle')}</p>
+                <p className="text-xs text-muted mt-0.5">{t('tax.entrySubtitle')}</p>
+              </div>
+              <ChevronRight size={16} className="text-muted" />
+            </Card>
+          </Link>
         </div>
 
         <div className="pt-2">
