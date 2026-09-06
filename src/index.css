@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* "Ledger" identity: ink + brass gold + emerald, paper-toned neutrals.
+   No purple/indigo, no gradients — flat, considered, a little austere. */
+
+:root {
+  --color-bg: 240 241 234;
+  --color-surface: 253 253 250;
+  --color-surface2: 231 232 222;
+  --color-border: 211 212 199;
+  --color-text: 22 26 20;
+  --color-muted: 96 101 88;
+  --color-primary: 150 108 24;
+  --color-primary2: 27 94 63;
+  --color-on-primary: 253 253 250;
+  --color-needs: 165 54 42;
+  --color-wants: 158 110 24;
+  --color-savings: 27 94 63;
+  --color-danger: 165 54 42;
+}
+
+.dark {
+  --color-bg: 15 16 13;
+  --color-surface: 24 25 20;
+  --color-surface2: 32 33 27;
+  --color-border: 49 50 41;
+  --color-text: 235 235 226;
+  --color-muted: 150 152 136;
+  --color-primary: 208 168 63;
+  --color-primary2: 90 168 120;
+  --color-on-primary: 20 19 14;
+  --color-needs: 214 115 98;
+  --color-wants: 214 168 84;
+  --color-savings: 90 168 120;
+  --color-danger: 214 115 98;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  overscroll-behavior-y: none;
+}
+
+body {
+  margin: 0;
+  background: rgb(var(--color-bg));
+  color: rgb(var(--color-text));
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  justify-content: center;
+}
+
+input, select, textarea, button {
+  font-family: inherit;
+}
+
+.font-num {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Remove number input spinners for a cleaner amount field */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--color-surface2)) 25%,
+    rgb(var(--color-border)) 37%,
+    rgb(var(--color-surface2)) 63%
+  );
+  background-size: 200% 100%;
+}

@@ -1,0 +1,313 @@
+import { supabase, supabaseEnabled } from './supabaseClient'
+
+// ---------------------------------------------------------------------------
+// Data layer. When VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are set, every
+// call goes to Supabase (see supabase/schema.sql for the matching tables).
+// Otherwise everything falls back to localStorage so the app is fully
+// functional out of the box for demoing the MVP.
+// ---------------------------------------------------------------------------
+
+const LS_KEY = 'fintrack_mock_db_v1'
+const SESSION_KEY = 'fintrack_mock_session_v1'
+
+function loadMock() {
+  const empty = { users: [], settings: {}, debts: [], transactions: [], goals: [], checkins: [], completedLessons: [] }
+  try {
+    return { ...empty, ...(JSON.parse(localStorage.getItem(LS_KEY)) || {}) }
+  } catch {
+    return empty
+  }
+}
+function saveMock(db) {
+  localStorage.setItem(LS_KEY, JSON.stringify(db))
+}
+function uid() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36)
+}
+
+// ---------------------------------------------------------------------- auth
+export async function signUp(email, password) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.auth.signUp({ email, password })
+    if (error) throw error
+    return data.user
+  }
+  const db = loadMock()
+  if (db.users.find((u) => u.email === email)) throw new Error('Пользователь с таким email уже существует')
+  const user = { id: uid(), email }
+  db.users.push({ ...user, password })
+  saveMock(db)
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user))
+  return user
+}
+
+export async function signIn(email, password) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+    return data.user
+  }
+  const db = loadMock()
+  const found = db.users.find((u) => u.email === email && u.password === password)
+  if (!found) throw new Error('Неверный email или пароль')
+  const user = { id: found.id, email: found.email }
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user))
+  return user
+}
+
+export async function signOut() {
+  if (supabaseEnabled) {
+    await supabase.auth.signOut()
+    return
+  }
+  localStorage.removeItem(SESSION_KEY)
+}
+
+export async function getSession() {
+  if (supabaseEnabled) {
+    const { data } = await supabase.auth.getSession()
+    return data.session?.user || null
+  }
+  try {
+    return JSON.parse(localStorage.getItem(SESSION_KEY)) || null
+  } catch {
+    return null
+  }
+}
+
+// ------------------------------------------------------------------ settings
+// settings: { monthlyIncome, needsBudget: {housing,transport,groceries,health}, hasDebts, onboarded }
+export async function getSettings(userId, context) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.from('context_settings').select('*').eq('user_id', userId).eq('context', context).maybeSingle()
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  return db.settings[`${userId}:${context}`] || null
+}
+
+export async function saveSettings(userId, context, settings) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase
+      .from('context_settings')
+      .upsert({ user_id: userId, context, ...settings }, { onConflict: 'user_id,context' })
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  const key = `${userId}:${context}`
+  db.settings[key] = { ...(db.settings[key] || {}), ...settings }
+  saveMock(db)
+  return db.settings[key]
+}
+
+// --------------------------------------------------------------------- debts
+export async function listDebts(userId, context) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.from('debts').select('*').eq('user_id', userId).eq('context', context).order('created_at')
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  return db.debts.filter((d) => d.user_id === userId && d.context === context)
+}
+
+export async function addDebt(userId, context, debt) {
+  const row = { id: uid(), user_id: userId, context, created_at: new Date().toISOString(), ...debt }
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.from('debts').insert(row).select().single()
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  db.debts.push(row)
+  saveMock(db)
+  return row
+}
+
+// ------------------------------------------------------------------- goals
+export async function listGoals(userId, context) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.from('goals').select('*').eq('user_id', userId).eq('context', context).order('priority')
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  return db.goals
+    .filter((g) => g.user_id === userId && g.context === context)
+    .sort((a, b) => a.priority - b.priority)
+}
+
+export async function upsertGoal(userId, context, goal) {
+  if (supabaseEnabled) {
+    const row = goal.id ? goal : { ...goal, user_id: userId, context }
+    const { data, error } = await supabase.from('goals').upsert(row).select().single()
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  if (goal.id) {
+    const idx = db.goals.findIndex((g) => g.id === goal.id)
+    if (idx >= 0) db.goals[idx] = { ...db.goals[idx], ...goal }
+    saveMock(db)
+    return db.goals[idx]
+  }
+  const row = { id: uid(), user_id: userId, context, saved_amount: 0, created_at: new Date().toISOString(), ...goal }
+  db.goals.push(row)
+  saveMock(db)
+  return row
+}
+
+export async function deleteGoal(userId, goalId) {
+  if (supabaseEnabled) {
+    const { error } = await supabase.from('goals').delete().eq('id', goalId)
+    if (error) throw error
+    return
+  }
+  const db = loadMock()
+  db.goals = db.goals.filter((g) => g.id !== goalId)
+  saveMock(db)
+}
+
+export async function addToGoalSavings(userId, goalId, amount) {
+  if (supabaseEnabled) {
+    const { data: goal } = await supabase.from('goals').select('saved_amount').eq('id', goalId).single()
+    const { data, error } = await supabase
+      .from('goals')
+      .update({ saved_amount: (goal?.saved_amount || 0) + amount })
+      .eq('id', goalId)
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  const g = db.goals.find((g) => g.id === goalId)
+  if (g) g.saved_amount = (g.saved_amount || 0) + amount
+  saveMock(db)
+  return g
+}
+
+// ------------------------------------------------------------- transactions
+export async function listTransactions(userId, context) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('context', context)
+      .order('date', { ascending: false })
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  return db.transactions
+    .filter((t) => t.user_id === userId && t.context === context)
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+}
+
+export async function addTransaction(userId, context, tx) {
+  const row = { id: uid(), user_id: userId, context, created_at: new Date().toISOString(), ...tx }
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.from('transactions').insert(row).select().single()
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  db.transactions.push(row)
+  saveMock(db)
+  return row
+}
+
+export async function deleteTransaction(userId, txId) {
+  if (supabaseEnabled) {
+    const { error } = await supabase.from('transactions').delete().eq('id', txId)
+    if (error) throw error
+    return
+  }
+  const db = loadMock()
+  db.transactions = db.transactions.filter((t) => t.id !== txId)
+  saveMock(db)
+}
+
+// -------------------------------------------------------------------- streak
+export async function getCheckins(userId, context) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.from('checkins').select('*').eq('user_id', userId).eq('context', context).order('date')
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  return db.checkins.filter((c) => c.user_id === userId && c.context === context)
+}
+
+export async function checkInToday(userId, context) {
+  const today = new Date().toISOString().slice(0, 10)
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.from('checkins').upsert({ user_id: userId, context, date: today, done: true }).select().single()
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  if (!db.checkins.find((c) => c.user_id === userId && c.context === context && c.date === today)) {
+    db.checkins.push({ id: uid(), user_id: userId, context, date: today, done: true })
+    saveMock(db)
+  }
+  return db.checkins
+}
+
+// ------------------------------------------------------------------- lessons
+// Lessons content is static (src/lib/lessons.js); we only persist which keys
+// a user has marked as completed per context.
+export async function listCompletedLessons(userId, context) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase
+      .from('user_lessons')
+      .select('lessons(key)')
+      .eq('user_id', userId)
+      .eq('context', context)
+      .not('completed_at', 'is', null)
+    if (error) throw error
+    return (data || []).map((r) => r.lessons?.key).filter(Boolean)
+  }
+  const db = loadMock()
+  return db.completedLessons.filter((c) => c.user_id === userId && c.context === context).map((c) => c.lesson_key)
+}
+
+export async function completeLesson(userId, context, lessonKey) {
+  if (supabaseEnabled) {
+    // Requires a matching row in `lessons` by key; upsert-by-key via RPC would be cleaner,
+    // kept simple here since lessons content currently lives in the client.
+    const { data: lesson } = await supabase.from('lessons').select('id').eq('key', lessonKey).maybeSingle()
+    if (!lesson) return
+    const { error } = await supabase
+      .from('user_lessons')
+      .upsert({ user_id: userId, lesson_id: lesson.id, context, completed_at: new Date().toISOString() })
+    if (error) throw error
+    return
+  }
+  const db = loadMock()
+  if (!db.completedLessons.find((c) => c.user_id === userId && c.context === context && c.lesson_key === lessonKey)) {
+    db.completedLessons.push({ user_id: userId, context, lesson_key: lessonKey })
+    saveMock(db)
+  }
+}
+
+export function computeStreak(checkins) {
+  const dates = new Set(checkins.map((c) => c.date))
+  let streak = 0
+  const d = new Date()
+  while (true) {
+    const key = d.toISOString().slice(0, 10)
+    if (dates.has(key)) {
+      streak += 1
+      d.setDate(d.getDate() - 1)
+    } else {
+      break
+    }
+  }
+  return streak
+}
