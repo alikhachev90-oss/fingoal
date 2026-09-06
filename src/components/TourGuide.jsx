@@ -41,6 +41,16 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
       const el = document.querySelector(`[data-tour="${step.id}"]`)
       if (el) {
         const r = el.getBoundingClientRect()
+        const offscreen = r.top < 0 || r.bottom > window.innerHeight
+        if (offscreen) {
+          el.scrollIntoView({ block: 'center', behavior: 'instant' })
+          // Let the scroll settle, then measure the now-in-view position.
+          setTimeout(() => {
+            const r2 = el.getBoundingClientRect()
+            setRect({ top: r2.top, left: r2.left, width: r2.width, height: r2.height })
+          }, 80)
+          return
+        }
         setRect({ top: r.top, left: r.left, width: r.width, height: r.height })
       } else if (attempts < 5) {
         attempts += 1
