@@ -31,6 +31,7 @@ export const CATEGORY_TREE = {
     { key: 'transport', label: { ru: 'Транспорт', en: 'Transport' }, subs: ['Платёж за авто', 'Топливо', 'Страховка авто', 'Налог на авто', 'Парковка'] },
     { key: 'groceries', label: { ru: 'Продукты', en: 'Groceries' }, subs: [] },
     { key: 'health', label: { ru: 'Здоровье', en: 'Health' }, subs: ['Страховка', 'Лекарства'] },
+    { key: 'other', label: { ru: 'Другое (обязательное)', en: 'Other (essential)' }, subs: [] },
   ],
   wants: [
     { key: 'cafe', label: { ru: 'Кафе/рестораны', en: 'Cafes/restaurants' }, subs: [] },
@@ -40,6 +41,7 @@ export const CATEGORY_TREE = {
     { key: 'clothes', label: { ru: 'Одежда', en: 'Clothes' }, subs: [] },
     { key: 'gifts', label: { ru: 'Подарки', en: 'Gifts' }, subs: [] },
     { key: 'hobby', label: { ru: 'Хобби', en: 'Hobby' }, subs: [] },
+    { key: 'other', label: { ru: 'Другое (необязательное)', en: 'Other (discretionary)' }, subs: [] },
   ],
   savings: [
     { key: 'emergency', label: { ru: 'Подушка безопасности', en: 'Emergency fund' }, subs: [] },

@@ -10,6 +10,7 @@ import GoalsScreen from './screens/GoalsScreen'
 import LessonsScreen from './screens/LessonsScreen'
 import InsightsScreen from './screens/InsightsScreen'
 import TaxEstimateScreen from './screens/TaxEstimateScreen'
+import ConnectBankScreen from './screens/ConnectBankScreen'
 
 // Polls for due bill reminders while the app is open, and fires a browser
 // Notification for any that come due. No backend push — see lib/reminders.js.
@@ -46,6 +47,7 @@ function Shell() {
       <Route path="/lessons" element={<RequireAuth><LessonsScreen /></RequireAuth>} />
       <Route path="/insights" element={<RequireAuth><InsightsScreen /></RequireAuth>} />
       <Route path="/taxes" element={<RequireAuth><TaxEstimateScreen /></RequireAuth>} />
+      <Route path="/bank" element={<RequireAuth><ConnectBankScreen /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
     </>
