@@ -1,7 +1,7 @@
 {
-  "name": "FinGoal",
-  "short_name": "FinGoal",
-  "description": "Копи на цель, а не просто следи за тратами",
+  "name": "Fintera",
+  "short_name": "Fintera",
+  "description": "Финансовая грамотность на практике",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -75,7 +75,7 @@ export default function AuthScreen() {
         <div className="w-16 h-16 rounded-full border-2 border-primary flex items-center justify-center mx-auto mb-4">
           <Target size={28} className="text-primary" strokeWidth={2} />
         </div>
-        <h1 className="text-4xl font-semibold font-display tracking-tight">FinGoal</h1>
+        <h1 className="text-4xl font-semibold font-display tracking-tight">Fintera</h1>
         <p className="text-muted text-sm mt-2">{t('auth.tagline')}</p>
         <button
           onClick={() => setShowHowItWorks(true)}
