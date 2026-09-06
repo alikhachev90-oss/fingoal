@@ -13,7 +13,7 @@ import TourGuide from '../components/TourGuide'
 import { Card, Button, ProgressBar, StatTile, IconCircle, EmptyState } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { findCategory, pickLang, CATEGORY_TREE } from '../lib/categories'
+import { findCategory, pickLang, subLabel, subHint, CATEGORY_TREE } from '../lib/categories'
 import { computeGoalPlan, computeSafeToSpendToday } from '../lib/finance'
 import { detectHabitTip, dismissHabitTip } from '../lib/habitTips'
 import { TOURS } from '../lib/tours'
@@ -21,6 +21,17 @@ import { TOURS } from '../lib/tours'
 // Muted, "graphite" chart colors instead of a harsh stoplight red/amber/green —
 // the pie is informational, not a warning light.
 const GROUP_HEX = { needs: '#8a5a4a', wants: '#a3893e', savings: '#3f7a5c' }
+
+// Lightens a hex color by mixing it toward white — used to give same-group
+// pie slices (e.g. several Needs categories) distinct-enough shades while
+// staying visually grouped by color family.
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16)
+  const r = Math.min(255, Math.round(((n >> 16) & 255) + (255 - ((n >> 16) & 255)) * amt))
+  const g = Math.min(255, Math.round(((n >> 8) & 255) + (255 - ((n >> 8) & 255)) * amt))
+  const b = Math.min(255, Math.round((n & 255) + (255 - (n & 255)) * amt))
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+}
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -86,14 +97,27 @@ export default function DashboardScreen() {
     for (const t of monthTx) {
       const cat = findCategory(t.group, t.category_key)
       const label = pickLang(cat?.label, lang) || t.category_key
-      totals[label] = (totals[label] || { value: 0, group: t.group })
-      totals[label].value += t.amount
-      totals[label].group = t.group
+      const id = `${t.group}:${t.category_key}`
+      totals[id] = totals[id] || { value: 0, group: t.group, key: t.category_key, name: label }
+      totals[id].value += t.amount
     }
-    return Object.entries(totals)
-      .map(([name, v]) => ({ name, value: v.value, group: v.group }))
-      .sort((a, b) => b.value - a.value)
+    return Object.values(totals).sort((a, b) => b.value - a.value)
   }, [monthTx, lang])
+
+  const [drilldown, setDrilldown] = useState(null) // {group,key,name,total}
+
+  const drilldownSubs = useMemo(() => {
+    if (!drilldown) return []
+    const totals = {}
+    for (const t of monthTx) {
+      if (t.group !== drilldown.group || t.category_key !== drilldown.key) continue
+      const displayLabel = t.sub ? subLabel(drilldown.group, drilldown.key, t.sub, lang) : (lang === 'en' ? 'Uncategorized' : 'Без подкатегории')
+      const id = t.sub || '__none__'
+      totals[id] = totals[id] || { value: 0, name: displayLabel, hint: t.sub ? subHint(drilldown.group, drilldown.key, t.sub, lang) : null }
+      totals[id].value += t.amount
+    }
+    return Object.values(totals).sort((a, b) => b.value - a.value)
+  }, [drilldown, monthTx, lang])
 
   const monthlyIncome = settings?.monthly_income || 0
   const monthlyNeedsBudget = Object.values(settings?.needs_budget || {}).reduce((s, v) => s + (v || 0), 0)
@@ -101,11 +125,16 @@ export default function DashboardScreen() {
   const freeMoney = monthlyIncome - monthlyNeedsBudget - byGroup.wants
   const maxCategoryValue = byCategory[0]?.value || 1
 
-  const pieData = [
-    { key: 'needs', name: t('group.needs'), value: byGroup.needs },
-    { key: 'wants', name: t('group.wants'), value: byGroup.wants },
-    { key: 'savings', name: t('group.savings'), value: byGroup.savings },
-  ].filter((d) => d.value > 0)
+  // Pie is at the category level (Housing, Transport, Cafe...), not just the
+  // three top groups — each slice tinted by its parent group's color so the
+  // needs/wants/savings split still reads at a glance, but clicking a slice
+  // drills into what that category is actually made of (see drilldownSubs).
+  const pieData = byCategory.map((c) => {
+    const siblings = byCategory.filter((x) => x.group === c.group)
+    const idx = siblings.indexOf(c)
+    const tint = siblings.length > 1 ? (idx / (siblings.length - 1)) * 0.55 : 0
+    return { ...c, color: shade(GROUP_HEX[c.group], tint) }
+  })
 
   const safeToday = computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, byGroup.wants)
 
@@ -245,14 +274,27 @@ export default function DashboardScreen() {
         )}
 
         {pieData.length > 0 && (
-          <Card>
-            <p className="text-sm font-semibold mb-1">{t('dashboard.chartTitle')}</p>
+          <Card data-tour="dash-chart">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-semibold">{t('dashboard.chartTitle')}</p>
+              <span className="text-[11px] text-muted">{t('dashboard.chartTapHint')}</span>
+            </div>
             <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={48} outerRadius={72} paddingAngle={4} strokeWidth={0}>
+                  <Pie
+                    data={pieData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={48}
+                    outerRadius={72}
+                    paddingAngle={4}
+                    strokeWidth={0}
+                    onClick={(d) => setDrilldown({ group: d.group, key: d.key, name: d.name, total: d.value })}
+                    style={{ cursor: 'pointer' }}
+                  >
                     {pieData.map((d) => (
-                      <Cell key={d.key} fill={GROUP_HEX[d.key]} stroke="transparent" />
+                      <Cell key={`${d.group}:${d.key}`} fill={d.color} stroke="transparent" />
                     ))}
                   </Pie>
                   <Tooltip
@@ -262,14 +304,46 @@ export default function DashboardScreen() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex justify-center gap-4 mt-1">
+            <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-1">
               {pieData.map((d) => (
-                <div key={d.key} className="flex items-center gap-1.5 text-xs font-medium">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: GROUP_HEX[d.key] }} />
+                <button
+                  key={`${d.group}:${d.key}`}
+                  type="button"
+                  onClick={() => setDrilldown({ group: d.group, key: d.key, name: d.name, total: d.value })}
+                  className="flex items-center gap-1.5 text-xs font-medium"
+                >
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
                   {d.name}: {fmt(d.value)}
-                </div>
+                </button>
               ))}
             </div>
+          </Card>
+        )}
+
+        {drilldown && (
+          <Card className="space-y-2.5 !border-l-[3px]" style={{ borderLeftColor: GROUP_HEX[drilldown.group] }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold">{drilldown.name}</p>
+                <p className="text-xs text-muted">{t('dashboard.drilldownTotal', { amt: fmt(drilldown.total) })}</p>
+              </div>
+              <button onClick={() => setDrilldown(null)} type="button" className="text-xs text-muted">✕</button>
+            </div>
+            {drilldownSubs.length > 0 ? (
+              <div className="space-y-2">
+                {drilldownSubs.map((s) => (
+                  <div key={s.name} className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1 text-muted">
+                      {s.name}
+                      {s.hint && <InfoTag>{s.hint}</InfoTag>}
+                    </span>
+                    <span className="font-medium">{fmt(s.value)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted">{t('dashboard.drilldownEmpty')}</p>
+            )}
           </Card>
         )}
 
@@ -278,13 +352,18 @@ export default function DashboardScreen() {
             <p className="text-sm font-semibold">{t('dashboard.byCategoryTitle')}</p>
             <div className="space-y-3">
               {byCategory.slice(0, 6).map((c) => (
-                <div key={c.name}>
+                <button
+                  key={`${c.group}:${c.key}`}
+                  type="button"
+                  onClick={() => setDrilldown({ group: c.group, key: c.key, name: c.name, total: c.value })}
+                  className="w-full text-left"
+                >
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="text-text font-medium">{c.name}</span>
                     <span className="font-semibold">{fmt(c.value)}</span>
                   </div>
                   <ProgressBar pct={(c.value / maxCategoryValue) * 100} height="h-1.5" colorClass={`bg-${c.group}`} />
-                </div>
+                </button>
               ))}
             </div>
           </Card>

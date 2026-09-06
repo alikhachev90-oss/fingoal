@@ -25,12 +25,45 @@ export const GROUP_PILL_CLASSES = {
   savings: 'bg-savings/10 text-savings',
 }
 
+// A sub-category is {key, label:{ru,en}, hint:{ru,en}}. `hint` exists because
+// people genuinely don't know where things like car insurance or a home
+// repair belong (a recurring bill vs. a one-off, a car cost vs. a house
+// cost) — the whole point of this file is to answer that question inline,
+// not make the user guess.
 export const CATEGORY_TREE = {
   needs: [
-    { key: 'housing', label: { ru: 'Жильё', en: 'Housing' }, subs: ['Аренда', 'Коммуналка', 'Ремонт'] },
-    { key: 'transport', label: { ru: 'Транспорт', en: 'Transport' }, subs: ['Платёж за авто', 'Топливо', 'Страховка авто', 'Налог на авто', 'Парковка'] },
+    {
+      key: 'housing',
+      label: { ru: 'Жильё', en: 'Housing' },
+      subs: [
+        { key: 'rent', label: { ru: 'Аренда', en: 'Rent' }, hint: { ru: 'Ежемесячный платёж за съём жилья или ипотека.', en: 'Your monthly rent or mortgage payment.' } },
+        { key: 'utilities', label: { ru: 'Коммуналка', en: 'Utilities' }, hint: { ru: 'Свет, вода, газ, отопление, вывоз мусора — регулярные счета за само жильё.', en: 'Electricity, water, gas, heat, trash — the recurring bills for the place itself.' } },
+        { key: 'household', label: { ru: 'Быт (уборка, мелочи по дому)', en: 'Household (cleaning, small home items)' }, hint: { ru: 'Уборщица, лампочки, бытовая химия, мелкий инвентарь — то, что нужно для жизни в доме, но не сама аренда и не коммуналка.', en: 'A cleaner, lightbulbs, cleaning supplies, small household items — things you need to live in the place, but not the rent or utility bill itself.' } },
+        { key: 'repair', label: { ru: 'Ремонт', en: 'Repairs' }, hint: { ru: 'Разовый ремонт или починка — не регулярный платёж, а конкретная работа (покрасить стену, починить кран).', en: 'A one-off repair or fix — not a recurring bill, a specific job (painting a wall, fixing a leak).' } },
+      ],
+    },
+    {
+      key: 'transport',
+      label: { ru: 'Транспорт', en: 'Transport' },
+      subs: [
+        { key: 'payment', label: { ru: 'Платёж за авто', en: 'Car payment' }, hint: { ru: 'Ежемесячный кредитный/лизинговый платёж за саму машину.', en: 'The monthly loan or lease payment on the car itself.' } },
+        { key: 'fuel', label: { ru: 'Топливо', en: 'Fuel' }, hint: { ru: 'Бензин/заправка — переменная трата, зависит от того, сколько ездите.', en: 'Gas — a variable cost that depends on how much you drive.' } },
+        { key: 'insurance', label: { ru: 'Страховка авто', en: 'Car insurance' }, hint: { ru: 'Регулярный (обычно раз в полгода-год) обязательный платёж за страховку машины — да, это тоже Транспорт, а не отдельная категория «страховки».', en: "A regular (usually every 6-12 months) required payment for car insurance — yes, this is Transport too, not a separate \"insurance\" category." } },
+        { key: 'maintenance', label: { ru: 'Обслуживание', en: 'Maintenance' }, hint: { ru: 'Замена масла, шиномонтаж, мелкий ремонт машины — нерегулярные, но обязательные траты на содержание авто.', en: 'Oil changes, tire swaps, small repairs — irregular but necessary costs of keeping the car running.' } },
+        { key: 'tax', label: { ru: 'Налог на авто', en: 'Vehicle tax' }, hint: { ru: 'Ежегодный транспортный налог/регистрация.', en: 'Annual vehicle tax or registration fee.' } },
+        { key: 'parking', label: { ru: 'Парковка', en: 'Parking' }, hint: { ru: 'Платная парковка, включая абонементы.', en: 'Paid parking, including monthly passes.' } },
+      ],
+    },
     { key: 'groceries', label: { ru: 'Продукты', en: 'Groceries' }, subs: [] },
-    { key: 'health', label: { ru: 'Здоровье', en: 'Health' }, subs: ['Страховка', 'Лекарства'] },
+    {
+      key: 'health',
+      label: { ru: 'Здоровье', en: 'Health' },
+      subs: [
+        { key: 'insurance', label: { ru: 'Страховка', en: 'Insurance' }, hint: { ru: 'Регулярный платёж за медстраховку.', en: 'Your regular health insurance payment.' } },
+        { key: 'medicine', label: { ru: 'Лекарства', en: 'Medicine' }, hint: { ru: 'Аптека, рецептурные и безрецептурные препараты.', en: 'Pharmacy, prescription and over-the-counter medicine.' } },
+        { key: 'doctor', label: { ru: 'Приём врача', en: 'Doctor visit' }, hint: { ru: 'Оплата самого визита/приёма — то, что не покрыла страховка.', en: 'The cost of the visit itself — whatever insurance didn\'t cover.' } },
+      ],
+    },
     { key: 'other', label: { ru: 'Другое (обязательное)', en: 'Other (essential)' }, subs: [] },
   ],
   wants: [
@@ -64,6 +97,24 @@ export function categoryLabel(group, key, lang = 'ru') {
   return pickLang(findCategory(group, key)?.label, lang) || key
 }
 
+export function findSub(group, key, subKey) {
+  return findCategory(group, key)?.subs?.find((s) => s.key === subKey) || null
+}
+
+// Resolves a stored `sub` value to a display label. Falls back to the raw
+// stored value itself so older data (saved before subs had stable keys)
+// still renders something sensible instead of an empty/undefined string.
+export function subLabel(group, key, subKey, lang = 'ru') {
+  if (!subKey) return null
+  const s = findSub(group, key, subKey)
+  return s ? pickLang(s.label, lang) : subKey
+}
+
+export function subHint(group, key, subKey, lang = 'ru') {
+  const s = findSub(group, key, subKey)
+  return s ? pickLang(s.hint, lang) : null
+}
+
 export function flatCategories(lang = 'ru') {
   const out = []
   for (const group of Object.keys(CATEGORY_TREE)) {
@@ -82,17 +133,20 @@ const KEYWORD_RULES = [
   { words: ['кофе'], wordsEn: ['coffee'], group: 'wants', key: 'coffee', explanation: { ru: 'Похоже на кофе навынос — отнесли в Wants → Кофе на вынос. Если это зёрна/кофе домой из магазина — измените на Needs → Продукты.', en: 'Looks like coffee to go — filed under Wants → Coffee to go. If this is beans/coffee for home from the store, change it to Needs → Groceries.' } },
   { words: ['кафе', 'ресторан', 'бар', 'обед вне дома', 'ужин в ресторане', 'фастфуд', 'макдак', 'kfc'], wordsEn: ['cafe', 'restaurant', 'bar', 'dining out', 'fast food', 'mcdonald'], group: 'wants', key: 'cafe', explanation: { ru: 'Еда вне дома — дискреционная трата (Wants), в отличие от покупки продуктов домой.', en: 'Eating out is discretionary (Wants), unlike buying groceries for home.' } },
   { words: ['продукты', 'магазин', 'супермаркет', 'ашан', 'пятерочка', 'перекресток', 'вкусвилл'], wordsEn: ['groceries', 'supermarket', 'grocery store', 'trader joe', 'whole foods'], group: 'needs', key: 'groceries', explanation: { ru: 'Покупка продуктов для дома — обязательная трата (Needs).', en: 'Buying groceries for home is an essential expense (Needs).' } },
-  { words: ['аренда', 'квартплата', 'снять квартиру'], wordsEn: ['rent', 'lease'], group: 'needs', key: 'housing', sub: 'Аренда', explanation: { ru: 'Аренда жилья — обязательная трата (Needs → Жильё).', en: 'Rent is an essential expense (Needs → Housing).' } },
-  { words: ['коммуналка', 'жкх', 'свет', 'вода счет', 'электричество'], wordsEn: ['utilities', 'electricity bill', 'water bill'], group: 'needs', key: 'housing', sub: 'Коммуналка', explanation: { ru: 'Коммунальные платежи — Needs → Жильё.', en: 'Utility bills — Needs → Housing.' } },
-  { words: ['ремонт квартиры', 'ремонт дома'], wordsEn: ['home repair', 'renovation'], group: 'needs', key: 'housing', sub: 'Ремонт', explanation: { ru: 'Ремонт жилья отнесён к Needs → Жильё.', en: 'Home repairs are filed under Needs → Housing.' } },
-  { words: ['бензин', 'заправка', 'топливо', 'азс'], wordsEn: ['gas', 'fuel', 'gas station'], group: 'needs', key: 'transport', sub: 'Топливо', explanation: { ru: 'Топливо для машины — обязательная трата (Needs → Транспорт).', en: 'Fuel for the car is an essential expense (Needs → Transport).' } },
+  { words: ['аренда', 'квартплата', 'снять квартиру'], wordsEn: ['rent', 'lease'], group: 'needs', key: 'housing', sub: 'rent', explanation: { ru: 'Аренда жилья — обязательная трата (Needs → Жильё).', en: 'Rent is an essential expense (Needs → Housing).' } },
+  { words: ['коммуналка', 'жкх', 'свет', 'вода счет', 'электричество'], wordsEn: ['utilities', 'electricity bill', 'water bill'], group: 'needs', key: 'housing', sub: 'utilities', explanation: { ru: 'Коммунальные платежи — Needs → Жильё.', en: 'Utility bills — Needs → Housing.' } },
+  { words: ['уборщица', 'клининг', 'лампочка', 'бытовая химия'], wordsEn: ['cleaner', 'cleaning service', 'lightbulb'], group: 'needs', key: 'housing', sub: 'household', explanation: { ru: 'Быт по дому (уборка, мелочи) — Needs → Жильё → Быт, отдельно от аренды и коммуналки.', en: 'Household stuff (cleaning, small items) — Needs → Housing → Household, separate from rent and utilities.' } },
+  { words: ['ремонт квартиры', 'ремонт дома'], wordsEn: ['home repair', 'renovation'], group: 'needs', key: 'housing', sub: 'repair', explanation: { ru: 'Ремонт жилья отнесён к Needs → Жильё.', en: 'Home repairs are filed under Needs → Housing.' } },
+  { words: ['бензин', 'заправка', 'топливо', 'азс'], wordsEn: ['gas', 'fuel', 'gas station'], group: 'needs', key: 'transport', sub: 'fuel', explanation: { ru: 'Топливо для машины — обязательная трата (Needs → Транспорт).', en: 'Fuel for the car is an essential expense (Needs → Transport).' } },
   { words: ['такси', 'убер', 'yandex go', 'каршеринг'], wordsEn: ['taxi', 'uber', 'lyft', 'car share'], group: 'needs', key: 'transport', explanation: { ru: 'Поездки на такси отнесли к Needs → Транспорт как транспортные расходы. Если это была развлекательная поездка — можно изменить на Wants → Развлечения.', en: 'Taxi rides are filed under Needs → Transport as a transportation cost. If it was a recreational trip, you can change it to Wants → Entertainment.' } },
-  { words: ['страховка авто', 'осаго', 'каско'], wordsEn: ['car insurance', 'auto insurance'], group: 'needs', key: 'transport', sub: 'Страховка авто', explanation: { ru: 'Автостраховка — Needs → Транспорт.', en: 'Car insurance — Needs → Transport.' } },
-  { words: ['налог на авто', 'транспортный налог'], wordsEn: ['car tax', 'vehicle tax'], group: 'needs', key: 'transport', sub: 'Налог на авто', explanation: { ru: 'Транспортный налог — Needs → Транспорт.', en: 'Vehicle tax — Needs → Transport.' } },
-  { words: ['парковка'], wordsEn: ['parking'], group: 'needs', key: 'transport', sub: 'Парковка', explanation: { ru: 'Парковка — Needs → Транспорт.', en: 'Parking — Needs → Transport.' } },
-  { words: ['автоплатеж за авто', 'кредит на машину', 'платеж за авто', 'лизинг авто'], wordsEn: ['car payment', 'auto loan', 'car lease'], group: 'needs', key: 'transport', sub: 'Платёж за авто', explanation: { ru: 'Регулярный платёж за автомобиль — Needs → Транспорт.', en: 'A recurring car payment — Needs → Transport.' } },
-  { words: ['лекарств', 'аптека', 'таблетки'], wordsEn: ['medicine', 'pharmacy', 'pills'], group: 'needs', key: 'health', sub: 'Лекарства', explanation: { ru: 'Лекарства — обязательная трата (Needs → Здоровье).', en: 'Medicine is an essential expense (Needs → Health).' } },
-  { words: ['медстраховка', 'дмс', 'страховка здоровье'], wordsEn: ['health insurance'], group: 'needs', key: 'health', sub: 'Страховка', explanation: { ru: 'Медстраховка — Needs → Здоровье.', en: 'Health insurance — Needs → Health.' } },
+  { words: ['страховка авто', 'осаго', 'каско'], wordsEn: ['car insurance', 'auto insurance'], group: 'needs', key: 'transport', sub: 'insurance', explanation: { ru: 'Автостраховка — Needs → Транспорт (регулярная обязательная трата, не отдельная категория).', en: 'Car insurance — Needs → Transport (a regular required expense, not its own category).' } },
+  { words: ['масло поменял', 'замена масла', 'шиномонтаж', 'ремонт машины', 'сто'], wordsEn: ['oil change', 'tire change', 'car repair', 'car maintenance'], group: 'needs', key: 'transport', sub: 'maintenance', explanation: { ru: 'Обслуживание машины (масло, шины, мелкий ремонт) — Needs → Транспорт → Обслуживание.', en: 'Car maintenance (oil, tires, small repairs) — Needs → Transport → Maintenance.' } },
+  { words: ['налог на авто', 'транспортный налог'], wordsEn: ['car tax', 'vehicle tax'], group: 'needs', key: 'transport', sub: 'tax', explanation: { ru: 'Транспортный налог — Needs → Транспорт.', en: 'Vehicle tax — Needs → Transport.' } },
+  { words: ['парковка'], wordsEn: ['parking'], group: 'needs', key: 'transport', sub: 'parking', explanation: { ru: 'Парковка — Needs → Транспорт.', en: 'Parking — Needs → Transport.' } },
+  { words: ['автоплатеж за авто', 'кредит на машину', 'платеж за авто', 'лизинг авто'], wordsEn: ['car payment', 'auto loan', 'car lease'], group: 'needs', key: 'transport', sub: 'payment', explanation: { ru: 'Регулярный платёж за автомобиль — Needs → Транспорт.', en: 'A recurring car payment — Needs → Transport.' } },
+  { words: ['лекарств', 'аптека', 'таблетки'], wordsEn: ['medicine', 'pharmacy', 'pills'], group: 'needs', key: 'health', sub: 'medicine', explanation: { ru: 'Лекарства — обязательная трата (Needs → Здоровье).', en: 'Medicine is an essential expense (Needs → Health).' } },
+  { words: ['медстраховка', 'дмс', 'страховка здоровье'], wordsEn: ['health insurance'], group: 'needs', key: 'health', sub: 'insurance', explanation: { ru: 'Медстраховка — Needs → Здоровье.', en: 'Health insurance — Needs → Health.' } },
+  { words: ['врач', 'прием врача', 'стоматолог'], wordsEn: ['doctor', 'dentist'], group: 'needs', key: 'health', sub: 'doctor', explanation: { ru: 'Оплата приёма врача — Needs → Здоровье → Приём врача.', en: 'Paying for a doctor visit — Needs → Health → Doctor visit.' } },
   { words: ['подписк', 'netflix', 'spotify', 'youtube premium', 'подписка'], wordsEn: ['subscription', 'netflix', 'spotify', 'youtube premium'], group: 'wants', key: 'subscriptions', explanation: { ru: 'Подписки на сервисы — необязательная регулярная трата (Wants).', en: 'Service subscriptions are a recurring discretionary expense (Wants).' } },
   { words: ['одежда', 'обувь', 'кроссовки', 'куртка'], wordsEn: ['clothes', 'shoes', 'sneakers', 'jacket'], group: 'wants', key: 'clothes', explanation: { ru: 'Одежда/обувь — дискреционная трата (Wants), если это не рабочая форма.', en: 'Clothes/shoes are discretionary (Wants), unless it\'s a required work uniform.' } },
   { words: ['подарок', 'подарки'], wordsEn: ['gift', 'present'], group: 'wants', key: 'gifts', explanation: { ru: 'Подарки — Wants → Подарки.', en: 'Gifts — Wants → Gifts.' } },
@@ -134,8 +188,9 @@ export function suggestCategories(query, lang = 'ru') {
       results.push({ group: c.group, key: c.key, sub: null, label: c.label, groupLabel: pickLang(GROUP_LABELS[c.group], lang), explanation: null, score: 2 })
     }
     for (const s of c.subs) {
-      if (s.toLowerCase().includes(q)) {
-        results.push({ group: c.group, key: c.key, sub: s, label: c.label, groupLabel: pickLang(GROUP_LABELS[c.group], lang), explanation: null, score: 2 })
+      const subText = pickLang(s.label, lang)
+      if (subText.toLowerCase().includes(q)) {
+        results.push({ group: c.group, key: c.key, sub: s.key, label: c.label, groupLabel: pickLang(GROUP_LABELS[c.group], lang), explanation: pickLang(s.hint, lang), score: 2 })
       }
     }
   }

@@ -5,7 +5,8 @@ import BottomNav from '../components/BottomNav'
 import { Button, Input, Card, Pill } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { suggestCategories, CATEGORY_TREE, GROUP_PILL_CLASSES, findCategory, pickLang } from '../lib/categories'
+import { suggestCategories, CATEGORY_TREE, GROUP_PILL_CLASSES, findCategory, pickLang, subLabel, subHint } from '../lib/categories'
+import InfoTag from '../components/InfoTag'
 import { computeGoalPlan, daysSavedByAmount, crossedMilestone } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
 import { Wand2 } from 'lucide-react'
@@ -28,6 +29,7 @@ export default function EntryScreen() {
   const [quickResult, setQuickResult] = useState(null)
   const [roundUp, setRoundUp] = useState(true)
   const [roundUpNote, setRoundUpNote] = useState(null)
+  const [pendingCat, setPendingCat] = useState(null) // {group,key} — waiting for a sub pick
 
   useEffect(() => {
     if (!user) return
@@ -38,8 +40,9 @@ export default function EntryScreen() {
   const suggestions = useMemo(() => suggestCategories(query, lang), [query, lang])
 
   function pickSuggestion(s) {
-    setSelected(s)
-    setQuery(s.sub ? `${s.label} → ${s.sub}` : s.label)
+    const subDisplay = s.sub ? subLabel(s.group, s.key, s.sub, lang) : null
+    setSelected({ ...s, sub: s.sub, subDisplay })
+    setQuery(subDisplay ? `${s.label} → ${subDisplay}` : s.label)
   }
 
   function runQuickParse() {
@@ -50,11 +53,27 @@ export default function EntryScreen() {
     if (!comment && quickText.trim()) setComment(quickText.trim())
   }
 
-  function pickManual(group, key, sub) {
+  // Step 1: pick the top-level category. If it has sub-categories, wait for
+  // step 2 instead of finalizing right away — this is the "what actually
+  // belongs under Housing/Transport?" clarity the manual picker was missing.
+  function pickManualCategory(group, key) {
+    const cat = findCategory(group, key)
+    if (cat.subs && cat.subs.length > 0) {
+      setSelected(null)
+      setPendingCat({ group, key })
+      setQuery(pickLang(cat.label, lang))
+      return
+    }
+    finalizeManual(group, key, null)
+  }
+
+  function finalizeManual(group, key, subKey) {
     const cat = findCategory(group, key)
     const label = pickLang(cat.label, lang)
-    setSelected({ group, key, sub: sub || null, label, explanation: null })
-    setQuery(sub ? `${label} → ${sub}` : label)
+    const subDisplay = subKey ? subLabel(group, key, subKey, lang) : null
+    setSelected({ group, key, sub: subKey || null, subDisplay, label, explanation: null })
+    setQuery(subDisplay ? `${label} → ${subDisplay}` : label)
+    setPendingCat(null)
   }
 
   const goalPlan = useMemo(() => {
@@ -168,6 +187,7 @@ export default function EntryScreen() {
             onChange={(e) => {
               setQuery(e.target.value)
               setSelected(null)
+              setPendingCat(null)
             }}
             placeholder={t('entry.categoryPlaceholder')}
           />
@@ -197,11 +217,43 @@ export default function EntryScreen() {
             <div className="bg-surface2 border border-primary rounded-xl p-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">
-                  {t(`group.${selected.group}`)} → {selected.label}{selected.sub ? ` → ${selected.sub}` : ''}
+                  {t(`group.${selected.group}`)} → {selected.label}{selected.subDisplay ? ` → ${selected.subDisplay}` : ''}
                 </span>
                 <button className="text-xs text-primary" onClick={() => { setSelected(null) }} type="button">{t('entry.change')}</button>
               </div>
               {selected.explanation && <p className="text-xs text-muted mt-1">🤖 {selected.explanation}</p>}
+            </div>
+          )}
+
+          {pendingCat && (
+            <div className="bg-surface2 border border-primary rounded-xl p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">{pickLang(findCategory(pendingCat.group, pendingCat.key).label, lang)}</span>
+                <button className="text-xs text-primary" onClick={() => setPendingCat(null)} type="button">{t('entry.change')}</button>
+              </div>
+              <p className="text-xs text-muted">{t('entry.pickSub')}</p>
+              <div className="space-y-1.5">
+                {findCategory(pendingCat.group, pendingCat.key).subs.map((s) => (
+                  <div
+                    key={s.key}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => finalizeManual(pendingCat.group, pendingCat.key, s.key)}
+                    onKeyDown={(e) => e.key === 'Enter' && finalizeManual(pendingCat.group, pendingCat.key, s.key)}
+                    className="w-full text-left bg-surface border border-border rounded-lg p-2.5 hover:border-primary cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span className="text-sm font-medium">{pickLang(s.label, lang)}</span>
+                    {s.hint && <InfoTag>{pickLang(s.hint, lang)}</InfoTag>}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => finalizeManual(pendingCat.group, pendingCat.key, null)}
+                  className="w-full text-left text-xs text-muted px-2.5 py-1.5"
+                >
+                  {t('entry.noSub')}
+                </button>
+              </div>
             </div>
           )}
 
@@ -216,7 +268,7 @@ export default function EntryScreen() {
                       <button
                         key={c.key}
                         type="button"
-                        onClick={() => pickManual(group, c.key)}
+                        onClick={() => pickManualCategory(group, c.key)}
                         className="text-xs px-2.5 py-1.5 rounded-lg bg-surface2 border border-border"
                       >
                         {pickLang(c.label, lang)}

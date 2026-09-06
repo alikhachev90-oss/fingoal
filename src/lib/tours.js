@@ -50,6 +50,14 @@ export const TOURS = {
       },
     },
     {
+      id: 'dash-chart',
+      title: { ru: 'Диаграмма трат', en: 'Spending chart' },
+      body: {
+        ru: 'Каждый сектор — отдельная категория (Жильё, Транспорт и т.д.), а не просто «Обязательное/Необязательное». Нажмите на сектор или на его название в списке ниже — увидите, из чего конкретно она состоит (например, в Жильё: аренда, коммуналка, быт).',
+        en: "Each slice is one category (Housing, Transport, etc.), not just a broad Needs/Wants split. Tap a slice or its name in the list below to see exactly what makes it up (e.g. Housing breaks into rent, utilities, household).",
+      },
+    },
+    {
       id: 'dash-bills',
       title: { ru: 'Обязательные платежи', en: 'Bills & payments' },
       body: {

@@ -23,28 +23,28 @@ const DETAILED_MAP = {
 
   PERSONAL_CARE_GYMS_AND_FITNESS_CENTERS: { group: 'wants', key: 'hobby' },
 
-  RENT_AND_UTILITIES_RENT: { group: 'needs', key: 'housing', sub: 'Аренда' },
-  RENT_AND_UTILITIES_GAS_AND_ELECTRICITY: { group: 'needs', key: 'housing', sub: 'Коммуналка' },
-  RENT_AND_UTILITIES_WATER: { group: 'needs', key: 'housing', sub: 'Коммуналка' },
-  RENT_AND_UTILITIES_SEWAGE_AND_WASTE_MANAGEMENT: { group: 'needs', key: 'housing', sub: 'Коммуналка' },
+  RENT_AND_UTILITIES_RENT: { group: 'needs', key: 'housing', sub: 'rent' },
+  RENT_AND_UTILITIES_GAS_AND_ELECTRICITY: { group: 'needs', key: 'housing', sub: 'utilities' },
+  RENT_AND_UTILITIES_WATER: { group: 'needs', key: 'housing', sub: 'utilities' },
+  RENT_AND_UTILITIES_SEWAGE_AND_WASTE_MANAGEMENT: { group: 'needs', key: 'housing', sub: 'utilities' },
   RENT_AND_UTILITIES_INTERNET_AND_CABLE: { group: 'wants', key: 'subscriptions' },
   RENT_AND_UTILITIES_TELEPHONE: { group: 'wants', key: 'subscriptions' },
 
-  TRANSPORTATION_GAS: { group: 'needs', key: 'transport', sub: 'Топливо' },
-  TRANSPORTATION_PARKING: { group: 'needs', key: 'transport', sub: 'Парковка' },
+  TRANSPORTATION_GAS: { group: 'needs', key: 'transport', sub: 'fuel' },
+  TRANSPORTATION_PARKING: { group: 'needs', key: 'transport', sub: 'parking' },
   TRANSPORTATION_TAXIS_AND_RIDE_SHARES: { group: 'needs', key: 'transport' },
   TRANSPORTATION_PUBLIC_TRANSIT_AND_TOLLS: { group: 'needs', key: 'transport' },
 
-  LOAN_PAYMENTS_CAR_PAYMENT: { group: 'needs', key: 'transport', sub: 'Платёж за авто' },
+  LOAN_PAYMENTS_CAR_PAYMENT: { group: 'needs', key: 'transport', sub: 'payment' },
   LOAN_PAYMENTS_CREDIT_CARD_PAYMENT: { group: 'savings', key: 'debt_extra' },
   LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT: { group: 'savings', key: 'debt_extra' },
-  LOAN_PAYMENTS_MORTGAGE_PAYMENT: { group: 'needs', key: 'housing', sub: 'Аренда' },
+  LOAN_PAYMENTS_MORTGAGE_PAYMENT: { group: 'needs', key: 'housing', sub: 'rent' },
 
   MEDICAL_PRIMARY_CARE: { group: 'needs', key: 'health' },
   MEDICAL_DENTAL_CARE: { group: 'needs', key: 'health' },
-  MEDICAL_PHARMACIES_AND_SUPPLEMENTS: { group: 'needs', key: 'health', sub: 'Лекарства' },
+  MEDICAL_PHARMACIES_AND_SUPPLEMENTS: { group: 'needs', key: 'health', sub: 'medicine' },
 
-  GENERAL_SERVICES_INSURANCE: { group: 'needs', key: 'health', sub: 'Страховка' },
+  GENERAL_SERVICES_INSURANCE: { group: 'needs', key: 'health', sub: 'insurance' },
 
   TRANSFER_OUT_SAVINGS: { group: 'savings', key: 'emergency' },
   TRANSFER_OUT_INVESTMENT_AND_RETIREMENT_FUNDS: { group: 'savings', key: 'investments' },
