@@ -8,11 +8,13 @@ import DailyQuoteCard from '../components/DailyQuoteCard'
 import BatteryProgress from '../components/BatteryProgress'
 import InfoTag from '../components/InfoTag'
 import ReminderButton from '../components/ReminderButton'
+import HabitTipModal from '../components/HabitTipModal'
 import { Card, Button, ProgressBar, StatTile, IconCircle, EmptyState } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { findCategory, pickLang, CATEGORY_TREE } from '../lib/categories'
 import { computeGoalPlan, computeSafeToSpendToday } from '../lib/finance'
+import { detectHabitTip, dismissHabitTip } from '../lib/habitTips'
 
 // Muted, "graphite" chart colors instead of a harsh stoplight red/amber/green —
 // the pie is informational, not a warning light.
@@ -30,15 +32,24 @@ export default function DashboardScreen() {
   const [debts, setDebts] = useState([])
   const [streak, setStreak] = useState(0)
   const [checkedInToday, setCheckedInToday] = useState(false)
+  const [habitTip, setHabitTip] = useState(null)
 
   useEffect(() => {
     if (!user) return
     db.getSettings(user.id, context).then(setSettings)
-    db.listTransactions(user.id, context).then(setTransactions)
+    db.listTransactions(user.id, context).then((txs) => {
+      setTransactions(txs)
+      setHabitTip(detectHabitTip(user.id, context, txs))
+    })
     db.listGoals(user.id, context).then(setGoals)
     db.listDebts(user.id, context).then(setDebts)
     refreshCheckins()
   }, [user, context])
+
+  function closeHabitTip() {
+    if (habitTip) dismissHabitTip(user.id, context, habitTip.key)
+    setHabitTip(null)
+  }
 
   function refreshCheckins() {
     db.getCheckins(user.id, context).then((c) => {
@@ -129,6 +140,7 @@ export default function DashboardScreen() {
 
   return (
     <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+      <HabitTipModal tip={habitTip} lang={lang} onClose={closeHabitTip} />
       <TopBar title={t('dashboard.title')} />
       <div className="flex-1 px-4 py-4 space-y-4">
         <DailyQuoteCard />
