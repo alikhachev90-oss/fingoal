@@ -187,6 +187,13 @@ const STRINGS = {
   'radar.keep': { ru: 'Оставить', en: 'Keep it', es: 'Mantener', fr: 'Conserver' },
   'radar.markChecked': { ru: 'Проверил(а) всё — сбросить таймер', en: 'Reviewed it all — reset the timer', es: 'Ya revisé todo — reiniciar el temporizador', fr: 'Tout vérifié — réinitialiser le minuteur' },
   'radar.cancelledToast': { ru: 'Отмечено как отменённое — больше не будет напоминать про этот платёж.', en: "Marked as cancelled — won't remind you about this charge again.", es: 'Marcado como cancelado — no volverá a recordarte este cargo.', fr: "Marqué comme annulé — ce paiement ne sera plus rappelé." },
+  'bills.title': { ru: 'Обязательные платежи', en: 'Bills & payments', es: 'Pagos obligatorios', fr: 'Paiements obligatoires' },
+  'bills.remindMe': { ru: 'Напомнить', en: 'Remind me', es: 'Recordarme', fr: 'Me rappeler' },
+  'bills.saveReminder': { ru: 'Сохранить напоминание', en: 'Save reminder', es: 'Guardar recordatorio', fr: "Enregistrer le rappel" },
+  'bills.clearReminder': { ru: 'Убрать напоминание', en: 'Remove reminder', es: 'Quitar recordatorio', fr: 'Supprimer le rappel' },
+  'bills.debtLabel': { ru: 'Кредит: {name}', en: 'Loan: {name}', es: 'Préstamo: {name}', fr: 'Prêt : {name}' },
+  'bills.notifNote': { ru: 'Напоминание придёт браузерным уведомлением, только пока приложение открыто на этом устройстве — без интернет-соединения в фоне это не работает.', en: 'The reminder arrives as a browser notification, only while the app is open on this device — it can\'t fire in the background.', es: 'El recordatorio llega como notificación del navegador, solo mientras la app esté abierta en este dispositivo — no funciona en segundo plano.', fr: "Le rappel arrive sous forme de notification du navigateur, uniquement pendant que l'application est ouverte sur cet appareil — cela ne fonctionne pas en arrière-plan." },
+
   'radar.premiumNote': { ru: 'Сейчас радар смотрит только траты, которые ты вносишь сам. Автоматическое обнаружение по банковской карте — платная функция в будущем.', en: 'Right now the radar only looks at spending you enter yourself. Automatic detection from your bank card is a paid feature planned for later.', es: 'Por ahora el radar solo mira los gastos que registras tú mismo. La detección automática desde tu tarjeta bancaria será una función de pago más adelante.', fr: "Pour l'instant, le radar ne regarde que les dépenses que vous saisissez vous-même. La détection automatique depuis votre carte bancaire sera une fonctionnalité payante à venir." },
 
   'lessons.title': { ru: 'Обучение', en: 'Learn', es: 'Aprende', fr: 'Apprendre' },

@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
-import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList } from 'lucide-react'
+import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Landmark } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import DailyQuoteCard from '../components/DailyQuoteCard'
 import BatteryProgress from '../components/BatteryProgress'
 import InfoTag from '../components/InfoTag'
+import ReminderButton from '../components/ReminderButton'
 import { Card, Button, ProgressBar, StatTile, IconCircle, EmptyState } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { findCategory, pickLang } from '../lib/categories'
+import { findCategory, pickLang, CATEGORY_TREE } from '../lib/categories'
 import { computeGoalPlan, computeSafeToSpendToday } from '../lib/finance'
 
 // Muted, "graphite" chart colors instead of a harsh stoplight red/amber/green —
@@ -26,6 +27,7 @@ export default function DashboardScreen() {
   const [settings, setSettings] = useState(null)
   const [transactions, setTransactions] = useState([])
   const [goals, setGoals] = useState([])
+  const [debts, setDebts] = useState([])
   const [streak, setStreak] = useState(0)
   const [checkedInToday, setCheckedInToday] = useState(false)
 
@@ -34,6 +36,7 @@ export default function DashboardScreen() {
     db.getSettings(user.id, context).then(setSettings)
     db.listTransactions(user.id, context).then(setTransactions)
     db.listGoals(user.id, context).then(setGoals)
+    db.listDebts(user.id, context).then(setDebts)
     refreshCheckins()
   }, [user, context])
 
@@ -91,6 +94,15 @@ export default function DashboardScreen() {
   ].filter((d) => d.value > 0)
 
   const safeToday = computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, byGroup.wants)
+
+  const needsCats = CATEGORY_TREE.needs || []
+  const billsFromNeeds = needsCats
+    .filter((c) => (settings?.needs_budget?.[c.key] || 0) > 0)
+    .map((c) => ({ billId: `needs:${c.key}`, label: pickLang(c.label, lang), amount: settings.needs_budget[c.key] }))
+  const billsFromDebts = (debts || [])
+    .filter((d) => (d.min_payment || 0) > 0)
+    .map((d) => ({ billId: `debt:${d.id}`, label: t('bills.debtLabel', { name: d.name }), amount: d.min_payment }))
+  const bills = [...billsFromNeeds, ...billsFromDebts]
 
   const topGoal = goals[0]
   const topGoalPlan = topGoal && settings ? computeGoalPlan(
@@ -187,6 +199,24 @@ export default function DashboardScreen() {
             iconClassName="bg-savings/10 text-savings"
           />
         </div>
+
+        {bills.length > 0 && (
+          <Card className="space-y-3">
+            <p className="text-sm font-semibold">{t('bills.title')}</p>
+            <div className="space-y-2">
+              {bills.map((b) => (
+                <div key={b.billId} className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{b.label}</p>
+                    <p className="text-xs text-muted">{fmt(b.amount)}</p>
+                  </div>
+                  <ReminderButton billId={b.billId} label={b.label} amount={b.amount} />
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-muted leading-relaxed">{t('bills.notifNote')}</p>
+          </Card>
+        )}
 
         {pieData.length > 0 && (
           <Card>
