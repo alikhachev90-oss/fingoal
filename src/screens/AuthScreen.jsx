@@ -109,6 +109,12 @@ export default function AuthScreen() {
           ))}
         </div>
 
+        {mode === 'signup' && (
+          <p className="text-xs text-muted leading-relaxed bg-surface2 border border-border rounded-lg px-3 py-2.5">
+            {t('auth.disclaimer')}
+          </p>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-3">
           <Input icon={Mail} label={t('auth.email')} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
           <Input icon={Lock} label={t('auth.password')} type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
