@@ -101,9 +101,92 @@ export const QUOTES = [
   },
 ]
 
-// Deterministic pick: same quote all day, rotates day to day, no storage needed.
+// Real, cited financial-literacy statistics — not paraphrased book wisdom,
+// but sourced numbers meant to give an "oh wow, I'm learning something real"
+// feeling. Every figure here is attributed to a named survey/report + year;
+// none are invented. Kept separate from QUOTES and interleaved below so both
+// flavors show up in rotation instead of stats being buried after 24 days.
+export const STATS = [
+  {
+    text: {
+      ru: 'Только 33% взрослых в мире финансово грамотны — то есть почти две трети не финансово грамотны.',
+      en: 'Only 33% of adults worldwide are financially literate — meaning nearly two-thirds are not.',
+    },
+    source: { ru: 'S&P Global FinLit Survey, 140+ стран', en: 'S&P Global FinLit Survey, 140+ countries' },
+  },
+  {
+    text: {
+      ru: '62% американцев живут от зарплаты до зарплаты — то есть у них почти нет запаса между доходом и расходами.',
+      en: '62% of Americans live paycheck to paycheck — almost no cushion between income and spending.',
+    },
+    source: { ru: 'LendingClub / PYMNTS, 2026', en: 'LendingClub / PYMNTS, 2026' },
+  },
+  {
+    text: {
+      ru: '33% американцев не смогли бы покрыть неожиданный расход в $400 наличными или их эквивалентом.',
+      en: "33% of Americans couldn't cover a surprise $400 expense with cash or its equivalent.",
+    },
+    source: { ru: 'Федеральная резервная система, отчёт SHED, 2025', en: 'Federal Reserve, SHED report, 2025' },
+  },
+  {
+    text: {
+      ru: 'Только около половины взрослых в США смогли верно ответить на базовые вопросы о финансах — сложный процент, инфляция, риск.',
+      en: 'Only about half of US adults answer basic financial questions correctly — compound interest, inflation, risk.',
+    },
+    source: { ru: 'TIAA Institute-GFLEC P-Fin Index, 2024', en: 'TIAA Institute-GFLEC P-Fin Index, 2024' },
+  },
+  {
+    text: {
+      ru: '54% американских домохозяйств вообще не имеют сбережений на пенсионном счёте.',
+      en: '54% of US households have no savings in a retirement account at all.',
+    },
+    source: { ru: 'Федеральная резервная система, Survey of Consumer Finances, 2022', en: 'Federal Reserve, Survey of Consumer Finances, 2022' },
+  },
+  {
+    text: {
+      ru: 'Общий долг по кредитным картам в США достиг $1,26 трлн.',
+      en: 'Total US credit card debt has reached $1.26 trillion.',
+    },
+    source: { ru: 'Федеральный резервный банк Нью-Йорка, отчёт о долге домохозяйств, Q2 2026', en: 'Federal Reserve Bank of New York, Household Debt and Credit report, Q2 2026' },
+  },
+  {
+    text: {
+      ru: '53% американцев не смогли бы покрыть неожиданный расход в $1000 из своих сбережений.',
+      en: "53% of Americans couldn't cover a surprise $1,000 expense out of their own savings.",
+    },
+    source: { ru: 'Bankrate, годовой отчёт о сбережениях на случай ЧП, 2026', en: 'Bankrate, Annual Emergency Savings Report, 2026' },
+  },
+]
+
+// Proportionally interleaves two arrays so a small array (stats) is spread
+// evenly through a larger one (quotes) instead of bunched at either end.
+function interleave(a, b) {
+  const result = []
+  const ratio = a.length / b.length
+  let bi = 0
+  a.forEach((item, i) => {
+    result.push(item)
+    if (bi < b.length && i + 1 >= Math.round((bi + 1) * ratio)) {
+      result.push(b[bi])
+      bi += 1
+    }
+  })
+  while (bi < b.length) {
+    result.push(b[bi])
+    bi += 1
+  }
+  return result
+}
+
+const COMBINED = interleave(
+  QUOTES.map((q) => ({ ...q, type: 'quote' })),
+  STATS.map((s) => ({ ...s, type: 'stat' })),
+)
+
+// Deterministic pick: same entry all day, rotates day to day, no storage needed.
+// Rotates through both paraphrased book quotes and cited real statistics.
 export function getQuoteOfDay(date = new Date()) {
   const dayNumber = Math.floor(date.getTime() / 86400000)
-  const idx = ((dayNumber % QUOTES.length) + QUOTES.length) % QUOTES.length
-  return QUOTES[idx]
+  const idx = ((dayNumber % COMBINED.length) + COMBINED.length) % COMBINED.length
+  return COMBINED[idx]
 }
