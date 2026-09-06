@@ -59,6 +59,13 @@ export default function InsightsScreen() {
     setActiveChallenge(getActiveChallenge(user.id, context))
   }, [user, context])
 
+  // Hooks must run on every render, so this is computed before the
+  // settings===null early return below (React error #310 otherwise).
+  const radarItems = useMemo(
+    () => (user ? getSubscriptionRadar(user.id, context, transactions) : []),
+    [user, context, transactions, radarTick],
+  )
+
   if (settings === null) {
     return (
       <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full items-center justify-center px-6">
@@ -69,10 +76,6 @@ export default function InsightsScreen() {
 
   const cards = computeInsights({ settings, transactions, goals, debts, lang })
   const challengeStatus = evaluateChallenge(activeChallenge, transactions)
-  const radarItems = useMemo(
-    () => (user ? getSubscriptionRadar(user.id, context, transactions) : []),
-    [user, context, transactions, radarTick],
-  )
   const radarDue = user ? shouldPromptMonthlyCheck(user.id, context) : false
   const radarDays = user ? daysSinceRadarCheck(user.id, context) : null
 
