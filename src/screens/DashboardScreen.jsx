@@ -10,13 +10,12 @@ import InfoTag from '../components/InfoTag'
 import { Card, Button, ProgressBar, StatTile, IconCircle, EmptyState } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { findCategory, GROUP_LABELS_SHORT } from '../lib/categories'
+import { findCategory, pickLang } from '../lib/categories'
 import { computeGoalPlan, computeSafeToSpendToday } from '../lib/finance'
 
 // Muted, "graphite" chart colors instead of a harsh stoplight red/amber/green —
 // the pie is informational, not a warning light.
 const GROUP_HEX = { needs: '#8a5a4a', wants: '#a3893e', savings: '#3f7a5c' }
-const GROUP_LABEL_SHORT = GROUP_LABELS_SHORT
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -69,7 +68,7 @@ export default function DashboardScreen() {
     const totals = {}
     for (const t of monthTx) {
       const cat = findCategory(t.group, t.category_key)
-      const label = cat?.label || t.category_key
+      const label = pickLang(cat?.label, lang) || t.category_key
       totals[label] = (totals[label] || { value: 0, group: t.group })
       totals[label].value += t.amount
       totals[label].group = t.group
@@ -77,7 +76,7 @@ export default function DashboardScreen() {
     return Object.entries(totals)
       .map(([name, v]) => ({ name, value: v.value, group: v.group }))
       .sort((a, b) => b.value - a.value)
-  }, [monthTx])
+  }, [monthTx, lang])
 
   const monthlyIncome = settings?.monthly_income || 0
   const monthlyNeedsBudget = Object.values(settings?.needs_budget || {}).reduce((s, v) => s + (v || 0), 0)

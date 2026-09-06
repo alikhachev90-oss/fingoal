@@ -10,7 +10,7 @@ import { TRACKS, isTrackUnlocked } from '../lib/course'
 import CourseTrack from '../components/CourseTrack'
 
 export default function LessonsScreen() {
-  const { user, context, t } = useApp()
+  const { user, context, t, lang } = useApp()
   const [settings, setSettings] = useState(null)
   const [debts, setDebts] = useState([])
   const [goals, setGoals] = useState([])
@@ -44,7 +44,7 @@ export default function LessonsScreen() {
     )
   }
 
-  const lessons = getLessonsWithStatus({ settings, debts, goals, transactions })
+  const lessons = getLessonsWithStatus({ settings, debts, goals, transactions, lang })
   const unlockedCount = lessons.filter((l) => l.unlocked).length
   const doneCount = lessons.filter((l) => l.unlocked && completed.includes(l.key)).length
 

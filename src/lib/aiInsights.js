@@ -6,18 +6,18 @@
 // are the natural place to swap a rule-based result for a model call — the
 // call sites (EntryScreen, InsightsScreen) don't need to change.
 
-import { suggestCategories, findCategory } from './categories'
+import { suggestCategories, findCategory, pickLang } from './categories'
 
-function categoryLabel(group, key) {
-  return findCategory(group, key)?.label || key
+function categoryLabel(group, key, lang = 'ru') {
+  return pickLang(findCategory(group, key)?.label, lang) || key
 }
 
 // ---------------------------------------------------------------- quick entry
 // "потратил 15 баксов на кофе" -> { amount, suggestion, restText }
-const CURRENCY_WORDS = /\b(баксов|баксы|бакс|доллар(?:ов|а)?|usd|дол\.?|у\.е\.?)\b/gi
-const FILLER_WORDS = /\b(потратил[а]?|заплатил[а]?|купил[а]?|взял[а]?|отдал[а]?|на|за|потратила|потратили)\b/gi
+const CURRENCY_WORDS = /\b(баксов|баксы|бакс|доллар(?:ов|а)?|usd|дол\.?|у\.е\.?|dollars?|bucks?)\b/gi
+const FILLER_WORDS = /\b(потратил[а]?|заплатил[а]?|купил[а]?|взял[а]?|отдал[а]?|на|за|потратила|потратили|spent|paid|bought|got|for|on)\b/gi
 
-export function parseQuickEntry(text) {
+export function parseQuickEntry(text, lang = 'ru') {
   const raw = text.trim()
   if (!raw) return null
 
@@ -31,7 +31,7 @@ export function parseQuickEntry(text) {
     .replace(/\s+/g, ' ')
     .trim()
 
-  const suggestions = suggestCategories(restText || raw)
+  const suggestions = suggestCategories(restText || raw, lang)
   const best = suggestions[0] || null
 
   return {
@@ -61,7 +61,7 @@ function isSameMonth(d, ref) {
 // Looks at actual `savings`-group transactions over the trailing window to
 // derive a real daily pace, then compares it to the pace the goal's deadline
 // requires (goalPlan.perDay from finance.js) to project a realistic finish date.
-export function forecastGoal(goal, goalPlan, transactions, windowDays = 30) {
+export function forecastGoal(goal, goalPlan, transactions, windowDays = 30, lang = 'ru') {
   if (!goal || !goalPlan) return null
   const now = new Date()
   const since = new Date(now.getTime() - windowDays * 86400000)
@@ -73,7 +73,10 @@ export function forecastGoal(goal, goalPlan, transactions, windowDays = 30) {
     return {
       actualPerDay: 0,
       onTrack: false,
-      message: `За последние ${windowDays} дней пополнений цели не было — при таком темпе дедлайн не будет достигнут вообще.`,
+      message:
+        lang === 'en'
+          ? `No contributions to this goal in the last ${windowDays} days — at this pace the deadline won't be reached at all.`
+          : `За последние ${windowDays} дней пополнений цели не было — при таком темпе дедлайн не будет достигнут вообще.`,
     }
   }
 
@@ -89,9 +92,14 @@ export function forecastGoal(goal, goalPlan, transactions, windowDays = 30) {
     projectedDate,
     onTrack,
     diffDays: Math.abs(diffDays),
-    message: onTrack
-      ? `При фактическом темпе последних ${windowDays} дней (${fmt(actualPerDay)}/день) цель будет закрыта примерно на ${Math.abs(diffDays)} дн. раньше дедлайна.`
-      : `При фактическом темпе последних ${windowDays} дней (${fmt(actualPerDay)}/день) цель придёт к дедлайну с опозданием примерно на ${diffDays} дн. — план требует ${fmt(goalPlan.perDay)}/день.`,
+    message:
+      lang === 'en'
+        ? onTrack
+          ? `At your actual pace over the last ${windowDays} days (${fmt(actualPerDay)}/day), the goal will be reached about ${Math.abs(diffDays)} day(s) before the deadline.`
+          : `At your actual pace over the last ${windowDays} days (${fmt(actualPerDay)}/day), the goal will miss the deadline by about ${diffDays} day(s) — the plan needs ${fmt(goalPlan.perDay)}/day.`
+        : onTrack
+          ? `При фактическом темпе последних ${windowDays} дней (${fmt(actualPerDay)}/день) цель будет закрыта примерно на ${Math.abs(diffDays)} дн. раньше дедлайна.`
+          : `При фактическом темпе последних ${windowDays} дней (${fmt(actualPerDay)}/день) цель придёт к дедлайну с опозданием примерно на ${diffDays} дн. — план требует ${fmt(goalPlan.perDay)}/день.`,
   }
 }
 
@@ -150,13 +158,14 @@ export function categoryMonthOverMonth(transactions) {
 
 // --------------------------------------------------------------- insight cards
 // Returns an ordered list of { id, tone: 'good'|'warn'|'neutral', text }.
-export function computeInsights({ settings, transactions, goals, debts }) {
+export function computeInsights({ settings, transactions, goals, debts, lang = 'ru' }) {
   const cards = []
   const now = new Date()
   const monthTx = transactions.filter((t) => isSameMonth(t.date, now))
   const monthWants = monthTx.filter((t) => t.group === 'wants')
   const monthWantsTotal = monthWants.reduce((s, t) => s + t.amount, 0)
   const income = settings?.monthly_income || 0
+  const en = lang === 'en'
 
   // 1. Wants vs income this month
   if (income > 0) {
@@ -164,8 +173,13 @@ export function computeInsights({ settings, transactions, goals, debts }) {
     cards.push({
       id: 'wants-pct',
       tone: pct > 35 ? 'warn' : 'good',
-      text:
-        pct > 35
+      text: en
+        ? pct > 35
+          ? `Wants this month — ${fmt(monthWantsTotal)}, that's ${pct}% of income. Above the usual 30% — worth checking what's growing.`
+          : monthWantsTotal > 0
+            ? `Wants this month — ${fmt(monthWantsTotal)}, that's ${pct}% of income — within the normal range.`
+            : `No Wants spending yet this month — a good time to log the first one and see the breakdown.`
+        : pct > 35
           ? `В этом месяце Wants — ${fmt(monthWantsTotal)}, это ${pct}% от дохода. Выше стандартных 30% — стоит посмотреть, что растёт.`
           : monthWantsTotal > 0
             ? `Wants в этом месяце — ${fmt(monthWantsTotal)}, это ${pct}% от дохода — в пределах нормы.`
@@ -178,11 +192,12 @@ export function computeInsights({ settings, transactions, goals, debts }) {
   if (mom.length > 0) {
     const top = mom[0]
     const [group, key] = top.key.split(':')
-    const dir = top.delta > 0 ? 'выросла' : 'снизилась'
     cards.push({
       id: 'mom-' + top.key,
       tone: top.delta > 0 ? 'warn' : 'good',
-      text: `Категория «${categoryLabel(group, key)}» ${dir} на ${Math.abs(top.pct)}% по сравнению с прошлым месяцем (${fmt(top.prevV)} → ${fmt(top.curV)}).`,
+      text: en
+        ? `Category "${categoryLabel(group, key, lang)}" ${top.delta > 0 ? 'grew' : 'dropped'} by ${Math.abs(top.pct)}% vs last month (${fmt(top.prevV)} → ${fmt(top.curV)}).`
+        : `Категория «${categoryLabel(group, key, lang)}» ${top.delta > 0 ? 'выросла' : 'снизилась'} на ${Math.abs(top.pct)}% по сравнению с прошлым месяцем (${fmt(top.prevV)} → ${fmt(top.curV)}).`,
     })
   }
 
@@ -193,7 +208,9 @@ export function computeInsights({ settings, transactions, goals, debts }) {
     cards.push({
       id: 'recurring',
       tone: 'neutral',
-      text: `Похоже на регулярный платёж: «${categoryLabel('wants', r.category_key)}» на ~${fmt(r.amount)} встречается ${r.monthsCount} мес. подряд. Если это забытая подписка — самое время её отменить.`,
+      text: en
+        ? `Looks like a recurring charge: "${categoryLabel('wants', r.category_key, lang)}" for ~${fmt(r.amount)} shows up ${r.monthsCount} months in a row. If it's a forgotten subscription, now's a good time to cancel it.`
+        : `Похоже на регулярный платёж: «${categoryLabel('wants', r.category_key, lang)}» на ~${fmt(r.amount)} встречается ${r.monthsCount} мес. подряд. Если это забытая подписка — самое время её отменить.`,
     })
   }
 
@@ -205,7 +222,7 @@ export function computeInsights({ settings, transactions, goals, debts }) {
     const remaining = Math.max(0, goal.target_amount - (goal.saved_amount || 0))
     const daysLeft = Math.max(1, Math.round((new Date(goal.deadline) - now) / 86400000))
     const perDay = remaining / daysLeft
-    const forecast = forecastGoal(goal, { perDay }, transactions)
+    const forecast = forecastGoal(goal, { perDay }, transactions, 30, lang)
     if (forecast) {
       cards.push({ id: 'forecast', tone: forecast.onTrack ? 'good' : 'warn', text: forecast.message })
     }
@@ -219,7 +236,9 @@ export function computeInsights({ settings, transactions, goals, debts }) {
       cards.push({
         id: 'debt',
         tone: 'neutral',
-        text: `Самая дорогая ставка среди твоих долгов — «${worst.name}» под ${worst.rate}%. Любой доллар сверх минимальных платежей логичнее всего направить туда.`,
+        text: en
+          ? `Your priciest rate among current debts is "${worst.name}" at ${worst.rate}%. Any dollar above minimum payments makes the most sense going there.`
+          : `Самая дорогая ставка среди твоих долгов — «${worst.name}» под ${worst.rate}%. Любой доллар сверх минимальных платежей логичнее всего направить туда.`,
       })
     }
   }
@@ -232,55 +251,94 @@ export function computeInsights({ settings, transactions, goals, debts }) {
 // but answers a handful of common questions grounded in real numbers.
 export function answerQuestion(question, ctx) {
   const q = question.toLowerCase()
-  const { settings, transactions, goals } = ctx
+  const { settings, transactions, goals, lang = 'ru' } = ctx
+  const en = lang === 'en'
   const now = new Date()
   const monthTx = transactions.filter((t) => isSameMonth(t.date, now))
 
   const goal = goals?.[0]
 
-  if (/цел[ьи]|успею|хватит|дедлайн/.test(q) && goal) {
+  if (/цел[ьи]|успею|хватит|дедлайн|goal|deadline|make it|enough/.test(q) && goal) {
     const remaining = Math.max(0, goal.target_amount - (goal.saved_amount || 0))
     const daysLeft = Math.max(1, Math.round((new Date(goal.deadline) - now) / 86400000))
     const perDay = remaining / daysLeft
-    const forecast = forecastGoal(goal, { perDay }, transactions)
-    return forecast?.message || `Остаток до цели «${goal.name}» — ${fmt(remaining)}, нужно откладывать ${fmt(perDay)}/день до дедлайна.`
+    const forecast = forecastGoal(goal, { perDay }, transactions, 30, lang)
+    return (
+      forecast?.message ||
+      (en
+        ? `Remaining until goal "${goal.name}" — ${fmt(remaining)}, needs ${fmt(perDay)}/day saved until the deadline.`
+        : `Остаток до цели «${goal.name}» — ${fmt(remaining)}, нужно откладывать ${fmt(perDay)}/день до дедлайна.`)
+    )
   }
 
-  if (/самая большая категория|на что трачу|больше всего/.test(q)) {
+  if (/самая большая категория|на что трачу|больше всего|biggest category|spend the most|what am i spending/.test(q)) {
     const byCat = {}
     for (const t of monthTx) {
       const k = `${t.group}:${t.category_key}`
       byCat[k] = (byCat[k] || 0) + t.amount
     }
     const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1])
-    if (entries.length === 0) return 'В этом месяце пока нет трат — добавь первую на вкладке «Трата».'
+    if (entries.length === 0) return en ? 'No spending logged this month yet — add the first one on the "Entry" tab.' : 'В этом месяце пока нет трат — добавь первую на вкладке «Трата».'
     const [group, key] = entries[0][0].split(':')
-    return `Больше всего в этом месяце ушло на «${categoryLabel(group, key)}» — ${fmt(entries[0][1])}.`
+    return en
+      ? `The biggest spend this month is "${categoryLabel(group, key, lang)}" — ${fmt(entries[0][1])}.`
+      : `Больше всего в этом месяце ушло на «${categoryLabel(group, key, lang)}» — ${fmt(entries[0][1])}.`
   }
 
   if (/wants|дискреционн|развлечен/.test(q)) {
     const total = monthTx.filter((t) => t.group === 'wants').reduce((s, t) => s + t.amount, 0)
     const pct = settings?.monthly_income ? Math.round((total / settings.monthly_income) * 100) : null
-    return pct !== null
-      ? `Wants в этом месяце — ${fmt(total)} (${pct}% от дохода).`
-      : `Wants в этом месяце — ${fmt(total)}.`
+    return en
+      ? pct !== null
+        ? `Wants this month — ${fmt(total)} (${pct}% of income).`
+        : `Wants this month — ${fmt(total)}.`
+      : pct !== null
+        ? `Wants в этом месяце — ${fmt(total)} (${pct}% от дохода).`
+        : `Wants в этом месяце — ${fmt(total)}.`
   }
 
-  if (/доход|зарплат/.test(q)) {
-    return settings?.monthly_income ? `Указанный ежемесячный доход — ${fmt(settings.monthly_income)}.` : 'Доход ещё не заполнен в настройках.'
+  if (/доход|зарплат|income|salary/.test(q)) {
+    return settings?.monthly_income
+      ? en
+        ? `Your stated monthly income is ${fmt(settings.monthly_income)}.`
+        : `Указанный ежемесячный доход — ${fmt(settings.monthly_income)}.`
+      : en
+        ? 'Income hasn’t been filled in yet in settings.'
+        : 'Доход ещё не заполнен в настройках.'
   }
 
-  return 'Могу ответить на вопросы про цель ("успею ли к дедлайну"), про то, на что уходит больше всего денег, и про Wants/доход. Попробуй переформулировать.'
+  return en
+    ? 'I can answer questions about your goal ("will I make the deadline"), what you’re spending the most on, and Wants/income. Try rephrasing.'
+    : 'Могу ответить на вопросы про цель ("успею ли к дедлайну"), про то, на что уходит больше всего денег, и про Wants/доход. Попробуй переформулировать.'
 }
 
 // ------------------------------------------------------------------ challenges
 // Lightweight gamified challenges — no backend needed, tracked per user+context
 // in localStorage, checked against real transactions during the active window.
 export const CHALLENGES = [
-  { key: 'no_delivery_week', title: 'Неделя без доставки еды', days: 7, match: (t) => /достав|delivery|doordash|uber eats/i.test(`${t.category_key} ${t.comment || ''}`) },
-  { key: 'zero_wants_3', title: '3 дня нулевых трат по Wants', days: 3, match: (t) => t.group === 'wants' },
-  { key: 'no_coffee_week', title: 'Неделя без кофе на вынос', days: 7, match: (t) => t.category_key === 'coffee' },
+  {
+    key: 'no_delivery_week',
+    title: { ru: 'Неделя без доставки еды', en: 'A week without food delivery' },
+    days: 7,
+    match: (t) => /достав|delivery|doordash|uber eats/i.test(`${t.category_key} ${t.comment || ''}`),
+  },
+  {
+    key: 'zero_wants_3',
+    title: { ru: '3 дня нулевых трат по Wants', en: '3 days of zero Wants spending' },
+    days: 3,
+    match: (t) => t.group === 'wants',
+  },
+  {
+    key: 'no_coffee_week',
+    title: { ru: 'Неделя без кофе на вынос', en: 'A week without takeout coffee' },
+    days: 7,
+    match: (t) => t.category_key === 'coffee',
+  },
 ]
+
+export function challengeTitle(def, lang = 'ru') {
+  return def?.title?.[lang] || def?.title?.ru || ''
+}
 
 function challengeKey(userId, context) {
   return `fintrack_challenge_${userId}_${context}`

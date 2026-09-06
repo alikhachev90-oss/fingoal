@@ -5,13 +5,13 @@ import BottomNav from '../components/BottomNav'
 import { Button, Input, Card, Pill } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { suggestCategories, CATEGORY_TREE, GROUP_LABELS, GROUP_PILL_CLASSES, findCategory } from '../lib/categories'
+import { suggestCategories, CATEGORY_TREE, GROUP_PILL_CLASSES, findCategory, pickLang } from '../lib/categories'
 import { computeGoalPlan, daysSavedByAmount, crossedMilestone } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
 import { Wand2 } from 'lucide-react'
 
 export default function EntryScreen() {
-  const { user, context, t } = useApp()
+  const { user, context, t, lang } = useApp()
   const navigate = useNavigate()
 
   const [amount, setAmount] = useState('')
@@ -35,7 +35,7 @@ export default function EntryScreen() {
     db.getSettings(user.id, context).then(setSettings)
   }, [user, context])
 
-  const suggestions = useMemo(() => suggestCategories(query), [query])
+  const suggestions = useMemo(() => suggestCategories(query, lang), [query, lang])
 
   function pickSuggestion(s) {
     setSelected(s)
@@ -43,7 +43,7 @@ export default function EntryScreen() {
   }
 
   function runQuickParse() {
-    const parsed = parseQuickEntry(quickText)
+    const parsed = parseQuickEntry(quickText, lang)
     setQuickResult(parsed)
     if (parsed?.amount) setAmount(String(parsed.amount))
     if (parsed?.suggestion) pickSuggestion(parsed.suggestion)
@@ -52,8 +52,9 @@ export default function EntryScreen() {
 
   function pickManual(group, key, sub) {
     const cat = findCategory(group, key)
-    setSelected({ group, key, sub: sub || null, label: cat.label, groupLabel: GROUP_LABELS[group], explanation: null })
-    setQuery(sub ? `${cat.label} → ${sub}` : cat.label)
+    const label = pickLang(cat.label, lang)
+    setSelected({ group, key, sub: sub || null, label, explanation: null })
+    setQuery(sub ? `${label} → ${sub}` : label)
   }
 
   const goalPlan = useMemo(() => {
@@ -218,7 +219,7 @@ export default function EntryScreen() {
                         onClick={() => pickManual(group, c.key)}
                         className="text-xs px-2.5 py-1.5 rounded-lg bg-surface2 border border-border"
                       >
-                        {c.label}
+                        {pickLang(c.label, lang)}
                       </button>
                     ))}
                   </div>

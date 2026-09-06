@@ -5,7 +5,7 @@ import BottomNav from '../components/BottomNav'
 import { Card, Button, IconCircle, EmptyState, ProgressBar } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { computeInsights, answerQuestion, CHALLENGES, getActiveChallenge, startChallenge, clearChallenge, evaluateChallenge } from '../lib/aiInsights'
+import { computeInsights, answerQuestion, CHALLENGES, challengeTitle, getActiveChallenge, startChallenge, clearChallenge, evaluateChallenge } from '../lib/aiInsights'
 import { projectSavingsGrowth } from '../lib/finance'
 
 function fmt(n) {
@@ -21,7 +21,7 @@ const TONE_STYLE = {
 }
 
 export default function InsightsScreen() {
-  const { user, context, t } = useApp()
+  const { user, context, t, lang } = useApp()
   const [settings, setSettings] = useState(null)
   const [debts, setDebts] = useState([])
   const [goals, setGoals] = useState([])
@@ -50,7 +50,7 @@ export default function InsightsScreen() {
     )
   }
 
-  const cards = computeInsights({ settings, transactions, goals, debts })
+  const cards = computeInsights({ settings, transactions, goals, debts, lang })
   const challengeStatus = evaluateChallenge(activeChallenge, transactions)
 
   const defaultMonthly = goals[0] ? Math.max(0, Math.round(goals[0].target_amount ? (goals[0].target_amount - goals[0].saved_amount) / 12 : 0)) : 0
@@ -62,7 +62,7 @@ export default function InsightsScreen() {
 
   function ask() {
     if (!question.trim()) return
-    const a = answerQuestion(question, { settings, transactions, goals })
+    const a = answerQuestion(question, { settings, transactions, goals, lang })
     setAnswers((prev) => [{ q: question, a }, ...prev])
     setQuestion('')
   }
@@ -103,7 +103,7 @@ export default function InsightsScreen() {
                 <Card key={c.key} className="!p-3 flex items-center justify-between">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <IconCircle icon={Flag} className="bg-primary/10 text-primary" size={32} iconSize={15} />
-                    <p className="text-sm font-medium truncate">{c.title}</p>
+                    <p className="text-sm font-medium truncate">{challengeTitle(c, lang)}</p>
                   </div>
                   <Button variant="secondary" className="!w-auto px-3 shrink-0" onClick={() => handleStartChallenge(c.key)} type="button">
                     {t('insights.startChallenge')}
@@ -122,7 +122,7 @@ export default function InsightsScreen() {
                   iconSize={16}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{challengeStatus.challenge.title}</p>
+                  <p className="text-sm font-semibold truncate">{challengeTitle(challengeStatus.challenge, lang)}</p>
                   <p className="text-xs text-muted">
                     {challengeStatus.completed
                       ? t('insights.challengeCompleted')

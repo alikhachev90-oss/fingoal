@@ -4,7 +4,12 @@ import { Card, Button, IconCircle } from './UI'
 import { useApp } from '../context/AppContext'
 import { getExamResult, saveExamResult, getCompletedLessons, markLessonDone } from '../lib/course'
 
-function ExamView({ track, userId, context, onDone }) {
+function pick(field, lang) {
+  if (field && typeof field === 'object' && !Array.isArray(field)) return field[lang] || field.ru
+  return field
+}
+
+function ExamView({ track, userId, context, lang, onDone }) {
   const { t } = useApp()
   const [answers, setAnswers] = useState({})
   const [result, setResult] = useState(() => getExamResult(userId, context, track.key))
@@ -50,12 +55,12 @@ function ExamView({ track, userId, context, onDone }) {
 
   return (
     <Card className="!p-4 space-y-4">
-      <p className="font-semibold text-sm">{t('course.examForTrack', { title: track.title })}</p>
+      <p className="font-semibold text-sm">{t('course.examForTrack', { title: pick(track.title, lang) })}</p>
       {track.exam.questions.map((q, i) => (
         <div key={i} className="space-y-2">
-          <p className="text-sm font-medium">{i + 1}. {q.q}</p>
+          <p className="text-sm font-medium">{i + 1}. {pick(q.q, lang)}</p>
           <div className="space-y-1.5">
-            {q.options.map((opt, oi) => (
+            {pick(q.options, lang).map((opt, oi) => (
               <button
                 key={oi}
                 type="button"
@@ -78,12 +83,13 @@ function ExamView({ track, userId, context, onDone }) {
 }
 
 export default function CourseTrack({ track, unlocked, userId, context, settings, debts }) {
-  const { t } = useApp()
+  const { t, lang } = useApp()
   const [open, setOpen] = useState(false)
   const [openLesson, setOpenLesson] = useState(null)
   const [showExam, setShowExam] = useState(false)
   const [completed, setCompleted] = useState(() => getCompletedLessons(userId, context, track.key))
   const examResult = getExamResult(userId, context, track.key)
+  const trackTitle = pick(track.title, lang)
 
   if (track.comingSoon) {
     return (
@@ -91,11 +97,11 @@ export default function CourseTrack({ track, unlocked, userId, context, settings
         <div className="flex items-center gap-2.5">
           <IconCircle icon={Lock} className="bg-surface2 text-muted" size={34} iconSize={15} />
           <div className="min-w-0">
-            <p className="font-semibold text-sm">{track.title}</p>
+            <p className="font-semibold text-sm">{trackTitle}</p>
             <p className="text-xs text-muted">{t('course.comingSoon')}</p>
           </div>
         </div>
-        <p className="text-xs text-muted leading-relaxed">{track.description}</p>
+        <p className="text-xs text-muted leading-relaxed">{pick(track.description, lang)}</p>
         <p className="text-[11px] text-muted uppercase tracking-wide">{t('course.source', { source: track.source })}</p>
       </Card>
     )
@@ -107,7 +113,7 @@ export default function CourseTrack({ track, unlocked, userId, context, settings
         <div className="flex items-center gap-2.5">
           <IconCircle icon={Lock} className="bg-surface2 text-muted" size={34} iconSize={15} />
           <div className="min-w-0">
-            <p className="font-semibold text-sm">{track.title}</p>
+            <p className="font-semibold text-sm">{trackTitle}</p>
             <p className="text-xs text-muted">{t('course.locked')}</p>
           </div>
         </div>
@@ -125,7 +131,7 @@ export default function CourseTrack({ track, unlocked, userId, context, settings
           iconSize={17}
         />
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-[15px]">{track.title}</p>
+          <p className="font-semibold text-[15px]">{trackTitle}</p>
           <p className="text-xs text-muted mt-0.5">
             {t('course.lessonsOf', { done: completed.length, total: track.lessons.length, exam: examResult?.passed ? t('course.examPassedSuffix') : '' })}
           </p>
@@ -153,13 +159,13 @@ export default function CourseTrack({ track, unlocked, userId, context, settings
                     className={isDone ? 'bg-savings/10 text-savings' : 'bg-surface2 text-muted'}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{lesson.title}</p>
+                    <p className="text-sm font-medium">{pick(lesson.title, lang)}</p>
                     <p className="text-[11px] text-muted">{lesson.minutes} {t('course.minutesSuffix')} · {lesson.source}</p>
                   </div>
                 </button>
                 {isOpenL && (
                   <div className="p-3 space-y-2.5 animate-slide-up">
-                    {lesson.body({ settings, debts: debts || [] }).split('\n\n').map((para, i) => (
+                    {lesson.body({ settings, debts: debts || [] }, lang).split('\n\n').map((para, i) => (
                       <p key={i} className="text-sm text-muted leading-relaxed">{para}</p>
                     ))}
                     {!isDone && (
@@ -192,7 +198,7 @@ export default function CourseTrack({ track, unlocked, userId, context, settings
             <p className="text-xs text-savings font-medium text-center">{t('course.examPassedNextUnlocked')}</p>
           )}
           {(showExam || (examResult && !examResult.passed)) && (
-            <ExamView track={track} userId={userId} context={context} onDone={() => setShowExam(true)} />
+            <ExamView track={track} userId={userId} context={context} lang={lang} onDone={() => setShowExam(true)} />
           )}
         </div>
       )}
