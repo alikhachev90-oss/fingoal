@@ -11,7 +11,7 @@ const LS_KEY = 'fintrack_mock_db_v1'
 const SESSION_KEY = 'fintrack_mock_session_v1'
 
 function loadMock() {
-  const empty = { users: [], settings: {}, debts: [], transactions: [], goals: [], checkins: [], completedLessons: [] }
+  const empty = { users: [], settings: {}, debts: [], transactions: [], goals: [], checkins: [], completedLessons: [], accounts: [] }
   try {
     return { ...empty, ...(JSON.parse(localStorage.getItem(LS_KEY)) || {}) }
   } catch {
@@ -126,6 +126,54 @@ export async function addDebt(userId, context, debt) {
   db.debts.push(row)
   saveMock(db)
   return row
+}
+
+// ---------------------------------------------------------------- accounts
+// An account is a named card/bank account the user tracks separately —
+// {type: 'debit'|'credit', name, statement_day, due_day, credit_limit}.
+// `statement_day`/`due_day` (1-28) drive the automatic payment reminder for
+// credit accounts — see lib/creditCards.js. Balance isn't stored: it's
+// derived from transactions tagged with this account's id minus recorded
+// payments (payments are just transactions with is_payment: true).
+export async function listAccounts(userId, context) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.from('accounts').select('*').eq('user_id', userId).eq('context', context).order('created_at')
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  return db.accounts.filter((a) => a.user_id === userId && a.context === context)
+}
+
+export async function upsertAccount(userId, context, account) {
+  if (supabaseEnabled) {
+    const row = account.id ? account : { ...account, user_id: userId, context }
+    const { data, error } = await supabase.from('accounts').upsert(row).select().single()
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  if (account.id) {
+    const idx = db.accounts.findIndex((a) => a.id === account.id)
+    if (idx >= 0) db.accounts[idx] = { ...db.accounts[idx], ...account }
+    saveMock(db)
+    return db.accounts[idx]
+  }
+  const row = { id: uid(), user_id: userId, context, created_at: new Date().toISOString(), ...account }
+  db.accounts.push(row)
+  saveMock(db)
+  return row
+}
+
+export async function deleteAccount(userId, accountId) {
+  if (supabaseEnabled) {
+    const { error } = await supabase.from('accounts').delete().eq('id', accountId)
+    if (error) throw error
+    return
+  }
+  const db = loadMock()
+  db.accounts = db.accounts.filter((a) => a.id !== accountId)
+  saveMock(db)
 }
 
 // ------------------------------------------------------------------- goals

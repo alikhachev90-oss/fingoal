@@ -17,6 +17,7 @@ import { findCategory, pickLang, subLabel, subHint, CATEGORY_TREE } from '../lib
 import { computeGoalPlan, computeSafeToSpendToday } from '../lib/finance'
 import { detectHabitTip, dismissHabitTip } from '../lib/habitTips'
 import { TOURS } from '../lib/tours'
+import { computeAccountBalance, nextDateForDay, daysUntil } from '../lib/creditCards'
 
 // Muted, "graphite" chart colors instead of a harsh stoplight red/amber/green —
 // the pie is informational, not a warning light.
@@ -43,6 +44,7 @@ export default function DashboardScreen() {
   const [transactions, setTransactions] = useState([])
   const [goals, setGoals] = useState([])
   const [debts, setDebts] = useState([])
+  const [accounts, setAccounts] = useState([])
   const [streak, setStreak] = useState(0)
   const [checkedInToday, setCheckedInToday] = useState(false)
   const [habitTip, setHabitTip] = useState(null)
@@ -57,6 +59,7 @@ export default function DashboardScreen() {
     })
     db.listGoals(user.id, context).then(setGoals)
     db.listDebts(user.id, context).then(setDebts)
+    db.listAccounts(user.id, context).then(setAccounts)
     refreshCheckins()
   }, [user, context])
 
@@ -145,7 +148,19 @@ export default function DashboardScreen() {
   const billsFromDebts = (debts || [])
     .filter((d) => (d.min_payment || 0) > 0)
     .map((d) => ({ billId: `debt:${d.id}`, label: t('bills.debtLabel', { name: d.name }), amount: d.min_payment }))
-  const bills = [...billsFromNeeds, ...billsFromDebts]
+  // Credit cards: as soon as spending is logged on one, its running balance
+  // (see lib/creditCards.computeAccountBalance) shows up here as something to
+  // pay — no separate visit to /accounts needed to notice it's owed.
+  const billsFromCards = (accounts || [])
+    .filter((a) => a.type === 'credit')
+    .map((a) => {
+      const balance = computeAccountBalance(a, transactions)
+      const dueDate = a.due_day ? nextDateForDay(a.due_day) : null
+      const due = dueDate ? daysUntil(dueDate) : null
+      return { billId: `card:${a.id}`, label: t('bills.cardLabel', { name: a.name }), amount: balance, due }
+    })
+    .filter((b) => b.amount > 0)
+  const bills = [...billsFromNeeds, ...billsFromDebts, ...billsFromCards]
 
   const topGoal = goals[0]
   const topGoalPlan = topGoal && settings ? computeGoalPlan(
@@ -263,7 +278,14 @@ export default function DashboardScreen() {
                 <div key={b.billId} className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{b.label}</p>
-                    <p className="text-xs text-muted">{fmt(b.amount)}</p>
+                    <p className="text-xs text-muted">
+                      {fmt(b.amount)}
+                      {b.due !== undefined && b.due !== null && (
+                        <span className={b.due < 0 ? 'text-wants font-medium' : ''}>
+                          {' · '}{b.due < 0 ? t('bills.cardOverdue') : t('bills.cardDueIn', { n: b.due })}
+                        </span>
+                      )}
+                    </p>
                   </div>
                   <ReminderButton billId={b.billId} label={b.label} amount={b.amount} />
                 </div>
@@ -272,6 +294,17 @@ export default function DashboardScreen() {
             <p className="text-[11px] text-muted leading-relaxed">{t('bills.notifNote')}</p>
           </Card>
         )}
+
+        <Link to="/accounts">
+          <Card className="!p-3.5 flex items-center gap-3 hover:border-primary/50">
+            <IconCircle icon={Landmark} className="bg-primary/10 text-primary" size={38} iconSize={17} />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm">{t('accounts.entryTitle')}</p>
+              <p className="text-xs text-muted mt-0.5">{t('accounts.entrySubtitle')}</p>
+            </div>
+            <ArrowRight size={16} className="text-muted shrink-0" />
+          </Card>
+        </Link>
 
         {pieData.length > 0 && (
           <Card data-tour="dash-chart">

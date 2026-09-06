@@ -30,11 +30,14 @@ export default function EntryScreen() {
   const [roundUp, setRoundUp] = useState(true)
   const [roundUpNote, setRoundUpNote] = useState(null)
   const [pendingCat, setPendingCat] = useState(null) // {group,key} — waiting for a sub pick
+  const [accounts, setAccounts] = useState([])
+  const [accountId, setAccountId] = useState('')
 
   useEffect(() => {
     if (!user) return
     db.listGoals(user.id, context).then((goals) => setTopGoal(goals?.[0] || null))
     db.getSettings(user.id, context).then(setSettings)
+    db.listAccounts(user.id, context).then(setAccounts)
   }, [user, context])
 
   const suggestions = useMemo(() => suggestCategories(query, lang), [query, lang])
@@ -101,6 +104,7 @@ export default function EntryScreen() {
         group: selected.group,
         category_key: selected.key,
         sub: selected.sub,
+        account_id: accountId || null,
       })
       let milestone = null
       if (selected.group === 'savings') {
@@ -172,6 +176,21 @@ export default function EntryScreen() {
           <Input label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
           <Input label={t('entry.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           <Input label={t('entry.comment')} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('entry.commentPlaceholder')} />
+          {accounts.length > 0 && (
+            <label className="block text-sm">
+              <span className="text-muted text-xs font-medium">{t('entry.accountLabel')}</span>
+              <select
+                value={accountId}
+                onChange={(e) => setAccountId(e.target.value)}
+                className="mt-1 w-full bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
+              >
+                <option value="">{t('entry.accountNone')}</option>
+                {accounts.map((a) => (
+                  <option key={a.id} value={a.id}>{a.name}{a.type === 'credit' ? ` (${t('accounts.credit')})` : ''}</option>
+                ))}
+              </select>
+            </label>
+          )}
           {topGoal && (
             <label className="flex items-center justify-between text-sm pt-1 cursor-pointer">
               <span className="text-muted">{t('entry.roundUpLabel', { name: topGoal.name })}</span>
