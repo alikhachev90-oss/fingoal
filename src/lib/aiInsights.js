@@ -8,7 +8,7 @@
 
 import { suggestCategories, findCategory, pickLang } from './categories'
 
-function categoryLabel(group, key, lang = 'ru') {
+export function categoryLabel(group, key, lang = 'ru') {
   return pickLang(findCategory(group, key)?.label, lang) || key
 }
 
@@ -113,7 +113,7 @@ export function detectRecurring(transactions) {
   for (const t of wants) {
     const rounded = Math.round(t.amount / 1) // bucket by whole-dollar amount
     const key = `${t.category_key}|${rounded}`
-    if (!buckets.has(key)) buckets.set(key, { months: new Set(), amount: t.amount, category_key: t.category_key, count: 0 })
+    if (!buckets.has(key)) buckets.set(key, { id: key, months: new Set(), amount: t.amount, category_key: t.category_key, count: 0 })
     const b = buckets.get(key)
     b.months.add(monthKey(t.date))
     b.count += 1
@@ -124,6 +124,61 @@ export function detectRecurring(transactions) {
     .map((b) => ({ ...b, monthsCount: b.months.size }))
     .sort((a, b) => b.monthsCount - a.monthsCount)
     .slice(0, 4)
+}
+
+// --------------------------------------------------------- subscription radar
+// A lightweight "does this look like a forgotten subscription?" scanner, built
+// entirely on `detectRecurring` above — i.e. on the user's own manually-entered
+// transactions. No bank/card connection here: real automatic detection from a
+// linked account is a bigger (paid, later) feature — this is the free version
+// that works with what the app already has.
+function radarKey(userId, context) {
+  return `fintrack_radar_${userId}_${context}`
+}
+
+export function getRadarState(userId, context) {
+  try {
+    return JSON.parse(localStorage.getItem(radarKey(userId, context))) || { cancelled: [], lastCheckedAt: null }
+  } catch {
+    return { cancelled: [], lastCheckedAt: null }
+  }
+}
+
+function saveRadarState(userId, context, state) {
+  localStorage.setItem(radarKey(userId, context), JSON.stringify(state))
+  return state
+}
+
+// Recurring charges the user hasn't already marked as cancelled.
+export function getSubscriptionRadar(userId, context, transactions) {
+  const state = getRadarState(userId, context)
+  const cancelled = new Set(state.cancelled || [])
+  return detectRecurring(transactions).filter((b) => !cancelled.has(b.id))
+}
+
+export function markSubscriptionCancelled(userId, context, bucketId) {
+  const state = getRadarState(userId, context)
+  const cancelled = Array.from(new Set([...(state.cancelled || []), bucketId]))
+  return saveRadarState(userId, context, { ...state, cancelled })
+}
+
+// True once 30+ days have passed since the last "reviewed" mark (or it was never checked).
+export function shouldPromptMonthlyCheck(userId, context) {
+  const state = getRadarState(userId, context)
+  if (!state.lastCheckedAt) return true
+  const days = (Date.now() - new Date(state.lastCheckedAt).getTime()) / 86400000
+  return days >= 30
+}
+
+export function daysSinceRadarCheck(userId, context) {
+  const state = getRadarState(userId, context)
+  if (!state.lastCheckedAt) return null
+  return Math.floor((Date.now() - new Date(state.lastCheckedAt).getTime()) / 86400000)
+}
+
+export function recordRadarChecked(userId, context) {
+  const state = getRadarState(userId, context)
+  return saveRadarState(userId, context, { ...state, lastCheckedAt: new Date().toISOString() })
 }
 
 // -------------------------------------------------------- month-over-month diff

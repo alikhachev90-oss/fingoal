@@ -1,11 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Sparkles, Send, TrendingUp, TrendingDown, Info, Flag, Trophy } from 'lucide-react'
+import { Sparkles, Send, TrendingUp, TrendingDown, Info, Flag, Trophy, Radar, X } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import { Card, Button, IconCircle, EmptyState, ProgressBar } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { computeInsights, answerQuestion, CHALLENGES, challengeTitle, getActiveChallenge, startChallenge, clearChallenge, evaluateChallenge } from '../lib/aiInsights'
+import {
+  computeInsights,
+  answerQuestion,
+  CHALLENGES,
+  challengeTitle,
+  getActiveChallenge,
+  startChallenge,
+  clearChallenge,
+  evaluateChallenge,
+  getSubscriptionRadar,
+  markSubscriptionCancelled,
+  shouldPromptMonthlyCheck,
+  daysSinceRadarCheck,
+  recordRadarChecked,
+  categoryLabel,
+} from '../lib/aiInsights'
 import { projectSavingsGrowth } from '../lib/finance'
 
 function fmt(n) {
@@ -32,6 +47,7 @@ export default function InsightsScreen() {
   const [growthAmount, setGrowthAmount] = useState('')
   const [growthRate, setGrowthRate] = useState('7')
   const [growthYears, setGrowthYears] = useState('3')
+  const [radarTick, setRadarTick] = useState(0)
 
   useEffect(() => {
     if (!user) return
@@ -52,6 +68,22 @@ export default function InsightsScreen() {
 
   const cards = computeInsights({ settings, transactions, goals, debts, lang })
   const challengeStatus = evaluateChallenge(activeChallenge, transactions)
+  const radarItems = useMemo(
+    () => (user ? getSubscriptionRadar(user.id, context, transactions) : []),
+    [user, context, transactions, radarTick],
+  )
+  const radarDue = user ? shouldPromptMonthlyCheck(user.id, context) : false
+  const radarDays = user ? daysSinceRadarCheck(user.id, context) : null
+
+  function handleCancelSubscription(id) {
+    markSubscriptionCancelled(user.id, context, id)
+    setRadarTick((v) => v + 1)
+  }
+
+  function handleMarkRadarChecked() {
+    recordRadarChecked(user.id, context)
+    setRadarTick((v) => v + 1)
+  }
 
   const defaultMonthly = goals[0] ? Math.max(0, Math.round(goals[0].target_amount ? (goals[0].target_amount - goals[0].saved_amount) / 12 : 0)) : 0
   const growthResult = projectSavingsGrowth(
@@ -94,6 +126,60 @@ export default function InsightsScreen() {
             </Card>
           )
         })}
+
+        <div className="pt-2">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[13px] font-bold tracking-wide text-muted uppercase">{t('radar.title')}</p>
+            {radarItems.length > 0 && (
+              <span className={`text-[11px] font-medium ${radarDue ? 'text-wants' : 'text-muted'}`}>
+                {radarDue
+                  ? t('radar.subtitleDue')
+                  : radarDays === null
+                    ? t('radar.subtitleNeverChecked')
+                    : t('radar.subtitleOk', { days: radarDays })}
+              </span>
+            )}
+          </div>
+          {radarItems.length === 0 ? (
+            <Card className="!p-3.5 flex items-start gap-3">
+              <IconCircle icon={Radar} className="bg-primary/10 text-primary" size={34} iconSize={16} />
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{t('radar.emptyTitle')}</p>
+                <p className="text-xs text-muted mt-0.5">{t('radar.emptySubtitle')}</p>
+              </div>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {radarDue && (
+                <p className="text-xs text-wants font-medium bg-wants/10 rounded-lg px-3 py-2">{t('radar.subtitleDue')}</p>
+              )}
+              {radarItems.map((item) => (
+                <Card key={item.id} className="!p-3 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <IconCircle icon={Radar} className="bg-wants/10 text-wants" size={32} iconSize={15} />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{categoryLabel('wants', item.category_key, lang)}</p>
+                      <p className="text-xs text-muted">{fmt(item.amount)} · {item.monthsCount} {t('radar.monthsSuffix')}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    className="!w-auto px-2.5 shrink-0 text-xs"
+                    icon={X}
+                    onClick={() => handleCancelSubscription(item.id)}
+                    type="button"
+                  >
+                    {t('radar.cancelled')}
+                  </Button>
+                </Card>
+              ))}
+              <Button variant="secondary" onClick={handleMarkRadarChecked} type="button">
+                {t('radar.markChecked')}
+              </Button>
+            </div>
+          )}
+          <p className="text-[11px] text-muted mt-2 leading-relaxed">{t('radar.premiumNote')}</p>
+        </div>
 
         <div className="pt-2">
           <p className="text-[13px] font-bold tracking-wide text-muted uppercase mb-2">{t('insights.challengeSection')}</p>
