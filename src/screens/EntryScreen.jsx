@@ -192,7 +192,7 @@ export default function EntryScreen() {
             placeholder={t('entry.categoryPlaceholder')}
           />
 
-          {!selected && suggestions.length > 0 && (
+          {!selected && !pendingCat && suggestions.length > 0 && (
             <div className="space-y-2">
               {suggestions.map((s, i) => (
                 <button
