@@ -5,16 +5,23 @@ import { Button, Input, Card, Pill } from '../components/UI'
 import BatteryProgress from '../components/BatteryProgress'
 import GoalReminderButton from '../components/GoalReminderButton'
 import TourGuide from '../components/TourGuide'
+import InfoTag from '../components/InfoTag'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { computeGoalPlan, MILESTONES, crossedMilestone } from '../lib/finance'
 import { TOURS } from '../lib/tours'
+import { GOAL_TIPS } from '../lib/goalGuide'
+import { Lightbulb } from 'lucide-react'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
 }
 
-const emptyForm = { name: '', targetAmount: '', deadline: '' }
+function pickLang(obj, lang) {
+  return obj?.[lang] || obj?.ru || ''
+}
+
+const emptyForm = { name: '', targetAmount: '', deadline: '', why: '' }
 
 export default function GoalsScreen() {
   const { user, context, t, lang } = useApp()
@@ -25,6 +32,7 @@ export default function GoalsScreen() {
   const [saving, setSaving] = useState(false)
   const [milestoneHit, setMilestoneHit] = useState(null)
   const [tourActive, setTourActive] = useState(false)
+  const [guideOpen, setGuideOpen] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -49,6 +57,7 @@ export default function GoalsScreen() {
         name: form.name,
         target_amount: parseFloat(form.targetAmount),
         deadline: form.deadline,
+        why: form.why || null,
         priority: goals.length,
       })
       setForm(emptyForm)
@@ -99,6 +108,26 @@ export default function GoalsScreen() {
             <p className="text-sm font-medium">{t('goals.milestoneToast', { name: milestoneHit.goalName, pct: milestoneHit.pct })}</p>
           </Card>
         )}
+
+        <Card className="!p-3.5 space-y-2">
+          <button type="button" onClick={() => setGuideOpen((v) => !v)} className="w-full flex items-center justify-between text-left">
+            <span className="text-sm font-semibold flex items-center gap-1.5">
+              <Lightbulb size={14} className="text-primary shrink-0" /> {t('goals.guideTitle')}
+            </span>
+            <span className="text-xs text-primary shrink-0">{guideOpen ? '−' : t('goals.guideToggle')}</span>
+          </button>
+          {guideOpen && (
+            <div className="space-y-2.5 pt-1">
+              {GOAL_TIPS.map((tip) => (
+                <div key={tip.id} className="bg-surface2 rounded-lg p-2.5">
+                  <p className="text-sm font-medium">{pickLang(tip.title, lang)}</p>
+                  <p className="text-xs text-muted mt-1 leading-relaxed">{pickLang(tip.body, lang)}</p>
+                  <p className="text-[11px] text-muted/70 mt-1">— {pickLang(tip.source, lang)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
         {goals.map((goal) => {
           const plan = settings
             ? computeGoalPlan(
@@ -115,6 +144,8 @@ export default function GoalsScreen() {
                 </div>
                 <button onClick={() => removeGoal(goal.id)} className="text-xs text-muted">✕</button>
               </div>
+
+              {goal.why && <p className="text-xs text-muted italic bg-surface2 rounded-lg px-2.5 py-2">« {goal.why} »</p>}
 
               <BatteryProgress pct={plan?.progressPct || 0} label={t('common.savedOfTarget', { saved: fmt(goal.saved_amount), target: fmt(goal.target_amount) })} />
 
@@ -156,9 +187,25 @@ export default function GoalsScreen() {
           <Card>
             <form onSubmit={createGoal} className="space-y-3">
               <h2 className="font-semibold">{t('goals.createGoal')}</h2>
-              <Input label={t('goals.name')} required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder={t('goals.namePlaceholder')} />
+              <div>
+                <Input label={<span className="inline-flex items-center gap-1">{t('goals.name')} <InfoTag>{t('goals.nameHint')}</InfoTag></span>} required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder={t('goals.namePlaceholder')} />
+              </div>
               <Input label={t('goals.targetAmount')} type="number" required min="1" value={form.targetAmount} onChange={(e) => setForm((f) => ({ ...f, targetAmount: e.target.value }))} />
-              <Input label={t('goals.deadline')} type="date" required value={form.deadline} onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))} />
+              <div>
+                <Input label={<span className="inline-flex items-center gap-1">{t('goals.deadline')} <InfoTag>{t('goals.deadlineHint')}</InfoTag></span>} type="date" required value={form.deadline} onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-muted">{t('goals.why')} <InfoTag>{t('goals.whyHint')}</InfoTag></span>
+                </label>
+                <textarea
+                  value={form.why}
+                  onChange={(e) => setForm((f) => ({ ...f, why: e.target.value }))}
+                  placeholder={t('goals.whyPlaceholder')}
+                  rows={2}
+                  className="w-full bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary resize-none"
+                />
+              </div>
               <div className="flex gap-2">
                 <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>{t('goals.cancel')}</Button>
                 <Button type="submit" disabled={saving}>{saving ? t('goals.saving') : t('goals.submitCreate')}</Button>

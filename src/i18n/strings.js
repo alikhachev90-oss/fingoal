@@ -123,6 +123,13 @@ const STRINGS = {
   'goals.namePlaceholder': { ru: 'Подушка на 3 месяца', en: '3-month cushion', es: 'Colchón de 3 meses', fr: '3 mois de coussin' },
   'goals.cancel': { ru: 'Отмена', en: 'Cancel', es: 'Cancelar', fr: 'Annuler' },
   'goals.saving': { ru: 'Сохраняем…', en: 'Saving…', es: 'Guardando…', fr: 'Enregistrement…' },
+  'goals.guideTitle': { ru: 'Как ставить цели, чтобы они работали', en: 'How to set goals that actually work', es: 'Cómo fijar metas que realmente funcionen', fr: 'Comment fixer des objectifs qui fonctionnent' },
+  'goals.guideToggle': { ru: 'Прочитать (2 мин)', en: 'Read this (2 min)', es: 'Leer (2 min)', fr: 'Lire (2 min)' },
+  'goals.why': { ru: 'Зачем вам эта цель? (необязательно)', en: 'Why does this goal matter to you? (optional)', es: '¿Por qué te importa esta meta? (opcional)', fr: 'Pourquoi cet objectif compte pour vous ? (facultatif)' },
+  'goals.whyPlaceholder': { ru: 'Что изменится в жизни, когда достигну этого?', en: "What changes in my life once I have this?", es: '¿Qué cambia en mi vida al lograrlo?', fr: 'Qu\'est-ce qui change dans ma vie une fois cela atteint ?' },
+  'goals.whyHint': { ru: 'Цели, за которыми стоит личная причина, а не просто «хочу», доводят до конца чаще (исследования мотивации Деси и Райана). Одно предложение — уже полезно.', en: 'Goals with a personal reason behind them — not just "I want it" — get followed through on more (Deci & Ryan\'s motivation research). One sentence already helps.' },
+  'goals.nameHint': { ru: 'Конкретное название и точная сумма работают лучше, чем расплывчатое «накопить побольше» — так однажды доказали Локк и Латэм в своих исследованиях постановки целей.', en: 'A specific name and exact amount beat a vague "save more" — this is one of the most-replicated findings in Locke & Latham\'s goal-setting research.' },
+  'goals.deadlineHint': { ru: 'Дата — это то, из чего можно посчитать план по дням. Без даты цель легко откладывается бесконечно.', en: "A date is what lets a day-by-day plan get calculated at all. Without one, a goal is easy to postpone forever." },
 
   'entry.title': { ru: 'Новая трата', en: 'New expense', es: 'Nuevo gasto', fr: 'Nouvelle dépense' },
   'entry.quickLabel': { ru: 'Быстрый ввод текстом', en: 'Quick text entry', es: 'Entrada rápida de texto', fr: 'Saisie rapide de texte' },
