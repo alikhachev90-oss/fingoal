@@ -13,7 +13,14 @@ export function computeAccountBalance(account, transactions) {
   let balance = 0
   for (const t of transactions) {
     if (t.account_id !== account.id) continue
-    balance += t.is_payment ? -Number(t.amount || 0) : Number(t.amount || 0)
+    const amt = Number(t.amount || 0)
+    if (account.type === 'credit') {
+      // Credit balance = what's owed: a purchase adds debt, a recorded payment reduces it.
+      balance += t.is_payment ? -amt : amt
+    } else {
+      // Cash/debit balance = what's actually there: income adds, spending subtracts.
+      balance += t.group === 'income' ? amt : -amt
+    }
   }
   return Math.round(balance * 100) / 100
 }
