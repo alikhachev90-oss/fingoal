@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, CreditCard, Landmark, Plus, Lightbulb, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, CreditCard, Landmark, Wallet, Plus, Lightbulb, AlertTriangle } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import { Card, Button, Input, IconCircle } from '../components/UI'
@@ -12,7 +12,7 @@ function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
 }
 
-const emptyForm = { name: '', type: 'debit', credit_limit: '', statement_day: '', due_day: '' }
+const emptyForm = { name: '', type: 'cash', credit_limit: '', statement_day: '', due_day: '' }
 
 export default function AccountsScreen() {
   const { user, context, lang } = useApp()
@@ -39,7 +39,7 @@ export default function AccountsScreen() {
     setSaving(true)
     try {
       await db.upsertAccount(user.id, context, {
-        name: form.name,
+        name: form.type === 'cash' ? L.cash : form.name,
         type: form.type,
         credit_limit: form.type === 'credit' ? parseFloat(form.credit_limit) || 0 : null,
         statement_day: form.type === 'credit' ? parseInt(form.statement_day) || null : null,
@@ -93,6 +93,7 @@ export default function AccountsScreen() {
   const L = {
     title: { ru: 'Карты и счета', en: 'Cards & accounts' }[lang] || 'Карты и счета',
     subtitle: { ru: 'Отдельно по каждой карте — баланс, срок оплаты, загрузка', en: 'Per card — balance, due date, utilization' }[lang] || '',
+    cash: { ru: 'Наличные', en: 'Cash' }[lang] || 'Наличные',
     debit: { ru: 'Дебетовый / текущий счёт', en: 'Debit / checking account' }[lang] || 'Дебетовый счёт',
     credit: { ru: 'Кредитная карта', en: 'Credit card' }[lang] || 'Кредитная карта',
     name: { ru: 'Название (например, BofA)', en: 'Name (e.g. BofA)' }[lang] || 'Название',
@@ -126,10 +127,10 @@ export default function AccountsScreen() {
           <Card key={a.id} className="!p-3.5 space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5 min-w-0">
-                <IconCircle icon={a.type === 'credit' ? CreditCard : Landmark} className="bg-primary/10 text-primary" size={36} iconSize={17} />
+                <IconCircle icon={a.type === 'credit' ? CreditCard : a.type === 'cash' ? Wallet : Landmark} className="bg-primary/10 text-primary" size={36} iconSize={17} />
                 <div className="min-w-0">
                   <p className="font-semibold text-sm truncate">{a.name}</p>
-                  <p className="text-xs text-muted">{a.type === 'credit' ? L.credit : L.debit}</p>
+                  <p className="text-xs text-muted">{a.type === 'credit' ? L.credit : a.type === 'cash' ? L.cash : L.debit}</p>
                 </div>
               </div>
               <button onClick={() => removeAccount(a.id)} className="text-xs text-muted shrink-0" type="button">✕</button>
@@ -137,7 +138,7 @@ export default function AccountsScreen() {
 
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted">{L.balance}</span>
-              <span className={`font-semibold font-num ${a.type === 'credit' && a.balance > 0 ? 'text-wants' : ''}`}>{fmt(a.balance)}</span>
+              <span className={`font-semibold font-num ${(a.type === 'credit' ? a.balance > 0 : a.balance < 0) ? 'text-wants' : 'text-savings'}`}>{fmt(a.balance)}</span>
             </div>
 
             {a.type === 'credit' && (
@@ -185,18 +186,20 @@ export default function AccountsScreen() {
           <Card>
             <form onSubmit={createAccount} className="space-y-3">
               <div className="flex bg-surface2 rounded-xl p-1 border border-border">
-                {['debit', 'credit'].map((tp) => (
+                {['cash', 'debit', 'credit'].map((tp) => (
                   <button
                     key={tp}
                     type="button"
                     onClick={() => setForm((f) => ({ ...f, type: tp }))}
                     className={`flex-1 py-2 rounded-lg text-sm font-semibold ${form.type === tp ? 'bg-surface shadow-softer text-text' : 'text-muted'}`}
                   >
-                    {tp === 'debit' ? L.debit : L.credit}
+                    {tp === 'cash' ? L.cash : tp === 'debit' ? L.debit : L.credit}
                   </button>
                 ))}
               </div>
-              <Input label={L.name} required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="BofA, Chase..." />
+              {form.type !== 'cash' && (
+                <Input label={L.name} required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="BofA, Chase..." />
+              )}
               {form.type === 'credit' && (
                 <>
                   <Input label={L.limit} type="number" min="0" value={form.credit_limit} onChange={(e) => setForm((f) => ({ ...f, credit_limit: e.target.value }))} />
