@@ -18,6 +18,7 @@
   --color-needs: 165 54 42;
   --color-wants: 158 110 24;
   --color-savings: 27 94 63;
+  --color-income: 47 89 130;
   --color-danger: 165 54 42;
 }
 
@@ -34,6 +35,7 @@
   --color-needs: 214 115 98;
   --color-wants: 214 168 84;
   --color-savings: 90 168 120;
+  --color-income: 122 168 214;
   --color-danger: 214 115 98;
 }
 
