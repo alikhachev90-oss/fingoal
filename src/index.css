@@ -2,40 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
-/* "Ledger" identity: ink + brass gold + emerald, paper-toned neutrals.
-   No purple/indigo, no gradients — flat, considered, a little austere. */
+/* "Private space" identity: a translucent glass UI floating over a soft
+   ambient backdrop — champagne gold + emerald accents on graphite/paper
+   neutrals. Depth and quiet motion carry the design, not loud color. */
 
 :root {
-  --color-bg: 240 241 234;
-  --color-surface: 253 253 250;
-  --color-surface2: 231 232 222;
-  --color-border: 211 212 199;
-  --color-text: 22 26 20;
-  --color-muted: 96 101 88;
-  --color-primary: 150 108 24;
-  --color-primary2: 27 94 63;
+  --color-bg: 242 240 233;
+  --color-surface: 255 255 253;
+  --color-surface2: 234 230 219;
+  --color-border: 214 208 194;
+  --color-text: 26 24 20;
+  --color-muted: 103 99 88;
+  --color-primary: 168 128 58;
+  --color-primary2: 30 120 82;
   --color-on-primary: 253 253 250;
-  --color-needs: 165 54 42;
-  --color-wants: 158 110 24;
-  --color-savings: 27 94 63;
-  --color-income: 47 89 130;
-  --color-danger: 165 54 42;
+  --color-needs: 178 62 48;
+  --color-wants: 168 116 30;
+  --color-savings: 30 120 82;
+  --color-income: 50 96 148;
+  --color-danger: 178 62 48;
 }
 
 .dark {
-  --color-bg: 15 16 13;
-  --color-surface: 24 25 20;
-  --color-surface2: 32 33 27;
-  --color-border: 49 50 41;
-  --color-text: 235 235 226;
-  --color-muted: 150 152 136;
-  --color-primary: 208 168 63;
-  --color-primary2: 90 168 120;
-  --color-on-primary: 20 19 14;
+  --color-bg: 11 12 13;
+  --color-surface: 24 26 29;
+  --color-surface2: 34 37 41;
+  --color-border: 54 57 53;
+  --color-text: 244 242 236;
+  --color-muted: 168 171 168;
+  --color-primary: 205 168 110;
+  --color-primary2: 88 168 132;
+  --color-on-primary: 26 22 14;
   --color-needs: 214 115 98;
-  --color-wants: 214 168 84;
-  --color-savings: 90 168 120;
-  --color-income: 122 168 214;
+  --color-wants: 214 158 84;
+  --color-savings: 92 176 132;
+  --color-income: 120 165 214;
   --color-danger: 214 115 98;
 }
 
@@ -60,6 +61,39 @@ body {
   min-height: 100svh;
   display: flex;
   justify-content: center;
+}
+
+/* The app's "personal space": a soft ambient glow behind every glass card.
+   Placeholder default until Settings → Внешний вид lets people pick their
+   own backdrop (photo, gradient, or one of a curated set) — that picker
+   swaps this element's background, nothing else has to change. */
+.app-ambient {
+  position: relative;
+  background: rgb(var(--color-bg));
+}
+.app-ambient::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 40% at 18% -8%, rgb(var(--color-primary) / 0.16), transparent 60%),
+    radial-gradient(ellipse 55% 45% at 88% 8%, rgb(var(--color-primary2) / 0.14), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 50% 110%, rgb(var(--color-primary2) / 0.08), transparent 60%);
+}
+.app-ambient > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Frosted glass surface used by cards, bars and sheets floating over the
+   ambient backdrop above. */
+.glass {
+  background: rgb(var(--color-surface) / 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgb(var(--color-text) / 0.08);
 }
 
 input, select, textarea, button {

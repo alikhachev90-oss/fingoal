@@ -103,7 +103,7 @@ function Shell() {
 export default function App() {
   return (
     <AppProvider>
-      <div className="w-full max-w-app min-h-[100svh] bg-bg">
+      <div className="app-ambient w-full max-w-app min-h-[100svh]">
         <BrowserRouter>
           <Shell />
         </BrowserRouter>
