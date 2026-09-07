@@ -10,12 +10,13 @@ import { requestNotificationPermission } from '../lib/reminders'
 import { resetTour } from '../lib/tours'
 import { enablePushNotifications, disablePushNotifications, isPushEnabled, pushSupported } from '../lib/pushNotifications'
 import { pushBackendEnabled } from '../lib/pushClient'
+import { BACKGROUNDS } from '../lib/backgrounds'
 
 const FEEDBACK_EMAIL = 'a.likhachev90@gmail.com'
 const TOUR_SCREENS = ['dashboard', 'goals', 'insights']
 
 export default function SettingsScreen() {
-  const { user, context, theme, setTheme, lang, setLang, t, signOut } = useApp()
+  const { user, context, theme, setTheme, lang, setLang, background, setBackground, t, signOut } = useApp()
   const [notifStatus, setNotifStatus] = useState(typeof Notification !== 'undefined' ? Notification.permission : 'unsupported')
   const [toursReset, setToursReset] = useState(false)
   const [pushOn, setPushOn] = useState(false)
@@ -118,6 +119,29 @@ export default function SettingsScreen() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${lang === l.code ? 'bg-primary text-onprimary border-primary' : 'bg-surface2 border-border text-muted'}`}
                 >
                   {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-muted mb-0.5">{t('settings.background')}</p>
+            <p className="text-[11px] text-muted/80 mb-1.5">{t('settings.backgroundNote')}</p>
+            <div className="grid grid-cols-4 gap-2">
+              {BACKGROUNDS.map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => setBackground(b.id)}
+                  aria-label={b.label[lang] || b.label.ru}
+                  className={`relative aspect-square rounded-xl border-2 overflow-hidden transition-all ${
+                    background === b.id ? 'border-primary scale-[1.03]' : 'border-border/60'
+                  }`}
+                >
+                  <span className="absolute inset-0 bg-[rgb(24,26,29)]" />
+                  <span className="absolute inset-0" style={{ background: b.css }} />
+                  <span className="absolute inset-x-0 bottom-0 px-1 py-0.5 text-[8.5px] font-semibold text-white/90 bg-black/25 truncate text-center leading-tight">
+                    {b.category[lang] || b.category.ru}
+                  </span>
                 </button>
               ))}
             </div>

@@ -217,11 +217,11 @@ export default function DashboardScreen() {
         </div>
 
         <Card className="!p-0 overflow-hidden" data-tour="dash-streak">
-          <div className="bg-[#181712] px-4 pt-4 pb-5 border-b-2 border-[#d4af37]/70">
+          <div className="bg-[rgb(12,12,11)] px-4 pt-4 pb-5 border-b border-primary/40">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full border border-[#d4af37]/50 flex items-center justify-center shrink-0">
-                  <Flame size={20} className="text-[#d4af37]" strokeWidth={2} />
+                <div className="w-11 h-11 rounded-full border border-primary/50 bg-primary/10 flex items-center justify-center shrink-0">
+                  <Flame size={20} className="text-primary" strokeWidth={2} />
                 </div>
                 <div>
                   <p className="text-2xl font-semibold font-display leading-none text-[#f3ede0]">{streak} {t('common.days')}</p>
