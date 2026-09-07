@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Sun, Moon, User, Briefcase, Globe, HelpCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Sun, Moon, User, Briefcase, Globe, HelpCircle, Settings } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { IconButton } from './UI'
 import { LANGUAGES } from '../i18n/strings'
@@ -7,6 +8,7 @@ import { LANGUAGES } from '../i18n/strings'
 export default function TopBar({ title, subtitle, onHelp }) {
   const { context, toggleContext, theme, setTheme, lang, setLang, t } = useApp()
   const [langOpen, setLangOpen] = useState(false)
+  const navigate = useNavigate()
 
   return (
     <div className="sticky top-0 z-20 bg-bg/85 backdrop-blur-lg border-b border-border px-4 pt-[max(env(safe-area-inset-top),14px)] pb-3">
@@ -44,6 +46,7 @@ export default function TopBar({ title, subtitle, onHelp }) {
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             aria-label={t('topbar.themeToggle')}
           />
+          <IconButton icon={Settings} onClick={() => navigate('/settings')} aria-label={t('topbar.settings')} />
         </div>
       </div>
       <div className="mt-3 flex bg-surface2 rounded-lg p-1 border border-border">

@@ -36,8 +36,14 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
       finish()
       return
     }
+    // Stale-rect guard: don't keep showing the previous step's spotlight
+    // while we're still looking for this step's target — that's what made
+    // the ring appear to sit on the wrong card.
+    setRect(null)
     let attempts = 0
+    let cancelled = false
     function locate() {
+      if (cancelled) return
       const el = document.querySelector(`[data-tour="${step.id}"]`)
       if (el) {
         const r = el.getBoundingClientRect()
@@ -46,6 +52,7 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
           el.scrollIntoView({ block: 'center', behavior: 'instant' })
           // Let the scroll settle, then measure the now-in-view position.
           setTimeout(() => {
+            if (cancelled) return
             const r2 = el.getBoundingClientRect()
             setRect({ top: r2.top, left: r2.left, width: r2.width, height: r2.height })
           }, 80)
@@ -55,12 +62,19 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
       } else if (attempts < 5) {
         attempts += 1
         setTimeout(locate, 150)
-      } else {
+      } else if (!cancelled) {
         // Target never mounted (e.g. no goal created yet) — skip this step.
-        setStepIdx((i) => i + 1)
+        setStepIdx((i) => Math.min(i + 1, steps.length))
       }
     }
     locate()
+    // Cancel any pending retry/scroll timeout from this step once we move on
+    // (Next clicked, or the tour finished) — otherwise a late timer can fire
+    // setStepIdx/setRect for a step the user already left, which is what let
+    // stepIdx overshoot past the end and crash on an undefined step.
+    return () => {
+      cancelled = true
+    }
   }, [running, stepIdx, steps])
 
   function finish() {
@@ -77,6 +91,11 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
 
   if (!running || !rect) return null
   const step = steps[stepIdx]
+  // stepIdx can momentarily run past the last step (Next clicked right as an
+  // auto-skip-for-not-found timer also lands) — this render fires before the
+  // effect below has a chance to call finish()/clear rect, so bail out here
+  // too instead of crashing on step.title.
+  if (!step) return null
   const title = step.title[lang] || step.title.ru
   const body = step.body[lang] || step.body.ru
 

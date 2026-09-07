@@ -15,6 +15,8 @@ import InsightsScreen from './screens/InsightsScreen'
 import TaxEstimateScreen from './screens/TaxEstimateScreen'
 import ConnectBankScreen from './screens/ConnectBankScreen'
 import AccountsScreen from './screens/AccountsScreen'
+import SettingsScreen from './screens/SettingsScreen'
+import FeedbackButton from './components/FeedbackButton'
 
 // Polls for due bill reminders while the app is open, and fires a browser
 // Notification for any that come due. No backend push — see lib/reminders.js.
@@ -77,6 +79,7 @@ function Shell() {
     <>
     <ReminderWatcher />
     <GoalReminderWatcher />
+    <FeedbackButton />
     <Routes>
       <Route path="/auth" element={<AuthScreen />} />
       <Route path="/onboarding" element={<RequireAuth><OnboardingScreen /></RequireAuth>} />
@@ -88,6 +91,7 @@ function Shell() {
       <Route path="/taxes" element={<RequireAuth><TaxEstimateScreen /></RequireAuth>} />
       <Route path="/bank" element={<RequireAuth><ConnectBankScreen /></RequireAuth>} />
       <Route path="/accounts" element={<RequireAuth><AccountsScreen /></RequireAuth>} />
+      <Route path="/settings" element={<RequireAuth><SettingsScreen /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
     </>

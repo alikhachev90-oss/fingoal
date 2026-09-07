@@ -1,7 +1,8 @@
-export function Card({ children, className = '', animate = true }) {
+export function Card({ children, className = '', animate = true, ...rest }) {
   return (
     <div
       className={`bg-surface border border-border rounded-2.5xl p-4 shadow-softer ${animate ? 'animate-slide-up' : ''} ${className}`}
+      {...rest}
     >
       {children}
     </div>
