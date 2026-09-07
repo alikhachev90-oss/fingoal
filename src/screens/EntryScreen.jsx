@@ -37,7 +37,16 @@ export default function EntryScreen() {
     if (!user) return
     db.listGoals(user.id, context).then((goals) => setTopGoal(goals?.[0] || null))
     db.getSettings(user.id, context).then(setSettings)
-    db.listAccounts(user.id, context).then(setAccounts)
+    // A default Cash source always exists so the account picker below has
+    // something to offer even before the user adds a card/bank account.
+    db.listAccounts(user.id, context).then(async (list) => {
+      if (list.length === 0) {
+        const cash = await db.upsertAccount(user.id, context, { name: t('accounts.cash'), type: 'cash' })
+        setAccounts([cash])
+      } else {
+        setAccounts(list)
+      }
+    })
   }, [user, context])
 
   const suggestions = useMemo(() => suggestCategories(query, lang), [query, lang])
@@ -117,7 +126,7 @@ export default function EntryScreen() {
           if (milestone) setMilestoneHit({ pct: milestone, goalName: topGoal.name })
         }
         await db.checkInToday(user.id, context)
-      } else if (roundUp && topGoal) {
+      } else if (roundUp && topGoal && selected.group !== 'income') {
         // Round-up savings: spare change from Needs/Wants purchases nudges the goal forward too.
         const spent = parseFloat(amount)
         const upTo = Math.ceil(spent)
@@ -190,6 +199,9 @@ export default function EntryScreen() {
                 ))}
               </select>
             </label>
+          )}
+          {selected?.group === 'income' && (
+            <p className="text-[11px] text-muted -mt-1">{t('entry.incomeAccountHint')}</p>
           )}
           {topGoal && (
             <label className="flex items-center justify-between text-sm pt-1 cursor-pointer">
