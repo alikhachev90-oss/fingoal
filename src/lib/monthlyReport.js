@@ -83,7 +83,7 @@ function summarize(tx, lang) {
   const byCategory = {}
   for (const t of tx) {
     byGroup[t.group] = (byGroup[t.group] || 0) + t.amount
-    if (t.group === 'savings') continue
+    if (t.group === 'savings' || t.group === 'income') continue
     const cat = findCategory(t.group, t.category_key)
     const label = pickLang(cat?.label, lang) || t.category_key
     const id = `${t.group}:${t.category_key}`
