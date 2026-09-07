@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, PiggyBank, Trophy, CalendarDays, CalendarRange } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, PiggyBank, Trophy, CalendarDays, CalendarRange, Download } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import { Card, IconCircle, ProgressBar, EmptyState } from '../components/UI'
@@ -79,6 +79,53 @@ export default function ReportScreen() {
   const report = mode === 'month' ? monthReport : yearReport
   const netClass = report.leftover === undefined ? '' : report.leftover >= 0 ? 'text-savings' : 'text-wants'
 
+  function downloadReport() {
+    const periodLabel = mode === 'month'
+      ? monthDate.toLocaleDateString(MONTH_FMT[lang] || 'en-US', { month: 'long', year: 'numeric' })
+      : String(year)
+    const lines = []
+    lines.push(`${t('reports.title')} — ${periodLabel}`)
+    lines.push('')
+    lines.push(`${t('reports.spent')}: ${fmt(report.spent)}`)
+    lines.push(`${t('reports.saved')}: ${fmt(report.saved)}`)
+    lines.push(`${t('reports.savingsRate')}: ${report.savingsRate}%`)
+    if (mode === 'month') lines.push(`${t('reports.leftover')}: ${fmt(report.leftover)}`)
+    if (report.topCategories?.length) {
+      lines.push('')
+      lines.push(`${t('reports.topCategories')}:`)
+      report.topCategories.forEach((c) => lines.push(`  ${c.name}: ${fmt(c.value)}`))
+    }
+    if (mode === 'month' && monthReport.goals?.length) {
+      lines.push('')
+      lines.push(`${t('reports.goalsProgress')}:`)
+      monthReport.goals.forEach((g) => lines.push(`  ${g.name}: ${g.pct}%`))
+    }
+    if (mode === 'year') {
+      if (yearReport.goalsCompleted?.length) {
+        lines.push('')
+        lines.push(`${t('reports.goalsCompleted')}:`)
+        yearReport.goalsCompleted.forEach((g) => lines.push(`  ${g.name}`))
+      }
+      if (yearReport.bestMonth) {
+        lines.push('')
+        lines.push(t('reports.bestMonthNote', {
+          month: new Date(year, yearReport.bestMonth.month, 1).toLocaleDateString(MONTH_FMT[lang] || 'en-US', { month: 'long' }),
+          amt: fmt(yearReport.bestMonth.saved),
+        }))
+      }
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const monthTag = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`
+    a.download = `report-${mode === 'month' ? monthTag : year}.txt`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('reports.title')} subtitle={t('reports.subtitle')} />
@@ -128,6 +175,16 @@ export default function ReportScreen() {
                 <ChevronRight size={17} />
               </button>
             </div>
+
+            {report.hasData && (
+              <button
+                type="button"
+                onClick={downloadReport}
+                className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-primary py-1.5"
+              >
+                <Download size={13} /> {t('reports.download')}
+              </button>
+            )}
 
             {!report.hasData ? (
               <EmptyState icon={CalendarDays} title={t('reports.emptyTitle')} subtitle={t('reports.emptySubtitle')} />
