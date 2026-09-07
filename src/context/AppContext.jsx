@@ -15,6 +15,7 @@ export function AppProvider({ children }) {
   const [context, setContext] = useState(() => localStorage.getItem('fintrack_context') || 'personal')
   const [theme, setTheme] = useState(() => localStorage.getItem('fintrack_theme') || 'system')
   const [lang, setLang] = useState(() => localStorage.getItem('fintrack_lang') || detectDefaultLang())
+  const [background, setBackground] = useState(() => localStorage.getItem('fintrack_background') || 'default')
 
   useEffect(() => {
     db.getSession().then(setUser)
@@ -27,6 +28,10 @@ export function AppProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('fintrack_lang', lang)
   }, [lang])
+
+  useEffect(() => {
+    localStorage.setItem('fintrack_background', background)
+  }, [background])
 
   const t = useCallback((key, params) => translate(key, lang, params), [lang])
 
@@ -67,6 +72,8 @@ export function AppProvider({ children }) {
     setTheme,
     lang,
     setLang,
+    background,
+    setBackground,
     t,
     toggleContext: () => setContext((c) => (c === 'personal' ? 'business' : 'personal')),
   }
