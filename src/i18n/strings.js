@@ -264,6 +264,8 @@ const STRINGS = {
   'accounts.credit': { ru: 'кредитка', en: 'credit', es: 'crédito', fr: 'crédit' },
   'entry.accountLabel': { ru: 'На какую карту/счёт', en: 'Which card/account', es: '¿Qué tarjeta/cuenta?', fr: 'Quelle carte/compte' },
   'entry.accountNone': { ru: 'Не указывать', en: "Don't specify", es: 'No especificar', fr: 'Ne pas préciser' },
+  'accounts.cash': { ru: 'Наличные', en: 'Cash', es: 'Efectivo', fr: 'Espèces' },
+  'entry.incomeAccountHint': { ru: 'Куда пришли деньги — кэш или карта/счёт', en: 'Where the money landed — cash or a card/account', es: 'Dónde llegó el dinero — efectivo o tarjeta/cuenta', fr: 'Où l'argent est arrivé — espèces ou carte/compte' },
   'bills.notifNote': { ru: 'Напоминание придёт браузерным уведомлением, только пока приложение открыто на этом устройстве — без интернет-соединения в фоне это не работает.', en: 'The reminder arrives as a browser notification, only while the app is open on this device — it can\'t fire in the background.', es: 'El recordatorio llega como notificación del navegador, solo mientras la app esté abierta en este dispositivo — no funciona en segundo plano.', fr: "Le rappel arrive sous forme de notification du navigateur, uniquement pendant que l'application est ouverte sur cet appareil — cela ne fonctionne pas en arrière-plan." },
 
   'radar.premiumNote': { ru: 'Сейчас радар смотрит только траты, которые ты вносишь сам. Автоматическое обнаружение по банковской карте — платная функция в будущем.', en: 'Right now the radar only looks at spending you enter yourself. Automatic detection from your bank card is a paid feature planned for later.', es: 'Por ahora el radar solo mira los gastos que registras tú mismo. La detección automática desde tu tarjeta bancaria será una función de pago más adelante.', fr: "Pour l'instant, le radar ne regarde que les dépenses que vous saisissez vous-même. La détection automatique depuis votre carte bancaire sera une fonctionnalité payante à venir." },
@@ -333,6 +335,7 @@ const STRINGS = {
   'group.needs': { ru: 'Обязательное', en: 'Needs', es: 'Necesario', fr: 'Nécessaire' },
   'group.wants': { ru: 'Необязательное', en: 'Wants', es: 'Deseos', fr: 'Envies' },
   'group.savings': { ru: 'Накопления', en: 'Savings', es: 'Ahorros', fr: 'Épargne' },
+'group.income': { ru: 'Доход', en: 'Income', es: 'Ingreso', fr: 'Revenu' },
 
   'course.examPassed': { ru: '✅ Экзамен сдан', en: '✅ Exam passed', es: '✅ Examen aprobado', fr: '✅ Examen réussi' },
   'course.examNotPassed': { ru: 'Пока не хватает баллов', en: 'Not quite enough points yet', es: 'Aún no alcanzan los puntos', fr: 'Pas encore assez de points' },
