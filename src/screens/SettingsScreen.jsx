@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Sun, Moon, MonitorSmartphone, Bell, BellRing, RotateCcw, Trash2, LogOut, Mail, Info } from 'lucide-react'
+import { ArrowLeft, Sun, Moon, MonitorSmartphone, Bell, RotateCcw, Trash2, LogOut, Mail, Info } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import { Card, Button } from '../components/UI'
@@ -126,29 +126,28 @@ export default function SettingsScreen() {
 
         <Card className="!p-3.5 space-y-2.5">
           <p className="text-xs font-bold tracking-wide text-muted uppercase flex items-center gap-1.5"><Bell size={13} /> {t('settings.notifications')}</p>
-          <div className="flex items-center justify-between">
-            <p className="text-sm">{notifLabel}</p>
-            {notifStatus !== 'granted' && notifStatus !== 'unsupported' && (
-              <Button className="!w-auto px-3 text-xs" onClick={enableNotifications} type="button">{t('settings.notifEnable')}</Button>
-            )}
-          </div>
-          <p className="text-[11px] text-muted leading-relaxed">{t('settings.notifNote')}</p>
-        </Card>
-
-        <Card className="!p-3.5 space-y-2.5">
-          <p className="text-xs font-bold tracking-wide text-muted uppercase flex items-center gap-1.5"><BellRing size={13} /> {t('settings.pushTitle')}</p>
-          <p className="text-[11px] text-muted leading-relaxed">{t('settings.pushNote')}</p>
-          {!pushBackendEnabled ? (
-            <p className="text-xs text-muted bg-surface2 rounded-lg px-2.5 py-2">{t('settings.pushNotConfigured')}</p>
-          ) : !pushSupported() ? (
-            <p className="text-xs text-muted bg-surface2 rounded-lg px-2.5 py-2">{t('settings.pushUnsupported')}</p>
-          ) : (
+          {pushBackendEnabled && pushSupported() ? (
             <>
+              <p className="text-sm">{notifLabel}</p>
+              <p className="text-[11px] text-muted leading-relaxed">{t('settings.pushNote')}</p>
               <Button variant={pushOn ? 'secondary' : 'primary'} onClick={togglePush} disabled={pushBusy} type="button">
                 {pushBusy ? t('common.saving') : pushOn ? t('settings.pushDisable') : t('settings.pushEnable')}
               </Button>
               {pushError === 'denied' && <p className="text-xs text-wants">{t('settings.pushDenied')}</p>}
               {pushError === 'save_failed' && <p className="text-xs text-wants">{t('settings.pushSaveFailed')}</p>}
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-sm">{notifLabel}</p>
+                {notifStatus !== 'granted' && notifStatus !== 'unsupported' && (
+                  <Button className="!w-auto px-3 text-xs" onClick={enableNotifications} type="button">{t('settings.notifEnable')}</Button>
+                )}
+              </div>
+              <p className="text-[11px] text-muted leading-relaxed">{t('settings.notifNote')}</p>
+              <p className="text-xs text-muted bg-surface2 rounded-lg px-2.5 py-2">
+                {!pushBackendEnabled ? t('settings.pushNotConfigured') : t('settings.pushUnsupported')}
+              </p>
             </>
           )}
         </Card>
