@@ -140,7 +140,7 @@ export default function EntryScreen() {
         }
       }
       setSaved(true)
-      setTimeout(() => navigate('/dashboard'), milestone ? 2200 : 900)
+      setTimeout(() => navigate('/dashboard', { replace: true }), milestone ? 2200 : 900)
     } finally {
       setSaving(false)
     }

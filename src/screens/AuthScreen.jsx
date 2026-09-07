@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Target, Mail, Lock, Sparkles, HelpCircle, Globe } from 'lucide-react'
 import { Button, Input, Card } from '../components/UI'
@@ -16,8 +16,17 @@ export default function AuthScreen() {
   const [loading, setLoading] = useState(false)
   const [showHowItWorks, setShowHowItWorks] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
-  const { refreshUser, lang, setLang, t } = useApp()
+  const { user, refreshUser, lang, setLang, t } = useApp()
   const navigate = useNavigate()
+
+  // A back-button press (or any other navigation) can land here while a
+  // session is still valid — e.g. Android's back button walking through SPA
+  // history. Without this, the screen shows a blank sign-in form and someone
+  // who doesn't realize they're still logged in can end up creating a second,
+  // empty account instead of just going back to the one they already have.
+  useEffect(() => {
+    if (user) navigate('/dashboard', { replace: true })
+  }, [user, navigate])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -29,9 +38,9 @@ export default function AuthScreen() {
       } else {
         await db.signIn(email, password)
       }
-      const user = await refreshUser()
-      const settings = await db.getSettings(user.id, 'personal')
-      navigate(settings?.onboarded ? '/dashboard' : '/onboarding')
+      const loggedInUser = await refreshUser()
+      const settings = await db.getSettings(loggedInUser.id, 'personal')
+      navigate(settings?.onboarded ? '/dashboard' : '/onboarding', { replace: true })
     } catch (err) {
       setError(err.message || 'Что-то пошло не так')
     } finally {

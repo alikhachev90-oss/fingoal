@@ -51,7 +51,7 @@ export default function OnboardingScreen() {
           })
         }
       }
-      navigate('/dashboard')
+      navigate('/dashboard', { replace: true })
     } finally {
       setSaving(false)
     }
