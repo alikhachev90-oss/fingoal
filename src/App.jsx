@@ -13,6 +13,7 @@ import GoalsScreen from './screens/GoalsScreen'
 import LessonsScreen from './screens/LessonsScreen'
 import InsightsScreen from './screens/InsightsScreen'
 import TaxEstimateScreen from './screens/TaxEstimateScreen'
+import ReportScreen from './screens/ReportScreen'
 import ConnectBankScreen from './screens/ConnectBankScreen'
 import AccountsScreen from './screens/AccountsScreen'
 import SettingsScreen from './screens/SettingsScreen'
@@ -89,6 +90,7 @@ function Shell() {
       <Route path="/lessons" element={<RequireAuth><LessonsScreen /></RequireAuth>} />
       <Route path="/insights" element={<RequireAuth><InsightsScreen /></RequireAuth>} />
       <Route path="/taxes" element={<RequireAuth><TaxEstimateScreen /></RequireAuth>} />
+      <Route path="/reports" element={<RequireAuth><ReportScreen /></RequireAuth>} />
       <Route path="/bank" element={<RequireAuth><ConnectBankScreen /></RequireAuth>} />
       <Route path="/accounts" element={<RequireAuth><AccountsScreen /></RequireAuth>} />
       <Route path="/settings" element={<RequireAuth><SettingsScreen /></RequireAuth>} />

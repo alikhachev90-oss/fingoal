@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Sparkles, Send, TrendingUp, TrendingDown, Info, Flag, Trophy, Radar, X, Calculator, ChevronRight } from 'lucide-react'
+import { Sparkles, Send, TrendingUp, TrendingDown, Info, Flag, Trophy, Radar, X, Calculator, ChevronRight, FileBarChart } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import TourGuide from '../components/TourGuide'
@@ -25,6 +25,7 @@ import {
   categoryLabel,
 } from '../lib/aiInsights'
 import { projectSavingsGrowth } from '../lib/finance'
+import { pendingMonthReport, pendingYearReport } from '../lib/monthlyReport'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -79,6 +80,7 @@ export default function InsightsScreen() {
   }
 
   const cards = computeInsights({ settings, transactions, goals, debts, lang })
+  const reportDue = user ? Boolean(pendingMonthReport(user.id, context, transactions) || pendingYearReport(user.id, context, transactions)) : false
   const challengeStatus = evaluateChallenge(activeChallenge, transactions)
   const radarDue = user ? shouldPromptMonthlyCheck(user.id, context) : false
   const radarDays = user ? daysSinceRadarCheck(user.id, context) : null
@@ -307,6 +309,22 @@ export default function InsightsScreen() {
               <p className="text-xs text-muted mt-0.5">{t('insights.growthBreakdown', { contrib: fmt(growthResult.contributed), growth: fmt(growthResult.growth) })}</p>
             </div>
           </Card>
+        </div>
+
+        <div className="pt-2" data-tour="insights-reports">
+          <Link to="/reports">
+            <Card className="!p-3.5 flex items-center gap-3 hover:border-primary/50 !border-l-[3px] !border-l-savings">
+              <IconCircle icon={FileBarChart} className="bg-savings/10 text-savings" size={38} iconSize={17} />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm flex items-center gap-1.5">
+                  {t('reports.entryTitle')}
+                  {reportDue && <span className="w-1.5 h-1.5 rounded-full bg-wants shrink-0" />}
+                </p>
+                <p className="text-xs text-muted mt-0.5">{reportDue ? t('reports.entryReady') : t('reports.entrySubtitle')}</p>
+              </div>
+              <ChevronRight size={16} className="text-muted" />
+            </Card>
+          </Link>
         </div>
 
         <div className="pt-2" data-tour="insights-tax">

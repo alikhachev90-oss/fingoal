@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Sun, Moon, MonitorSmartphone, Bell, RotateCcw, Trash2, LogOut, Mail, Info } from 'lucide-react'
+import { ArrowLeft, Sun, Moon, MonitorSmartphone, Bell, BellRing, RotateCcw, Trash2, LogOut, Mail, Info } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import { Card, Button } from '../components/UI'
@@ -8,6 +8,8 @@ import { useApp } from '../context/AppContext'
 import { LANGUAGES } from '../i18n/strings'
 import { requestNotificationPermission } from '../lib/reminders'
 import { resetTour } from '../lib/tours'
+import { enablePushNotifications, disablePushNotifications, isPushEnabled, pushSupported } from '../lib/pushNotifications'
+import { pushBackendEnabled } from '../lib/pushClient'
 
 const FEEDBACK_EMAIL = 'a.likhachev90@gmail.com'
 const TOUR_SCREENS = ['dashboard', 'goals', 'insights']
@@ -16,14 +18,35 @@ export default function SettingsScreen() {
   const { user, context, theme, setTheme, lang, setLang, t, signOut } = useApp()
   const [notifStatus, setNotifStatus] = useState(typeof Notification !== 'undefined' ? Notification.permission : 'unsupported')
   const [toursReset, setToursReset] = useState(false)
+  const [pushOn, setPushOn] = useState(false)
+  const [pushBusy, setPushBusy] = useState(false)
+  const [pushError, setPushError] = useState(null)
 
   useEffect(() => {
     if (typeof Notification !== 'undefined') setNotifStatus(Notification.permission)
+    isPushEnabled().then(setPushOn)
   }, [])
 
   async function enableNotifications() {
     const result = await requestNotificationPermission()
     setNotifStatus(result)
+  }
+
+  async function togglePush() {
+    setPushBusy(true)
+    setPushError(null)
+    try {
+      if (pushOn) {
+        await disablePushNotifications()
+        setPushOn(false)
+      } else {
+        const result = await enablePushNotifications()
+        if (result.ok) setPushOn(true)
+        else setPushError(result.reason)
+      }
+    } finally {
+      setPushBusy(false)
+    }
   }
 
   function replayTours() {
@@ -110,6 +133,24 @@ export default function SettingsScreen() {
             )}
           </div>
           <p className="text-[11px] text-muted leading-relaxed">{t('settings.notifNote')}</p>
+        </Card>
+
+        <Card className="!p-3.5 space-y-2.5">
+          <p className="text-xs font-bold tracking-wide text-muted uppercase flex items-center gap-1.5"><BellRing size={13} /> {t('settings.pushTitle')}</p>
+          <p className="text-[11px] text-muted leading-relaxed">{t('settings.pushNote')}</p>
+          {!pushBackendEnabled ? (
+            <p className="text-xs text-muted bg-surface2 rounded-lg px-2.5 py-2">{t('settings.pushNotConfigured')}</p>
+          ) : !pushSupported() ? (
+            <p className="text-xs text-muted bg-surface2 rounded-lg px-2.5 py-2">{t('settings.pushUnsupported')}</p>
+          ) : (
+            <>
+              <Button variant={pushOn ? 'secondary' : 'primary'} onClick={togglePush} disabled={pushBusy} type="button">
+                {pushBusy ? t('common.saving') : pushOn ? t('settings.pushDisable') : t('settings.pushEnable')}
+              </Button>
+              {pushError === 'denied' && <p className="text-xs text-wants">{t('settings.pushDenied')}</p>}
+              {pushError === 'save_failed' && <p className="text-xs text-wants">{t('settings.pushSaveFailed')}</p>}
+            </>
+          )}
         </Card>
 
         <Card className="!p-3.5 space-y-2.5">
