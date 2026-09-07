@@ -42,6 +42,28 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
     setRect(null)
     let attempts = 0
     let cancelled = false
+    let pollId = null
+    function readRect(el) {
+      const r = el.getBoundingClientRect()
+      return { top: r.top, left: r.left, width: r.width, height: r.height }
+    }
+    function startPolling(el) {
+      // The dashboard's cards load their data async (settings/transactions/
+      // goals each resolve separately), so the page can still reflow — the
+      // card below can grow/shrink — for a moment after we first find and
+      // measure the target. A one-shot measurement can end up describing a
+      // position the target has since moved away from (the ring then visibly
+      // sits on a neighboring card). Keep re-measuring while this step is
+      // shown so the spotlight tracks the real element instead of a snapshot.
+      pollId = setInterval(() => {
+        if (cancelled) return
+        const next = readRect(el)
+        setRect((prev) => {
+          if (prev && prev.top === next.top && prev.left === next.left && prev.width === next.width && prev.height === next.height) return prev
+          return next
+        })
+      }, 200)
+    }
     function locate() {
       if (cancelled) return
       const el = document.querySelector(`[data-tour="${step.id}"]`)
@@ -53,12 +75,13 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
           // Let the scroll settle, then measure the now-in-view position.
           setTimeout(() => {
             if (cancelled) return
-            const r2 = el.getBoundingClientRect()
-            setRect({ top: r2.top, left: r2.left, width: r2.width, height: r2.height })
+            setRect(readRect(el))
+            startPolling(el)
           }, 80)
           return
         }
-        setRect({ top: r.top, left: r.left, width: r.width, height: r.height })
+        setRect(readRect(el))
+        startPolling(el)
       } else if (attempts < 5) {
         attempts += 1
         setTimeout(locate, 150)
@@ -68,12 +91,13 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
       }
     }
     locate()
-    // Cancel any pending retry/scroll timeout from this step once we move on
-    // (Next clicked, or the tour finished) — otherwise a late timer can fire
-    // setStepIdx/setRect for a step the user already left, which is what let
-    // stepIdx overshoot past the end and crash on an undefined step.
+    // Cancel any pending retry/scroll timeout/poll from this step once we
+    // move on (Next clicked, or the tour finished) — otherwise a late timer
+    // can fire setStepIdx/setRect for a step the user already left, which is
+    // what let stepIdx overshoot past the end and crash on an undefined step.
     return () => {
       cancelled = true
+      if (pollId) clearInterval(pollId)
     }
   }, [running, stepIdx, steps])
 
