@@ -28,6 +28,18 @@ create table if not exists debts (
   created_at timestamptz not null default now()
 );
 
+create table if not exists accounts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  context app_context not null,
+  name text not null,
+  type text not null check (type in ('cash','debit','credit')),
+  credit_limit numeric,
+  statement_day int,
+  due_day int,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists transactions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade,
@@ -35,9 +47,11 @@ create table if not exists transactions (
   amount numeric not null,
   date date not null,
   comment text,
-  "group" text not null check ("group" in ('needs','wants','savings')),
+  "group" text not null check ("group" in ('needs','wants','savings','income')),
   category_key text not null,
   sub text,
+  account_id uuid references accounts(id) on delete set null,
+  is_payment boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -91,6 +105,7 @@ create table if not exists user_lessons (
 -- Row Level Security: every table is private to its owning user.
 alter table context_settings enable row level security;
 alter table debts enable row level security;
+alter table accounts enable row level security;
 alter table transactions enable row level security;
 alter table goals enable row level security;
 alter table checkins enable row level security;
@@ -99,6 +114,7 @@ alter table user_lessons enable row level security;
 
 create policy "owner rw" on context_settings for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "owner rw" on debts for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "owner rw" on accounts for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "owner rw" on transactions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "owner rw" on goals for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "owner rw" on checkins for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
