@@ -7,6 +7,7 @@ export const GROUP_LABELS = {
   needs: { ru: 'Обязательное', en: 'Needs' },
   wants: { ru: 'Необязательное', en: 'Wants' },
   savings: { ru: 'Накопления', en: 'Savings' },
+  income: { ru: 'Доход', en: 'Income' },
 }
 
 export const GROUP_LABELS_SHORT = GROUP_LABELS
@@ -15,6 +16,7 @@ export const GROUP_COLORS = {
   needs: 'needs',
   wants: 'wants',
   savings: 'savings',
+  income: 'income',
 }
 
 // Static Tailwind class strings — must NOT be built dynamically (bg-${x}/10),
@@ -23,6 +25,7 @@ export const GROUP_PILL_CLASSES = {
   needs: 'bg-needs/10 text-needs',
   wants: 'bg-wants/10 text-wants',
   savings: 'bg-savings/10 text-savings',
+  income: 'bg-income/10 text-income',
 }
 
 // A sub-category is {key, label:{ru,en}, hint:{ru,en}}. `hint` exists because
@@ -80,6 +83,15 @@ export const CATEGORY_TREE = {
     { key: 'emergency', label: { ru: 'Подушка безопасности', en: 'Emergency fund' }, subs: [] },
     { key: 'investments', label: { ru: 'Инвестиции', en: 'Investments' }, subs: [] },
     { key: 'debt_extra', label: { ru: 'Допплатежи по долгам', en: 'Extra debt payments' }, subs: [] },
+  ],
+  // Money coming in — tagged with a source account so accounts.jsx can show
+  // real balances (income adds, spending subtracts), not just card debt.
+  income: [
+    { key: 'salary', label: { ru: 'Зарплата', en: 'Salary' }, subs: [] },
+    { key: 'transfer', label: { ru: 'Перевод', en: 'Transfer' }, subs: [] },
+    { key: 'gift', label: { ru: 'Подарок', en: 'Gift' }, subs: [] },
+    { key: 'refund', label: { ru: 'Возврат/кэшбек', en: 'Refund/cashback' }, subs: [] },
+    { key: 'other', label: { ru: 'Другое', en: 'Other' }, subs: [] },
   ],
 }
 
@@ -155,6 +167,10 @@ const KEYWORD_RULES = [
   { words: ['инвестиц', 'брокер', 'акции', 'облигации', 'etf'], wordsEn: ['invest', 'broker', 'stocks', 'bonds', 'etf'], group: 'savings', key: 'investments', explanation: { ru: 'Это откладывание/инвестирование денег, а не трата — отнесено к Savings → Инвестиции.', en: 'This is setting aside/investing money, not spending — filed under Savings → Investments.' } },
   { words: ['подушка', 'резерв', 'заначка', 'отложил'], wordsEn: ['emergency fund', 'savings buffer'], group: 'savings', key: 'emergency', explanation: { ru: 'Пополнение финансовой подушки — Savings → Подушка безопасности.', en: 'Adding to your emergency fund — Savings → Emergency fund.' } },
   { words: ['допплатеж по кредиту', 'досрочное погашение', 'гашение долга сверху'], wordsEn: ['extra debt payment', 'early payoff'], group: 'savings', key: 'debt_extra', explanation: { ru: 'Дополнительный платёж по долгу сверх минимального — Savings → Допплатежи по долгам.', en: 'An extra payment on a debt beyond the minimum — Savings → Extra debt payments.' } },
+  { words: ['зарплата', 'получил зарплату', 'аванс'], wordsEn: ['salary', 'paycheck', 'payday'], group: 'income', key: 'salary', explanation: { ru: 'Поступление денег — Доход → Зарплата.', en: 'Money coming in — Income → Salary.' } },
+  { words: ['мне перевели', 'пришел перевод', 'перевели деньги', 'zelle', 'venmo пришло'], wordsEn: ['sent me', 'received transfer', 'zelle received'], group: 'income', key: 'transfer', explanation: { ru: 'Поступление денег — Доход → Перевод.', en: 'Money coming in — Income → Transfer.' } },
+  { words: ['мне подарили', 'подарили деньги'], wordsEn: ['gifted me', 'received as a gift'], group: 'income', key: 'gift', explanation: { ru: 'Поступление денег — Доход → Подарок.', en: 'Money coming in — Income → Gift.' } },
+  { words: ['возврат денег', 'кэшбек', 'вернули деньги'], wordsEn: ['refund', 'cashback', 'reimbursement'], group: 'income', key: 'refund', explanation: { ru: 'Поступление денег — Доход → Возврат/кэшбек.', en: 'Money coming in — Income → Refund/cashback.' } },
 ]
 
 // Returns ranked suggestions [{group,key,sub,label,explanation,score}] for a free-text query.
