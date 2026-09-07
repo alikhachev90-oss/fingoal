@@ -17,6 +17,7 @@ export default {
         needs: 'rgb(var(--color-needs) / <alpha-value>)',
         wants: 'rgb(var(--color-wants) / <alpha-value>)',
         savings: 'rgb(var(--color-savings) / <alpha-value>)',
+        income: 'rgb(var(--color-income) / <alpha-value>)',
         danger: 'rgb(var(--color-danger) / <alpha-value>)',
       },
       fontFamily: {
