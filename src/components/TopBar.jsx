@@ -11,7 +11,7 @@ export default function TopBar({ title, subtitle, onHelp }) {
   const navigate = useNavigate()
 
   return (
-    <div className="sticky top-0 z-20 bg-bg/85 backdrop-blur-lg border-b border-border px-4 pt-[max(env(safe-area-inset-top),14px)] pb-3">
+    <div className="sticky top-0 z-20 glass border-x-0 border-t-0 px-4 pt-[max(env(safe-area-inset-top),14px)] pb-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold font-display tracking-tight">{title}</h1>

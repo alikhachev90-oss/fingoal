@@ -13,7 +13,7 @@ const items = [
 export default function BottomNav() {
   const { t } = useApp()
   return (
-    <div className="sticky bottom-0 z-20 bg-bg/90 backdrop-blur-lg border-t border-border px-1.5 pb-[max(env(safe-area-inset-bottom),10px)] pt-2">
+    <div className="sticky bottom-0 z-20 glass border-x-0 border-b-0 px-1.5 pb-[max(env(safe-area-inset-bottom),10px)] pt-2">
       <div className="flex justify-around">
         {items.map((item) => (
           <NavLink

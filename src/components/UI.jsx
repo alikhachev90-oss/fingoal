@@ -1,7 +1,7 @@
 export function Card({ children, className = '', animate = true, ...rest }) {
   return (
     <div
-      className={`bg-surface border border-border rounded-2.5xl p-4 shadow-softer ${animate ? 'animate-slide-up' : ''} ${className}`}
+      className={`glass rounded-2.5xl p-4 shadow-glass ${animate ? 'animate-slide-up' : ''} ${className}`}
       {...rest}
     >
       {children}
@@ -13,8 +13,8 @@ export function Button({ children, variant = 'primary', className = '', icon: Ic
   const base =
     'w-full py-3 rounded-xl font-semibold text-[15px] transition-all duration-150 active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100 flex items-center justify-center gap-2'
   const variants = {
-    primary: 'bg-primary text-onprimary shadow-softer hover:brightness-110',
-    secondary: 'bg-surface2 text-text border border-border hover:border-primary/50',
+    primary: 'bg-primary text-onprimary shadow-[0_6px_20px_-6px_rgb(var(--color-primary)/0.55)] hover:brightness-105',
+    secondary: 'glass text-text hover:border-primary/40',
     ghost: 'bg-transparent text-muted hover:text-text',
     danger: 'bg-danger/10 text-danger hover:bg-danger/15',
   }
@@ -29,7 +29,7 @@ export function Button({ children, variant = 'primary', className = '', icon: Ic
 export function IconButton({ icon: Icon, className = '', ...props }) {
   return (
     <button
-      className={`w-9 h-9 rounded-full bg-surface2 border border-border flex items-center justify-center transition active:scale-95 hover:border-primary/50 ${className}`}
+      className={`w-9 h-9 rounded-full glass flex items-center justify-center transition active:scale-95 hover:border-primary/40 ${className}`}
       {...props}
     >
       <Icon size={16} strokeWidth={2.25} />
