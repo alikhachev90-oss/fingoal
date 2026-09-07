@@ -313,6 +313,7 @@ const STRINGS = {
   'reports.yearMonthsNote': { ru: 'Данные есть за {n} мес. из 12.', en: 'Data available for {n} of 12 months.', es: 'Hay datos de {n} de 12 meses.', fr: 'Données disponibles pour {n} mois sur 12.' },
   'reports.emptyTitle': { ru: 'Пока нет отчётов', en: 'No reports yet', es: 'Aún no hay informes', fr: 'Pas encore de bilan' },
   'reports.emptySubtitle': { ru: 'Отчёт появится, как только пройдёт хотя бы один месяц с тратами', en: 'A report shows up once a full month of spending has passed', es: 'Un informe aparecerá cuando pase al menos un mes con gastos', fr: "Un bilan apparaît dès qu'un mois complet de dépenses s'est écoulé" },
+  'reports.download': { ru: 'Скачать отчёт', en: 'Download report', es: 'Descargar informe', fr: 'Télécharger le bilan' },
 
   'lessons.title': { ru: 'Обучение', en: 'Learn', es: 'Aprende', fr: 'Apprendre' },
   'lessons.courseSection': { ru: 'Курс: по первоисточникам', en: 'Course: from primary sources', es: 'Curso: de fuentes primarias', fr: 'Cours : sources primaires' },
