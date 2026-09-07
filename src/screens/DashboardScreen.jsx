@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
-import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Landmark } from 'lucide-react'
+import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Landmark, ChevronLeft, ChevronRight } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import DailyQuoteCard from '../components/DailyQuoteCard'
@@ -10,7 +10,7 @@ import InfoTag from '../components/InfoTag'
 import ReminderButton from '../components/ReminderButton'
 import HabitTipModal from '../components/HabitTipModal'
 import TourGuide from '../components/TourGuide'
-import { Card, Button, ProgressBar, StatTile, IconCircle, EmptyState } from '../components/UI'
+import { Card, Button, StatTile, IconCircle, EmptyState } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { findCategory, pickLang, subLabel, subHint, CATEGORY_TREE } from '../lib/categories'
@@ -19,24 +19,20 @@ import { detectHabitTip, dismissHabitTip } from '../lib/habitTips'
 import { TOURS } from '../lib/tours'
 import { computeAccountBalance, nextDateForDay, daysUntil } from '../lib/creditCards'
 
-// Muted, "graphite" chart colors instead of a harsh stoplight red/amber/green —
-// the pie is informational, not a warning light.
-const GROUP_HEX = { needs: '#8a5a4a', wants: '#a3893e', savings: '#3f7a5c' }
-
-// Lightens a hex color by mixing it toward white — used to give same-group
-// pie slices (e.g. several Needs categories) distinct-enough shades while
-// staying visually grouped by color family.
-function shade(hex, amt) {
-  const n = parseInt(hex.slice(1), 16)
-  const r = Math.min(255, Math.round(((n >> 16) & 255) + (255 - ((n >> 16) & 255)) * amt))
-  const g = Math.min(255, Math.round(((n >> 8) & 255) + (255 - ((n >> 8) & 255)) * amt))
-  const b = Math.min(255, Math.round((n & 255) + (255 - (n & 255)) * amt))
-  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
-}
-
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
 }
+
+// Rank-based heat color (largest slice = red, smallest = green) instead of a
+// palette tied to needs/wants/savings — this is what the requested chart
+// style actually needs: color encodes "how big a share", not which group.
+function rankColor(idx, total) {
+  if (total <= 1) return 'hsl(4, 75%, 58%)'
+  const hue = Math.round((idx / (total - 1)) * 118)
+  return `hsl(${hue}, 72%, 52%)`
+}
+
+const MONTH_FMT = { en: 'en-US', es: 'es-ES', fr: 'fr-FR', ru: 'ru-RU' }
 
 export default function DashboardScreen() {
   const { user, context, t, lang } = useApp()
@@ -49,6 +45,8 @@ export default function DashboardScreen() {
   const [checkedInToday, setCheckedInToday] = useState(false)
   const [habitTip, setHabitTip] = useState(null)
   const [tourActive, setTourActive] = useState(false)
+  const [monthOffset, setMonthOffset] = useState(0)
+  const [chartTab, setChartTab] = useState('expenses') // 'income' | 'expenses'
 
   useEffect(() => {
     if (!user) return
@@ -95,24 +93,29 @@ export default function DashboardScreen() {
     return totals
   }, [monthTx])
 
-  const byCategory = useMemo(() => {
-    const totals = {}
-    for (const t of monthTx) {
-      const cat = findCategory(t.group, t.category_key)
-      const label = pickLang(cat?.label, lang) || t.category_key
-      const id = `${t.group}:${t.category_key}`
-      totals[id] = totals[id] || { value: 0, group: t.group, key: t.category_key, name: label }
-      totals[id].value += t.amount
-    }
-    return Object.values(totals).sort((a, b) => b.value - a.value)
-  }, [monthTx, lang])
-
   const [drilldown, setDrilldown] = useState(null) // {group,key,name,total}
+
+  // The month-navigable chart is deliberately separate from `monthTx` above —
+  // safe-to-spend/streak/bills stay pinned to the real current month no
+  // matter what month the chart card is browsing.
+  const chartMonthDate = useMemo(() => {
+    const d = new Date()
+    d.setDate(1)
+    d.setMonth(d.getMonth() + monthOffset)
+    return d
+  }, [monthOffset])
+
+  const chartMonthTx = useMemo(() => {
+    return transactions.filter((t) => {
+      const d = new Date(t.date)
+      return d.getMonth() === chartMonthDate.getMonth() && d.getFullYear() === chartMonthDate.getFullYear()
+    })
+  }, [transactions, chartMonthDate])
 
   const drilldownSubs = useMemo(() => {
     if (!drilldown) return []
     const totals = {}
-    for (const t of monthTx) {
+    for (const t of chartMonthTx) {
       if (t.group !== drilldown.group || t.category_key !== drilldown.key) continue
       const displayLabel = t.sub ? subLabel(drilldown.group, drilldown.key, t.sub, lang) : (lang === 'en' ? 'Uncategorized' : 'Без подкатегории')
       const id = t.sub || '__none__'
@@ -120,24 +123,34 @@ export default function DashboardScreen() {
       totals[id].value += t.amount
     }
     return Object.values(totals).sort((a, b) => b.value - a.value)
-  }, [drilldown, monthTx, lang])
+  }, [drilldown, chartMonthTx, lang])
+
+  // "Expenses" excludes money moved into savings/goals — that's not spending.
+  const chartByCategory = useMemo(() => {
+    const totals = {}
+    for (const tx of chartMonthTx) {
+      if (tx.group === 'savings') continue
+      const cat = findCategory(tx.group, tx.category_key)
+      const label = pickLang(cat?.label, lang) || tx.category_key
+      const id = `${tx.group}:${tx.category_key}`
+      totals[id] = totals[id] || { value: 0, group: tx.group, key: tx.category_key, name: label }
+      totals[id].value += tx.amount
+    }
+    return Object.values(totals).sort((a, b) => b.value - a.value)
+  }, [chartMonthTx, lang])
+
+  const chartExpenseTotal = chartByCategory.reduce((s, c) => s + c.value, 0)
+
+  const rankedPieData = chartByCategory.map((c, idx) => ({
+    ...c,
+    color: rankColor(idx, chartByCategory.length),
+    pct: chartExpenseTotal > 0 ? (c.value / chartExpenseTotal) * 100 : 0,
+  }))
 
   const monthlyIncome = settings?.monthly_income || 0
   const monthlyNeedsBudget = Object.values(settings?.needs_budget || {}).reduce((s, v) => s + (v || 0), 0)
   const spentNeeds = byGroup.needs
   const freeMoney = monthlyIncome - monthlyNeedsBudget - byGroup.wants
-  const maxCategoryValue = byCategory[0]?.value || 1
-
-  // Pie is at the category level (Housing, Transport, Cafe...), not just the
-  // three top groups — each slice tinted by its parent group's color so the
-  // needs/wants/savings split still reads at a glance, but clicking a slice
-  // drills into what that category is actually made of (see drilldownSubs).
-  const pieData = byCategory.map((c) => {
-    const siblings = byCategory.filter((x) => x.group === c.group)
-    const idx = siblings.indexOf(c)
-    const tint = siblings.length > 1 ? (idx / (siblings.length - 1)) * 0.55 : 0
-    return { ...c, color: shade(GROUP_HEX[c.group], tint) }
-  })
 
   const safeToday = computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, byGroup.wants)
 
@@ -306,55 +319,107 @@ export default function DashboardScreen() {
           </Card>
         </Link>
 
-        {pieData.length > 0 && (
-          <Card data-tour="dash-chart">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-sm font-semibold">{t('dashboard.chartTitle')}</p>
-              <span className="text-[11px] text-muted">{t('dashboard.chartTapHint')}</span>
-            </div>
-            <div className="h-44">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={48}
-                    outerRadius={72}
-                    paddingAngle={4}
-                    strokeWidth={0}
-                    onClick={(d) => setDrilldown({ group: d.group, key: d.key, name: d.name, total: d.value })}
-                    style={{ cursor: 'pointer' }}
+        <Card data-tour="dash-chart" className="!p-3.5 space-y-3">
+          <div className="flex items-center justify-between">
+            <button type="button" onClick={() => setMonthOffset((o) => o - 1)} className="text-muted p-1">
+              <ChevronLeft size={17} />
+            </button>
+            <p className="text-sm font-semibold capitalize">
+              {chartMonthDate.toLocaleDateString(MONTH_FMT[lang] || 'en-US', { month: 'short', year: 'numeric' })}
+            </p>
+            <button
+              type="button"
+              onClick={() => setMonthOffset((o) => Math.min(0, o + 1))}
+              disabled={monthOffset >= 0}
+              className="text-muted p-1 disabled:opacity-30"
+            >
+              <ChevronRight size={17} />
+            </button>
+          </div>
+
+          <div className="flex bg-surface2 rounded-lg p-1 border border-border">
+            {['income', 'expenses'].map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setChartTab(tab)}
+                className={`flex-1 flex flex-col items-center py-1.5 rounded-md text-xs font-semibold transition-all ${chartTab === tab ? 'bg-surface shadow-softer text-text' : 'text-muted'}`}
+              >
+                <span>{t(`dashboard.chartTab_${tab}`)}</span>
+                <span className="font-num text-[13px] mt-0.5">{fmt(tab === 'income' ? monthlyIncome : chartExpenseTotal)}</span>
+              </button>
+            ))}
+          </div>
+
+          {chartTab === 'income' ? (
+            <p className="text-xs text-muted text-center py-4">{t('dashboard.incomeTabNote')}</p>
+          ) : rankedPieData.length > 0 ? (
+            <>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={rankedPieData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={0}
+                      outerRadius={60}
+                      strokeWidth={2}
+                      stroke="rgb(var(--color-surface))"
+                      onClick={(d) => setDrilldown({ group: d.group, key: d.key, name: d.name, total: d.value })}
+                      style={{ cursor: 'pointer' }}
+                      label={({ cx, cy, midAngle, outerRadius, name, pct }) => {
+                        const RADIAN = Math.PI / 180
+                        const r = outerRadius + 28
+                        const x = cx + r * Math.cos(-midAngle * RADIAN)
+                        const y = cy + r * Math.sin(-midAngle * RADIAN)
+                        return (
+                          <text x={x} y={y} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="fill-text text-[10.5px] font-semibold">
+                            {name} {pct.toFixed(1)}%
+                          </text>
+                        )
+                      }}
+                      labelLine={{ stroke: 'rgb(var(--color-border))' }}
+                    >
+                      {rankedPieData.map((d) => (
+                        <Cell key={`${d.group}:${d.key}`} fill={d.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(v) => fmt(v)}
+                      contentStyle={{ borderRadius: 12, border: '1px solid rgb(var(--color-border))', background: 'rgb(var(--color-surface))', fontSize: 13 }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="divide-y divide-border">
+                {rankedPieData.map((d) => (
+                  <button
+                    key={`${d.group}:${d.key}`}
+                    type="button"
+                    onClick={() => setDrilldown({ group: d.group, key: d.key, name: d.name, total: d.value })}
+                    className="w-full flex items-center gap-3 py-2.5 text-left"
                   >
-                    {pieData.map((d) => (
-                      <Cell key={`${d.group}:${d.key}`} fill={d.color} stroke="transparent" />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(v) => fmt(v)}
-                    contentStyle={{ borderRadius: 12, border: '1px solid rgb(var(--color-border))', background: 'rgb(var(--color-surface))', fontSize: 13 }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-1">
-              {pieData.map((d) => (
-                <button
-                  key={`${d.group}:${d.key}`}
-                  type="button"
-                  onClick={() => setDrilldown({ group: d.group, key: d.key, name: d.name, total: d.value })}
-                  className="flex items-center gap-1.5 text-xs font-medium"
-                >
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
-                  {d.name}: {fmt(d.value)}
-                </button>
-              ))}
-            </div>
-          </Card>
-        )}
+                    <span
+                      className="text-xs font-bold rounded-lg px-2 py-1 shrink-0 text-black/80 font-num"
+                      style={{ background: d.color }}
+                    >
+                      {Math.round(d.pct)}%
+                    </span>
+                    <span className="flex-1 text-sm font-medium truncate">{d.name}</span>
+                    <span className="text-sm font-semibold font-num shrink-0">{fmt(d.value)}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-muted text-center py-4">{t('dashboard.drilldownEmpty')}</p>
+          )}
+        </Card>
 
         {drilldown && (
-          <Card className="space-y-2.5 !border-l-[3px]" style={{ borderLeftColor: GROUP_HEX[drilldown.group] }}>
+          <Card className="space-y-2.5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold">{drilldown.name}</p>
@@ -377,28 +442,6 @@ export default function DashboardScreen() {
             ) : (
               <p className="text-xs text-muted">{t('dashboard.drilldownEmpty')}</p>
             )}
-          </Card>
-        )}
-
-        {byCategory.length > 0 && (
-          <Card className="space-y-3">
-            <p className="text-sm font-semibold">{t('dashboard.byCategoryTitle')}</p>
-            <div className="space-y-3">
-              {byCategory.slice(0, 6).map((c) => (
-                <button
-                  key={`${c.group}:${c.key}`}
-                  type="button"
-                  onClick={() => setDrilldown({ group: c.group, key: c.key, name: c.name, total: c.value })}
-                  className="w-full text-left"
-                >
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-text font-medium">{c.name}</span>
-                    <span className="font-semibold">{fmt(c.value)}</span>
-                  </div>
-                  <ProgressBar pct={(c.value / maxCategoryValue) * 100} height="h-1.5" colorClass={`bg-${c.group}`} />
-                </button>
-              ))}
-            </div>
           </Card>
         )}
 
