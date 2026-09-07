@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AppProvider, useApp } from './context/AppContext'
+import { getBackground } from './lib/backgrounds'
 import { checkDueReminders } from './lib/reminders'
 import { getGoalReminder, checkGoalReminderDue } from './lib/goalReminders'
 import { computeGoalPlan } from './lib/finance'
@@ -100,14 +101,25 @@ function Shell() {
   )
 }
 
+// Reads the chosen backdrop (Settings → Внешний вид) and hands it to the
+// ambient layer as a CSS variable, so switching it is instant and never
+// touches any other component.
+function AmbientShell() {
+  const { background } = useApp()
+  const preset = getBackground(background)
+  return (
+    <div className="app-ambient w-full max-w-app min-h-[100svh]" style={{ '--app-bg-image': preset.css }}>
+      <BrowserRouter>
+        <Shell />
+      </BrowserRouter>
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <AppProvider>
-      <div className="app-ambient w-full max-w-app min-h-[100svh]">
-        <BrowserRouter>
-          <Shell />
-        </BrowserRouter>
-      </div>
+      <AmbientShell />
     </AppProvider>
   )
 }
