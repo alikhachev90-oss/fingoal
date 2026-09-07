@@ -32,6 +32,7 @@ export default {
         soft: '0 1px 2px rgb(0 0 0 / 0.05), 0 8px 20px -10px rgb(0 0 0 / 0.14)',
         softer: '0 1px 2px rgb(0 0 0 / 0.04), 0 3px 10px -6px rgb(0 0 0 / 0.08)',
         glow: '0 0 0 1px rgb(var(--color-primary) / 0.35)',
+        glass: '0 1px 1px rgb(255 255 255 / 0.06) inset, 0 10px 34px -14px rgb(0 0 0 / 0.4)',
       },
       borderRadius: {
         '2.5xl': '0.875rem',
