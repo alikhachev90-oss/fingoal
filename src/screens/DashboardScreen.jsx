@@ -129,7 +129,7 @@ export default function DashboardScreen() {
   const chartByCategory = useMemo(() => {
     const totals = {}
     for (const tx of chartMonthTx) {
-      if (tx.group === 'savings') continue
+      if (tx.group === 'savings' || tx.group === 'income') continue
       const cat = findCategory(tx.group, tx.category_key)
       const label = pickLang(cat?.label, lang) || tx.category_key
       const id = `${tx.group}:${tx.category_key}`
