@@ -43,6 +43,8 @@ const STRINGS = {
   'settings.themeLight': { ru: 'Светлая', en: 'Light', es: 'Clara', fr: 'Clair' },
   'settings.themeDark': { ru: 'Тёмная', en: 'Dark', es: 'Oscura', fr: 'Sombre' },
   'settings.language': { ru: 'Язык интерфейса', en: 'Interface language', es: 'Idioma de la interfaz', fr: "Langue de l'interface" },
+  'settings.background': { ru: 'Внешний вид', en: 'Background', es: 'Fondo', fr: 'Arrière-plan' },
+  'settings.backgroundNote': { ru: 'Твоё личное пространство — фон за карточками.', en: 'Your personal space behind the cards.', es: 'Tu espacio personal detrás de las tarjetas.', fr: 'Votre espace personnel derrière les cartes.' },
   'settings.notifications': { ru: 'Уведомления', en: 'Notifications', es: 'Notificaciones', fr: 'Notifications' },
   'settings.notifStatusGranted': { ru: 'Включены', en: 'Enabled', es: 'Activadas', fr: 'Activées' },
   'settings.notifStatusDenied': { ru: 'Заблокированы в браузере', en: 'Blocked in the browser', es: 'Bloqueadas en el navegador', fr: 'Bloquées dans le navigateur' },
