@@ -43,6 +43,7 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
     let attempts = 0
     let cancelled = false
     let pollId = null
+    let cleanupListeners = null
     function readRect(el) {
       const r = el.getBoundingClientRect()
       return { top: r.top, left: r.left, width: r.width, height: r.height }
@@ -55,14 +56,25 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
       // position the target has since moved away from (the ring then visibly
       // sits on a neighboring card). Keep re-measuring while this step is
       // shown so the spotlight tracks the real element instead of a snapshot.
-      pollId = setInterval(() => {
+      const remeasure = () => {
         if (cancelled) return
         const next = readRect(el)
         setRect((prev) => {
           if (prev && prev.top === next.top && prev.left === next.left && prev.width === next.width && prev.height === next.height) return prev
           return next
         })
-      }, 200)
+      }
+      pollId = setInterval(remeasure, 200)
+      // Scroll/resize (mobile address-bar collapse, keyboard, orientation
+      // change) used to only get picked up on the next 200ms poll tick,
+      // which is what made the spotlight/tooltip visibly drift and briefly
+      // overlap the wrong card while scrolling — react to them immediately too.
+      window.addEventListener('scroll', remeasure, true)
+      window.addEventListener('resize', remeasure)
+      cleanupListeners = () => {
+        window.removeEventListener('scroll', remeasure, true)
+        window.removeEventListener('resize', remeasure)
+      }
     }
     function locate() {
       if (cancelled) return
@@ -98,6 +110,7 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
     return () => {
       cancelled = true
       if (pollId) clearInterval(pollId)
+      if (cleanupListeners) cleanupListeners()
     }
   }, [running, stepIdx, steps])
 
@@ -123,8 +136,11 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
   const title = step.title[lang] || step.title.ru
   const body = step.body[lang] || step.body.ru
 
-  const viewportH = window.innerHeight
-  const viewportW = window.innerWidth
+  // visualViewport reflects the space actually visible above the mobile
+  // browser's collapsing address bar / gesture nav — window.innerHeight can
+  // overshoot that and cut the bottom of the tooltip off-screen.
+  const viewportH = window.visualViewport?.height || window.innerHeight
+  const viewportW = window.visualViewport?.width || window.innerWidth
   const spaceBelow = viewportH - (rect.top + rect.height)
   const placeBelow = spaceBelow > 190 || rect.top < 190
   const tooltipTop = placeBelow ? rect.top + rect.height + GAP : Math.max(12, rect.top - GAP)
