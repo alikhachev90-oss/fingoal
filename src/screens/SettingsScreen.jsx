@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Sun, Moon, MonitorSmartphone, Bell, RotateCcw, Trash2, LogOut, Mail, Info } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
-import { Card, Button } from '../components/UI'
+import { Card, Button, Input } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import { LANGUAGES } from '../i18n/strings'
 import { requestNotificationPermission } from '../lib/reminders'
@@ -16,12 +16,30 @@ const FEEDBACK_EMAIL = 'a.likhachev90@gmail.com'
 const TOUR_SCREENS = ['dashboard', 'goals', 'insights']
 
 export default function SettingsScreen() {
-  const { user, context, theme, setTheme, lang, setLang, background, setBackground, t, signOut } = useApp()
+  const { user, context, theme, setTheme, lang, setLang, background, setBackground, t, signOut, updateProfile } = useApp()
   const [notifStatus, setNotifStatus] = useState(typeof Notification !== 'undefined' ? Notification.permission : 'unsupported')
   const [toursReset, setToursReset] = useState(false)
   const [pushOn, setPushOn] = useState(false)
   const [pushBusy, setPushBusy] = useState(false)
   const [pushError, setPushError] = useState(null)
+  const [name, setName] = useState(user?.user_metadata?.full_name || '')
+  const [nameSaving, setNameSaving] = useState(false)
+  const [nameSaved, setNameSaved] = useState(false)
+
+  useEffect(() => {
+    setName(user?.user_metadata?.full_name || '')
+  }, [user])
+
+  async function saveName() {
+    setNameSaving(true)
+    try {
+      await updateProfile({ name: name.trim() })
+      setNameSaved(true)
+      setTimeout(() => setNameSaved(false), 2500)
+    } finally {
+      setNameSaving(false)
+    }
+  }
 
   useEffect(() => {
     if (typeof Notification !== 'undefined') setNotifStatus(Notification.permission)
@@ -82,9 +100,30 @@ export default function SettingsScreen() {
           <ArrowLeft size={13} /> {t('nav.overview')}
         </Link>
 
-        <Card className="!p-3.5 space-y-1.5">
+        <Card className="!p-3.5 space-y-3">
           <p className="text-xs font-bold tracking-wide text-muted uppercase">{t('settings.profile')}</p>
           <p className="text-sm font-medium">{user?.email}</p>
+          <div className="space-y-1.5">
+            <Input
+              label={t('settings.nameLabel')}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t('settings.namePlaceholder')}
+              className="!font-sans"
+            />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                type="button"
+                className="!w-auto px-4 text-xs"
+                onClick={saveName}
+                disabled={nameSaving || !name.trim()}
+              >
+                {nameSaving ? t('common.saving') : t('settings.nameSave')}
+              </Button>
+              {nameSaved && <span className="text-xs text-savings font-semibold">{t('settings.nameSaved')}</span>}
+            </div>
+          </div>
         </Card>
 
         <Card className="!p-3.5 space-y-3">
