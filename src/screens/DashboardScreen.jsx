@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
-import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Landmark, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Settings, Landmark, ChevronLeft, ChevronRight } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import DailyQuoteCard from '../components/DailyQuoteCard'
@@ -181,6 +181,8 @@ export default function DashboardScreen() {
     { monthlyIncome, monthlyNeeds: monthlyNeedsBudget },
   ) : null
 
+  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Александр'
+
   if (settings === null) {
     return (
       <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full items-center justify-center px-6">
@@ -210,14 +212,30 @@ export default function DashboardScreen() {
         active={tourActive}
         onActiveChange={setTourActive}
       />
-      <TopBar title={t('dashboard.title')} onHelp={() => setTourActive(true)} />
-      <div className="flex-1 px-4 py-4 space-y-4">
-        <div data-tour="dash-quote">
+      <div className="relative px-5 pt-[max(env(safe-area-inset-top),18px)] pb-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] uppercase tracking-[.18em] text-white/45">{t('dashboard.title')}</p>
+            <p className="text-sm text-white/65 mt-1">{t('topbar.personal')}</p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button type="button" onClick={() => setTourActive(true)} className="w-10 h-10 rounded-full glass flex items-center justify-center text-white/80"><Compass size={17} /></button>
+            <Link to="/settings" className="w-10 h-10 rounded-full glass flex items-center justify-center text-white/80"><Settings size={17} /></Link>
+          </div>
+        </div>
+        <div className="mt-7">
+          <p className="text-[13px] text-white/50">Добро пожаловать,</p>
+          <h1 className="hero-name mt-2 text-white">{displayName}</h1>
+          <p className="text-[13px] text-white/60 mt-3">Лучшие инвестиции — в себя.</p>
+        </div>
+      </div>
+      <div className="flex-1 px-4 py-3 space-y-4">
+        <div data-tour="dash-quote" className="px-1">
           <DailyQuoteCard />
         </div>
 
         <Card className="!p-0 overflow-hidden" data-tour="dash-streak">
-          <div className="bg-[rgb(12,12,11)] px-4 pt-4 pb-5 border-b border-primary/40">
+          <div className="px-5 pt-5 pb-5 border-b border-white/8 bg-white/[.018]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-full border border-primary/50 bg-primary/10 flex items-center justify-center shrink-0">
@@ -249,10 +267,10 @@ export default function DashboardScreen() {
         </Card>
 
         {monthlyIncome > 0 && (
-          <Card data-tour="dash-safe-to-spend" className={`!p-4 flex items-center justify-between !border-l-[3px] ${safeToday.safePerDay >= 0 ? '!border-l-savings bg-savings/5' : '!border-l-wants bg-wants/5'}`}>
+          <Card data-tour="dash-safe-to-spend" className={`!p-5 flex items-center justify-between overflow-hidden ${safeToday.safePerDay >= 0 ? 'green-glow' : ''}`}>
             <div>
-              <p className="text-xs text-muted font-medium uppercase tracking-wide">{t('dashboard.safeToSpend')}</p>
-              <p className={`text-2xl font-bold font-num mt-0.5 ${safeToday.safePerDay >= 0 ? 'text-savings' : 'text-wants'}`}>
+              <p className="section-label">{t('dashboard.safeToSpend')}</p>
+              <p className={`metric-hero mt-2 ${safeToday.safePerDay >= 0 ? 'text-savings' : 'text-wants'}`}>
                 {safeToday.safePerDay >= 0 ? fmt(safeToday.safePerDay) : `−${fmt(Math.abs(safeToday.safePerDay))}`}
               </p>
               <p className="text-xs text-muted mt-0.5">
