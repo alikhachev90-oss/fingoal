@@ -12,7 +12,7 @@ export const LANGUAGES = [
 
 const STRINGS = {
   'nav.overview': { ru: 'Обзор', en: 'Overview', es: 'Resumen', fr: 'Aperçu' },
-  'nav.entry': { ru: 'Трата', en: 'Entry', es: 'Gasto', fr: 'Dépense' },
+  'nav.entry': { ru: 'Запись', en: 'Entry', es: 'Registro', fr: 'Saisie' },
   'nav.goals': { ru: 'Цели', en: 'Goals', es: 'Metas', fr: 'Objectifs' },
   'nav.insights': { ru: 'Инсайты', en: 'Insights', es: 'Ideas', fr: 'Analyses' },
   'nav.lessons': { ru: 'Учёба', en: 'Learn', es: 'Aprende', fr: 'Apprendre' },
@@ -122,6 +122,10 @@ const STRINGS = {
   'onboarding.needsFieldHealthHint': { ru: 'страховка, лекарства', en: 'insurance, medication', es: 'seguro, medicamentos', fr: 'assurance, médicaments' },
 
   'dashboard.title': { ru: 'Обзор', en: 'Overview', es: 'Resumen', fr: 'Aperçu' },
+  'dashboard.moneyFlowTitle': { ru: 'В этом месяце', en: 'This month', es: 'Este mes', fr: 'Ce mois-ci' },
+  'dashboard.moneyIn': { ru: 'Доход', en: 'Income', es: 'Ingresos', fr: 'Revenus' },
+  'dashboard.moneyOut': { ru: 'Расход', en: 'Expenses', es: 'Gastos', fr: 'Dépenses' },
+  'dashboard.moneyLeft': { ru: 'Остаток', en: 'Balance', es: 'Saldo', fr: 'Solde' },
   'dashboard.streakLabel': { ru: 'стрик по накоплениям', en: 'savings streak', es: 'racha de ahorro', fr: "série d'épargne" },
   'dashboard.streakInfo': { ru: 'Пропустил(а) день — не страшно, стрик просто начнётся заново. Это счётчик привычки, а не экзамен.', en: "Missed a day? No big deal, the streak just restarts. It's a habit tracker, not a test.", es: '¿Te saltaste un día? No pasa nada, la racha simplemente reinicia. Es un contador de hábito, no un examen.', fr: "Un jour manqué ? Pas grave, la série repart simplement à zéro. C'est un compteur d'habitude, pas un examen." },
   'dashboard.checkinPrompt': { ru: 'Отложил(а) сегодня на цель?', en: 'Saved toward your goal today?', es: '¿Ahorraste hoy para tu meta?', fr: "Épargné aujourd'hui pour votre objectif ?" },
@@ -185,7 +189,16 @@ const STRINGS = {
   'goals.nameHint': { ru: 'Конкретное название и точная сумма работают лучше, чем расплывчатое «накопить побольше» — так однажды доказали Локк и Латэм в своих исследованиях постановки целей.', en: 'A specific name and exact amount beat a vague "save more" — this is one of the most-replicated findings in Locke & Latham\'s goal-setting research.' },
   'goals.deadlineHint': { ru: 'Дата — это то, из чего можно посчитать план по дням. Без даты цель легко откладывается бесконечно.', en: "A date is what lets a day-by-day plan get calculated at all. Without one, a goal is easy to postpone forever." },
 
-  'entry.title': { ru: 'Новая трата', en: 'New expense', es: 'Nuevo gasto', fr: 'Nouvelle dépense' },
+  'entry.title': { ru: 'Новая запись', en: 'New entry', es: 'Nuevo registro', fr: 'Nouvelle saisie' },
+  'entry.typeIncome': { ru: 'Доход', en: 'Income', es: 'Ingreso', fr: 'Revenu' },
+  'entry.typeExpense': { ru: 'Расход', en: 'Expense', es: 'Gasto', fr: 'Dépense' },
+  'entry.typeTransfer': { ru: 'Перевод', en: 'Transfer', es: 'Transferencia', fr: 'Virement' },
+  'entry.fromAccount': { ru: 'Откуда', en: 'From', es: 'Desde', fr: 'Depuis' },
+  'entry.toAccount': { ru: 'Куда', en: 'To', es: 'Hacia', fr: 'Vers' },
+  'entry.sameAccountError': { ru: 'Выберите разные счета', en: 'Pick two different accounts', es: 'Elige dos cuentas distintas', fr: 'Choisissez deux comptes différents' },
+  'entry.saveBtnIncome': { ru: 'Сохранить доход', en: 'Save income', es: 'Guardar ingreso', fr: "Enregistrer le revenu" },
+  'entry.saveBtnExpense': { ru: 'Сохранить расход', en: 'Save expense', es: 'Guardar gasto', fr: 'Enregistrer la dépense' },
+  'entry.saveBtnTransfer': { ru: 'Сохранить перевод', en: 'Save transfer', es: 'Guardar transferencia', fr: 'Enregistrer le virement' },
   'entry.quickLabel': { ru: 'Быстрый ввод текстом', en: 'Quick text entry', es: 'Entrada rápida de texto', fr: 'Saisie rapide de texte' },
   'entry.quickPlaceholder': { ru: '«потратил 15 на кофе»', en: '"spent 15 on coffee"', es: '"gasté 15 en café"', fr: '« dépensé 15 en café »' },
   'entry.quickParse': { ru: 'Разобрать', en: 'Parse', es: 'Analizar', fr: 'Analyser' },
