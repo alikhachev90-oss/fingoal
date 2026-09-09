@@ -11,7 +11,7 @@ import * as db from '../lib/db'
 import { computeGoalPlan, MILESTONES, crossedMilestone } from '../lib/finance'
 import { TOURS } from '../lib/tours'
 import { GOAL_TIPS } from '../lib/goalGuide'
-import { Lightbulb, ShieldCheck, CreditCard, Home, TrendingUp } from 'lucide-react'
+import { Lightbulb } from 'lucide-react'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -22,19 +22,6 @@ function pickLang(obj, lang) {
 }
 
 const emptyForm = { name: '', targetAmount: '', deadline: '', why: '' }
-const GOAL_PRESETS = [
-  { key: 'emergency', icon: ShieldCheck, name: { ru: 'Подушка безопасности', en: 'Emergency fund' }, amount: 5000, months: 6 },
-  { key: 'debt', icon: CreditCard, name: { ru: 'Закрыть дорогой долг', en: 'Pay off high-interest debt' }, amount: 3000, months: 6 },
-  { key: 'purchase', icon: Home, name: { ru: 'Большая покупка', en: 'Major purchase' }, amount: 10000, months: 12 },
-  { key: 'invest', icon: TrendingUp, name: { ru: 'Инвестиционный капитал', en: 'Investment capital' }, amount: 10000, months: 12 },
-]
-
-function futureDate(months) {
-  const d = new Date()
-  d.setMonth(d.getMonth() + months)
-  return d.toISOString().slice(0, 10)
-}
-
 
 export default function GoalsScreen() {
   const { user, context, t, lang } = useApp()
@@ -141,37 +128,6 @@ export default function GoalsScreen() {
             </div>
           )}
         </Card>
-        {goals.length === 0 && !showForm && (
-          <Card className="!p-4 space-y-3 border-primary/20">
-            <div>
-              <p className="text-[10px] uppercase tracking-[.16em] text-primary font-bold">{lang === 'en' ? 'QUICK START' : 'БЫСТРЫЙ СТАРТ'}</p>
-              <p className="font-display text-xl mt-1">{lang === 'en' ? 'Choose a direction — adjust the numbers after.' : 'Выбери направление — цифры потом можно изменить.'}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {GOAL_PRESETS.map((preset) => (
-                <button
-                  key={preset.key}
-                  type="button"
-                  onClick={() => {
-                    setForm({
-                      name: pickLang(preset.name, lang),
-                      targetAmount: String(preset.amount),
-                      deadline: futureDate(preset.months),
-                      why: '',
-                    })
-                    setShowForm(true)
-                  }}
-                  className="glass rounded-2xl p-3 text-left min-h-[112px] hover:border-primary/35 transition-all active:scale-[.98]"
-                >
-                  <IconCircle icon={preset.icon} className="bg-primary/10 text-primary" size={34} iconSize={15} />
-                  <p className="text-sm font-semibold mt-3 leading-tight">{pickLang(preset.name, lang)}</p>
-                  <p className="text-[11px] text-muted mt-1 font-num">{fmt(preset.amount)} · {preset.months} {lang === 'en' ? 'mo' : 'мес'}</p>
-                </button>
-              ))}
-            </div>
-          </Card>
-        )}
-
         {goals.map((goal) => {
           const plan = settings
             ? computeGoalPlan(

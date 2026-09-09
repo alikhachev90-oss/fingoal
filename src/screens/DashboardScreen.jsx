@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
-import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Settings, Landmark, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Settings, Landmark, ChevronLeft, ChevronRight } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import DailyQuoteCard from '../components/DailyQuoteCard'
@@ -18,7 +18,6 @@ import { computeGoalPlan, computeSafeToSpendToday } from '../lib/finance'
 import { detectHabitTip, dismissHabitTip } from '../lib/habitTips'
 import { TOURS } from '../lib/tours'
 import { computeAccountBalance, nextDateForDay, daysUntil } from '../lib/creditCards'
-import { getCoachAction } from '../lib/coach'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -194,8 +193,6 @@ export default function DashboardScreen() {
     { monthlyIncome, monthlyNeeds: monthlyNeedsBudget },
   ) : null
 
-  const coachAction = getCoachAction({ settings, transactions, goals, debts, lang })
-
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Александр'
 
   if (settings === null) {
@@ -231,7 +228,7 @@ export default function DashboardScreen() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[.18em] text-white/45">{t('dashboard.title')}</p>
-            <p className="text-sm text-white/65 mt-1">{context === 'personal' ? t('topbar.personal') : t('topbar.business')}</p>
+            <p className="text-sm text-white/65 mt-1">{t('topbar.personal')}</p>
           </div>
           <div className="flex items-center gap-1.5">
             <button type="button" onClick={() => setTourActive(true)} className="w-10 h-10 rounded-full glass flex items-center justify-center text-white/80"><Compass size={17} /></button>
@@ -262,27 +259,6 @@ export default function DashboardScreen() {
             </div>
           </div>
         </Card>
-
-        {coachAction && (
-          <Card className={`!p-4 overflow-hidden ${coachAction.tone === 'warn' ? '!border-wants/25' : coachAction.tone === 'good' ? '!border-savings/25' : '!border-primary/25'}`}>
-            <div className="flex items-start gap-3">
-              <IconCircle
-                icon={Sparkles}
-                size={40}
-                iconSize={18}
-                className={coachAction.tone === 'warn' ? 'bg-wants/10 text-wants' : coachAction.tone === 'good' ? 'bg-savings/10 text-savings' : 'bg-primary/10 text-primary'}
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] uppercase tracking-[.16em] text-muted font-bold">{coachAction.eyebrow}</p>
-                <p className="font-display text-[19px] leading-tight mt-1">{coachAction.title}</p>
-                <p className="text-[13px] text-muted leading-relaxed mt-2">{coachAction.text}</p>
-                <Link to={coachAction.to} className="inline-flex items-center gap-1.5 text-sm text-primary font-semibold mt-3">
-                  {coachAction.action} <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
-          </Card>
-        )}
 
         <div data-tour="dash-quote" className="px-1">
           <DailyQuoteCard />

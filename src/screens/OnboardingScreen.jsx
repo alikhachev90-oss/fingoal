@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Wallet, Home, Car, ShoppingCart, HeartPulse, CreditCard, ChevronLeft, PlusCircle, LayoutGrid, Target, Sparkles, GraduationCap } from 'lucide-react'
+import { Wallet, Home, Car, ShoppingCart, HeartPulse, CreditCard, ChevronLeft, PlusCircle } from 'lucide-react'
 import { Button, Input, Card, IconCircle } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
@@ -8,7 +8,7 @@ import * as db from '../lib/db'
 const emptyDebt = { name: '', balance: '', rate: '', termMonths: '', minPayment: '' }
 
 export default function OnboardingScreen() {
-  const { user, context, t, lang } = useApp()
+  const { user, context, t } = useApp()
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [income, setIncome] = useState('')
@@ -61,7 +61,6 @@ export default function OnboardingScreen() {
     { title: t('onboarding.step0Title'), icon: Wallet },
     { title: t('onboarding.step1Title'), icon: Home },
     { title: t('onboarding.step2Title'), icon: CreditCard },
-    { title: lang === 'en' ? 'Your financial system is ready' : 'Твоя финансовая система готова', icon: Sparkles },
   ]
 
   const steps = [
@@ -133,47 +132,9 @@ export default function OnboardingScreen() {
         </div>
       )}
     </div>,
-    // Step 3: map of the system
-    <div key="system" className="space-y-5 animate-slide-up">
-      <div className="glass rounded-[28px] p-5 border-primary/20 gold-glow">
-        <p className="text-[10px] uppercase tracking-[.18em] text-primary font-bold">FINTRACK SYSTEM</p>
-        <p className="font-display text-[24px] leading-tight mt-2">
-          {lang === 'en' ? 'One place for your money, goals and financial growth.' : 'Одно место для денег, целей и финансового роста.'}
-        </p>
-        <p className="text-sm text-muted leading-relaxed mt-3">
-          {lang === 'en'
-            ? 'You do not need to learn the whole app today. Open it, follow the prompts, and FinTrack will guide you step by step.'
-            : 'Не нужно изучать всё приложение сразу. Открывай, следуй подсказкам — FinTrack будет вести тебя шаг за шагом.'}
-        </p>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { icon: LayoutGrid, title: lang === 'en' ? 'Overview' : 'Главная', text: lang === 'en' ? 'See the whole picture' : 'Вся картина в одном месте' },
-          { icon: PlusCircle, title: lang === 'en' ? 'Money' : 'Деньги', text: lang === 'en' ? 'Log income and spending' : 'Доходы и расходы' },
-          { icon: Target, title: lang === 'en' ? 'Goals' : 'Цели', text: lang === 'en' ? 'Turn plans into numbers' : 'Планы превращаются в цифры' },
-          { icon: Sparkles, title: lang === 'en' ? 'Insights' : 'Аналитика', text: lang === 'en' ? 'Understand what to do next' : 'Понимай, что делать дальше' },
-        ].map(({ icon: Icon, title, text }) => (
-          <div key={title} className="glass rounded-2xl p-3.5 min-h-[118px]">
-            <IconCircle icon={Icon} className="bg-primary/10 text-primary" size={36} iconSize={16} />
-            <p className="text-sm font-semibold mt-3">{title}</p>
-            <p className="text-[11px] text-muted leading-snug mt-1">{text}</p>
-          </div>
-        ))}
-      </div>
-      <div className="glass rounded-2xl p-4 flex items-start gap-3">
-        <IconCircle icon={GraduationCap} className="bg-savings/10 text-savings" size={38} iconSize={17} />
-        <div>
-          <p className="text-sm font-semibold">{lang === 'en' ? 'Learn instead of scrolling' : 'Учись вместо бесконечного скролла'}</p>
-          <p className="text-xs text-muted leading-relaxed mt-1">{lang === 'en' ? 'Short lessons are matched to your real financial situation.' : 'Короткие уроки подбираются под твою реальную финансовую ситуацию.'}</p>
-        </div>
-      </div>
-      <p className="text-xs text-muted text-center px-3">
-        {lang === 'en' ? 'On your first visit to each section, interactive hints will explain the key controls.' : 'При первом входе в каждый раздел интерактивные подсказки объяснят ключевые элементы.'}
-      </p>
-    </div>,
   ]
 
-  const canNext = [income !== '', true, hasDebts !== null, true][step]
+  const canNext = [income !== '', true, hasDebts !== null][step]
   const CurrentIcon = stepMeta[step].icon
 
   return (
