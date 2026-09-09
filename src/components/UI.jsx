@@ -1,7 +1,7 @@
 export function Card({ children, className = '', animate = true, ...rest }) {
   return (
     <div
-      className={`glass rounded-3xl p-[18px] shadow-glass ${animate ? 'animate-slide-up' : ''} ${className}`}
+      className={`glass rounded-[28px] p-[18px] shadow-glass ${animate ? 'animate-slide-up' : ''} ${className}`}
       {...rest}
     >
       {children}
@@ -10,10 +10,10 @@ export function Card({ children, className = '', animate = true, ...rest }) {
 }
 
 export function Button({ children, variant = 'primary', className = '', icon: Icon, ...props }) {
-  const base = 'w-full min-h-12 py-3.5 px-4 rounded-2xl font-semibold text-[15px] transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 flex items-center justify-center gap-2'
+  const base = 'w-full min-h-12 py-3.5 px-4 rounded-2xl font-semibold text-[15px] tracking-[-.01em] transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 flex items-center justify-center gap-2'
   const variants = {
-    primary: 'bg-gradient-to-b from-[#f2c978] to-[#c99543] text-[#19140d] shadow-[0_14px_30px_-14px_rgb(var(--color-primary)/0.9),0_1px_0_rgb(255_255_255/0.35)_inset] hover:brightness-105',
-    secondary: 'glass text-text hover:border-primary/50',
+    primary: 'bg-gradient-to-b from-[#f7d58b] via-[#e5b862] to-[#c78b35] text-[#19130a] shadow-[0_16px_34px_-14px_rgb(var(--color-primary)/0.95),0_1px_0_rgb(255_255_255/0.44)_inset] hover:brightness-105',
+    secondary: 'glass text-text hover:border-primary/55 hover:bg-white/[.08]',
     ghost: 'bg-transparent text-muted hover:text-text',
     danger: 'bg-danger/10 text-danger hover:bg-danger/15',
   }
@@ -28,7 +28,7 @@ export function Button({ children, variant = 'primary', className = '', icon: Ic
 export function IconButton({ icon: Icon, className = '', ...props }) {
   return (
     <button
-      className={`w-10 h-10 rounded-full glass flex items-center justify-center transition-all duration-200 active:scale-95 hover:border-primary/50 ${className}`}
+      className={`w-10 h-10 rounded-full glass flex items-center justify-center text-white/85 transition-all duration-200 active:scale-95 hover:border-primary/50 hover:text-primary ${className}`}
       {...props}
     >
       <Icon size={17} strokeWidth={2.1} />
@@ -43,7 +43,7 @@ export function Input({ label, icon: Icon, className = '', ...props }) {
       <div className="relative">
         {Icon && <Icon size={16} strokeWidth={2.25} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />}
         <input
-          className={`w-full bg-surface2 border border-border rounded-2xl px-4 ${Icon ? 'pl-10' : ''} py-3.5 text-[15px] font-num text-text outline-none transition-all focus:border-primary/70 focus:ring-1 focus:ring-primary/30 placeholder:text-muted/60 placeholder:font-sans ${className}`}
+          className={`w-full bg-surface2 border border-border rounded-2xl px-4 ${Icon ? 'pl-10' : ''} py-3.5 text-[15px] font-num text-text outline-none transition-all focus:border-primary/70 focus:ring-2 focus:ring-primary/20 placeholder:text-muted/60 placeholder:font-sans ${className}`}
           {...props}
         />
       </div>
