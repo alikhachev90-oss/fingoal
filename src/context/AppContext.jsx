@@ -61,11 +61,18 @@ export function AppProvider({ children }) {
     setUser(null)
   }, [])
 
+  const updateProfile = useCallback(async (patch) => {
+    const updated = await db.updateProfile(user?.id, patch)
+    setUser(updated)
+    return updated
+  }, [user])
+
   const value = {
     user,
     setUser,
     refreshUser,
     signOut,
+    updateProfile,
     context,
     setContext,
     theme,
