@@ -37,6 +37,10 @@ const STRINGS = {
 
   'settings.title': { ru: 'Настройки', en: 'Settings', es: 'Ajustes', fr: 'Paramètres' },
   'settings.profile': { ru: 'Профиль', en: 'Profile', es: 'Perfil', fr: 'Profil' },
+  'settings.nameLabel': { ru: 'Имя', en: 'Name', es: 'Nombre', fr: 'Nom' },
+  'settings.namePlaceholder': { ru: 'Как вас называть?', en: 'What should we call you?', es: '¿Cómo te llamamos?', fr: 'Comment vous appeler ?' },
+  'settings.nameSave': { ru: 'Сохранить', en: 'Save', es: 'Guardar', fr: 'Enregistrer' },
+  'settings.nameSaved': { ru: 'Сохранено', en: 'Saved', es: 'Guardado', fr: 'Enregistré' },
   'settings.appearance': { ru: 'Оформление', en: 'Appearance', es: 'Apariencia', fr: 'Apparence' },
   'settings.theme': { ru: 'Тема', en: 'Theme', es: 'Tema', fr: 'Thème' },
   'settings.themeSystem': { ru: 'Системная', en: 'System', es: 'Del sistema', fr: 'Système' },
