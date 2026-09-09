@@ -2,132 +2,158 @@
 @tailwind components;
 @tailwind utilities;
 
-/* "Private space" identity: a translucent glass UI floating over a soft
-   ambient backdrop — champagne gold + emerald accents on graphite/paper
-   neutrals. Depth and quiet motion carry the design, not loud color. */
-
 :root {
-  --color-bg: 242 240 233;
-  --color-surface: 255 255 253;
-  --color-surface2: 234 230 219;
-  --color-border: 214 208 194;
-  --color-text: 26 24 20;
-  --color-muted: 103 99 88;
-  --color-primary: 168 128 58;
-  --color-primary2: 30 120 82;
-  --color-on-primary: 253 253 250;
-  --color-needs: 178 62 48;
-  --color-wants: 168 116 30;
-  --color-savings: 30 120 82;
-  --color-income: 50 96 148;
-  --color-danger: 178 62 48;
+  --color-bg: 7 9 11;
+  --color-surface: 20 23 27;
+  --color-surface2: 28 32 37;
+  --color-border: 255 255 255;
+  --color-text: 246 244 238;
+  --color-muted: 161 166 166;
+  --color-primary: 214 171 91;
+  --color-primary2: 84 177 137;
+  --color-on-primary: 18 15 10;
+  --color-needs: 219 112 94;
+  --color-wants: 224 160 82;
+  --color-savings: 88 201 151;
+  --color-income: 122 170 225;
+  --color-danger: 219 112 94;
 }
 
 .dark {
-  --color-bg: 11 12 13;
-  --color-surface: 24 26 29;
-  --color-surface2: 34 37 41;
-  --color-border: 54 57 53;
-  --color-text: 244 242 236;
-  --color-muted: 168 171 168;
-  --color-primary: 205 168 110;
-  --color-primary2: 88 168 132;
-  --color-on-primary: 26 22 14;
-  --color-needs: 214 115 98;
-  --color-wants: 214 158 84;
-  --color-savings: 92 176 132;
-  --color-income: 120 165 214;
-  --color-danger: 214 115 98;
+  --color-bg: 7 9 11;
+  --color-surface: 20 23 27;
+  --color-surface2: 28 32 37;
+  --color-border: 255 255 255;
+  --color-text: 246 244 238;
+  --color-muted: 161 166 166;
+  --color-primary: 214 171 91;
+  --color-primary2: 84 177 137;
+  --color-on-primary: 18 15 10;
+  --color-needs: 219 112 94;
+  --color-wants: 224 160 82;
+  --color-savings: 88 201 151;
+  --color-income: 122 170 225;
+  --color-danger: 219 112 94;
 }
 
-* {
-  box-sizing: border-box;
+html:not(.dark) {
+  --color-bg: 16 18 20;
+  --color-surface: 27 30 33;
+  --color-surface2: 36 40 44;
+  --color-border: 255 255 255;
+  --color-text: 246 244 238;
+  --color-muted: 170 174 174;
 }
 
-html, body {
-  overscroll-behavior-y: none;
-}
-
+* { box-sizing: border-box; }
+html, body { overscroll-behavior-y: none; }
 body {
   margin: 0;
-  background: rgb(var(--color-bg));
+  min-height: 100svh;
+  background: #07090b;
   color: rgb(var(--color-text));
   font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+button, input, select, textarea { font-family: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+#root { min-height: 100svh; display: flex; justify-content: center; width: 100%; }
 
-#root {
-  min-height: 100svh;
-  display: flex;
-  justify-content: center;
-}
-
-/* The app's "personal space": a soft ambient glow behind every glass card.
-   Placeholder default until Settings → Внешний вид lets people pick their
-   own backdrop (photo, gradient, or one of a curated set) — that picker
-   swaps this element's background, nothing else has to change. */
 .app-ambient {
   position: relative;
-  background: rgb(var(--color-bg));
+  width: 100%;
+  max-width: 480px;
+  min-height: 100svh;
+  isolation: isolate;
+  background: #07090b;
+  overflow-x: hidden;
 }
 .app-ambient::before {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -2;
   pointer-events: none;
-  transition: background 0.4s ease;
-  background: var(
-    --app-bg-image,
-    radial-gradient(ellipse 60% 40% at 18% -8%, rgb(var(--color-primary) / 0.16), transparent 60%),
-    radial-gradient(ellipse 55% 45% at 88% 8%, rgb(var(--color-primary2) / 0.14), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 50% 110%, rgb(var(--color-primary2) / 0.08), transparent 60%)
-  );
+  background:
+    var(--app-bg-image,
+      radial-gradient(ellipse 90% 55% at 12% -5%, rgb(214 171 91 / .20), transparent 58%),
+      radial-gradient(ellipse 80% 60% at 100% 16%, rgb(84 177 137 / .15), transparent 60%),
+      radial-gradient(ellipse 90% 70% at 50% 110%, rgb(64 91 120 / .12), transparent 64%),
+      linear-gradient(180deg, #11151a 0%, #080a0d 48%, #07090b 100%)
+    );
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.08);
+  transition: background .45s ease, filter .45s ease;
 }
-.app-ambient > * {
-  position: relative;
-  z-index: 1;
+.app-ambient::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 30%, transparent 0 34%, rgb(0 0 0 / .10) 78%, rgb(0 0 0 / .42) 100%),
+    linear-gradient(180deg, rgb(0 0 0 / .05), rgb(0 0 0 / .28));
 }
+.app-ambient > * { position: relative; z-index: 1; }
 
-/* Frosted glass surface used by cards, bars and sheets floating over the
-   ambient backdrop above. */
+/* Premium translucent material. */
 .glass {
-  background: rgb(var(--color-surface) / 0.72);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid rgb(var(--color-text) / 0.08);
+  position: relative;
+  background: linear-gradient(135deg, rgb(255 255 255 / .095), rgb(255 255 255 / .035));
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  backdrop-filter: blur(26px) saturate(150%);
+  border: 1px solid rgb(255 255 255 / .13);
+  box-shadow:
+    0 24px 60px -34px rgb(0 0 0 / .85),
+    0 1px 0 rgb(255 255 255 / .10) inset,
+    0 0 0 .5px rgb(255 255 255 / .04);
 }
-
-input, select, textarea, button {
-  font-family: inherit;
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgb(255 255 255 / .07), transparent 30%, transparent 72%, rgb(255 255 255 / .025));
+  opacity: .8;
 }
+.glass > * { position: relative; z-index: 1; }
 
-.font-num {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-variant-numeric: tabular-nums;
+/* Make legacy solid utility surfaces translucent too, so the entire app shares one material language. */
+.bg-surface, .bg-surface2 {
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+  backdrop-filter: blur(22px) saturate(145%);
 }
+.bg-surface { background-color: rgb(20 23 27 / .72) !important; }
+.bg-surface2 { background-color: rgb(255 255 255 / .055) !important; }
+.border-border { border-color: rgb(255 255 255 / .11) !important; }
+.divide-border > :not([hidden]) ~ :not([hidden]) { border-color: rgb(255 255 255 / .08) !important; }
 
-::-webkit-scrollbar {
-  display: none;
+.font-num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.font-display { font-family: 'Fraunces', ui-serif, Georgia, serif; }
+
+input, select, textarea {
+  color-scheme: dark;
 }
-
-/* Remove number input spinners for a cleaner amount field */
 input[type='number']::-webkit-outer-spin-button,
-input[type='number']::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type='number'] {
-  -moz-appearance: textfield;
-}
+input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type='number'] { -moz-appearance: textfield; }
+::-webkit-scrollbar { display: none; }
 
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    rgb(var(--color-surface2)) 25%,
-    rgb(var(--color-border)) 37%,
-    rgb(var(--color-surface2)) 63%
-  );
-  background-size: 200% 100%;
+/* Premium page rhythm and reusable accents. */
+.page-content { padding: 18px 16px calc(104px + env(safe-area-inset-bottom)); }
+.section-label { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: rgb(var(--color-muted)); font-weight: 700; }
+.hero-name { font-size: clamp(38px, 11vw, 56px); line-height: .95; letter-spacing: -.045em; font-weight: 600; }
+.metric-hero { font-size: clamp(48px, 14vw, 70px); line-height: .88; letter-spacing: -.055em; font-weight: 500; }
+.gold-glow { box-shadow: 0 18px 55px -26px rgb(var(--color-primary) / .60), 0 1px 0 rgb(255 255 255 / .12) inset; }
+.green-glow { box-shadow: 0 18px 55px -28px rgb(var(--color-savings) / .48), 0 1px 0 rgb(255 255 255 / .10) inset; }
+
+.skeleton { background: linear-gradient(90deg, rgb(255 255 255 / .04) 25%, rgb(255 255 255 / .10) 37%, rgb(255 255 255 / .04) 63%); background-size: 200% 100%; }
+
+@media (min-width: 600px) {
+  body { background: #030405; }
+  .app-ambient { box-shadow: 0 0 90px rgb(0 0 0 / .45); }
 }
