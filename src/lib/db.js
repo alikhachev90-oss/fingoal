@@ -75,6 +75,28 @@ export async function getSession() {
   }
 }
 
+// Updates the signed-in user's personal data (currently: display name).
+// Supabase: stored in auth user_metadata.full_name. Demo mode: mirrored into
+// the same user_metadata shape so DashboardScreen's greeting reads it
+// identically regardless of backend, plus persisted on the mock user record.
+export async function updateProfile(userId, { name } = {}) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.auth.updateUser({ data: { full_name: name } })
+    if (error) throw error
+    return data.user
+  }
+  const db = loadMock()
+  const idx = db.users.findIndex((u) => u.id === userId)
+  if (idx >= 0) {
+    db.users[idx] = { ...db.users[idx], name }
+    saveMock(db)
+  }
+  const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null')
+  const updated = { ...session, user_metadata: { ...(session?.user_metadata || {}), full_name: name } }
+  localStorage.setItem(SESSION_KEY, JSON.stringify(updated))
+  return updated
+}
+
 // ------------------------------------------------------------------ settings
 // settings: { monthlyIncome, needsBudget: {housing,transport,groceries,health}, hasDebts, onboarded }
 export async function getSettings(userId, context) {
