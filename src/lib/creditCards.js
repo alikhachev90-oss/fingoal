@@ -14,12 +14,18 @@ export function computeAccountBalance(account, transactions) {
   for (const t of transactions) {
     if (t.account_id !== account.id) continue
     const amt = Number(t.amount || 0)
+    // A transfer is two linked rows tagged with the same account fields as a
+    // normal transaction, distinguished by group:'transfer' + transfer_direction.
+    // The 'in' leg behaves like money arriving (income for cash/debit, a
+    // payment for credit); the 'out' leg falls through to the normal
+    // spend/debt-add branch below, same as any other transaction leaving the account.
+    const isTransferIn = t.group === 'transfer' && t.transfer_direction === 'in'
     if (account.type === 'credit') {
       // Credit balance = what's owed: a purchase adds debt, a recorded payment reduces it.
-      balance += t.is_payment ? -amt : amt
+      balance += (t.is_payment || isTransferIn) ? -amt : amt
     } else {
       // Cash/debit balance = what's actually there: income adds, spending subtracts.
-      balance += t.group === 'income' ? amt : -amt
+      balance += (t.group === 'income' || isTransferIn) ? amt : -amt
     }
   }
   return Math.round(balance * 100) / 100

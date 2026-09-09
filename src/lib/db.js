@@ -292,6 +292,17 @@ export async function addTransaction(userId, context, tx) {
   return row
 }
 
+// A transfer between two of the user's own accounts (e.g. cash -> debit card)
+// is recorded as two linked rows so both account balances stay correct and
+// neither leg is ever double-counted as real income/expense in reports.
+export async function addTransfer(userId, context, { fromAccountId, toAccountId, amount, date, comment }) {
+  const transferId = uid()
+  const base = { amount, date, comment, group: 'transfer', category_key: 'transfer', sub: null }
+  const out = await addTransaction(userId, context, { ...base, account_id: fromAccountId, transfer_id: transferId, transfer_direction: 'out' })
+  const inn = await addTransaction(userId, context, { ...base, account_id: toAccountId, transfer_id: transferId, transfer_direction: 'in' })
+  return [out, inn]
+}
+
 export async function deleteTransaction(userId, txId) {
   if (supabaseEnabled) {
     const { error } = await supabase.from('transactions').delete().eq('id', txId)

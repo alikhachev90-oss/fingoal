@@ -189,7 +189,7 @@ export function categoryMonthOverMonth(transactions) {
   const sums = (ref) => {
     const map = {}
     for (const t of transactions) {
-      if (!isSameMonth(t.date, ref)) continue
+      if (!isSameMonth(t.date, ref) || t.group === 'transfer') continue
       const k = `${t.group}:${t.category_key}`
       map[k] = (map[k] || 0) + t.amount
     }
@@ -329,6 +329,7 @@ export function answerQuestion(question, ctx) {
   if (/самая большая категория|на что трачу|больше всего|biggest category|spend the most|what am i spending/.test(q)) {
     const byCat = {}
     for (const t of monthTx) {
+      if (t.group === 'transfer') continue
       const k = `${t.group}:${t.category_key}`
       byCat[k] = (byCat[k] || 0) + t.amount
     }

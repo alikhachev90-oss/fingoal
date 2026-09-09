@@ -174,7 +174,10 @@ const KEYWORD_RULES = [
 ]
 
 // Returns ranked suggestions [{group,key,sub,label,explanation,score}] for a free-text query.
-export function suggestCategories(query, lang = 'ru') {
+// `limit` caps the result count (used for the old dropdown-style list); pass
+// Infinity to get every match — used by the always-visible category grid to
+// decide which buttons stay highlighted vs. dim while the user types.
+export function suggestCategories(query, lang = 'ru', limit = 5) {
   const q = query.trim().toLowerCase()
   if (!q) return []
   const results = []
@@ -220,5 +223,5 @@ export function suggestCategories(query, lang = 'ru') {
       deduped.push(r)
     }
   }
-  return deduped.slice(0, 5)
+  return deduped.slice(0, limit)
 }
