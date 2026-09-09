@@ -152,6 +152,18 @@ export default function DashboardScreen() {
   const spentNeeds = byGroup.needs
   const freeMoney = monthlyIncome - monthlyNeedsBudget - byGroup.wants
 
+  // Real money in/out this month, from actual logged transactions — not the
+  // manually-configured budget figures above. "Остаток" is deliberately the
+  // SAME number AccountsScreen computes per account (computeAccountBalance),
+  // just summed across every non-credit account, so it never drifts from
+  // what /accounts shows: one ground truth for "how much money do I have",
+  // instead of a separately-derived estimate that can disagree with reality.
+  const realIncomeThisMonth = monthTx.filter((tx) => tx.group === 'income').reduce((s, tx) => s + tx.amount, 0)
+  const realExpenseThisMonth = byGroup.needs + byGroup.wants
+  const totalBalance = (accounts || [])
+    .filter((a) => a.type !== 'credit')
+    .reduce((s, a) => s + computeAccountBalance(a, transactions), 0)
+
   const safeToday = computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, byGroup.wants)
 
   const needsCats = CATEGORY_TREE.needs || []
@@ -230,6 +242,24 @@ export default function DashboardScreen() {
         </div>
       </div>
       <div className="flex-1 px-4 py-3 space-y-4">
+        <Card className="!p-4" data-tour="dash-money-flow">
+          <p className="text-[10.5px] font-bold tracking-wide text-muted uppercase mb-3">{t('dashboard.moneyFlowTitle')}</p>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <p className="text-[10px] text-muted uppercase tracking-wide">{t('dashboard.moneyIn')}</p>
+              <p className="text-lg font-bold font-num text-savings mt-1 truncate">{fmt(realIncomeThisMonth)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-muted uppercase tracking-wide">{t('dashboard.moneyOut')}</p>
+              <p className="text-lg font-bold font-num text-needs mt-1 truncate">{fmt(realExpenseThisMonth)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-muted uppercase tracking-wide">{t('dashboard.moneyLeft')}</p>
+              <p className={`text-lg font-bold font-num mt-1 truncate ${totalBalance < 0 ? 'text-wants' : 'text-text'}`}>{fmt(totalBalance)}</p>
+            </div>
+          </div>
+        </Card>
+
         <div data-tour="dash-quote" className="px-1">
           <DailyQuoteCard />
         </div>

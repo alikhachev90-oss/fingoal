@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
-import { Button, Input, Card, Pill } from '../components/UI'
+import { Button, Input, Card } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { suggestCategories, CATEGORY_TREE, GROUP_PILL_CLASSES, findCategory, pickLang, subLabel, subHint } from '../lib/categories'
+import { suggestCategories, CATEGORY_TREE, findCategory, pickLang, subLabel, subHint } from '../lib/categories'
 import InfoTag from '../components/InfoTag'
 import { computeGoalPlan, daysSavedByAmount, crossedMilestone } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
@@ -32,6 +32,25 @@ export default function EntryScreen() {
   const [pendingCat, setPendingCat] = useState(null) // {group,key} — waiting for a sub pick
   const [accounts, setAccounts] = useState([])
   const [accountId, setAccountId] = useState('')
+  const [type, setType] = useState('expense') // 'income' | 'expense' | 'transfer'
+  const [fromAccountId, setFromAccountId] = useState('')
+  const [toAccountId, setToAccountId] = useState('')
+
+  function changeType(next) {
+    setType(next)
+    setSelected(null)
+    setPendingCat(null)
+    setQuery('')
+    setSaved(false)
+  }
+
+  // Which top-level category groups this tab offers — income tab only shows
+  // the income group, expense tab shows everything that spends cash (needs,
+  // wants, savings all reduce the account balance the same way).
+  const visibleGroups = useMemo(
+    () => Object.entries(CATEGORY_TREE).filter(([group]) => (type === 'income' ? group === 'income' : group !== 'income')),
+    [type],
+  )
 
   useEffect(() => {
     if (!user) return
@@ -49,7 +68,12 @@ export default function EntryScreen() {
     })
   }, [user, context])
 
-  const suggestions = useMemo(() => suggestCategories(query, lang), [query, lang])
+  // Full match set (no cap) drives which grid buttons stay highlighted while
+  // typing — a ranked top-5 dropdown would hide legitimate matches further
+  // down the list, which is fine for a dropdown but wrong for "dim everything
+  // that doesn't match" filtering of an always-visible grid.
+  const liveMatches = useMemo(() => (query.trim() && !selected && !pendingCat ? suggestCategories(query, lang, Infinity) : null), [query, lang, selected, pendingCat])
+  const matchedKeys = useMemo(() => (liveMatches ? new Set(liveMatches.map((m) => `${m.group}:${m.key}`)) : null), [liveMatches])
 
   function pickSuggestion(s) {
     const subDisplay = s.sub ? subLabel(s.group, s.key, s.sub, lang) : null
@@ -102,7 +126,26 @@ export default function EntryScreen() {
     return daysSavedByAmount(parseFloat(amount) || 0, goalPlan.perDay)
   }, [selected, goalPlan, amount])
 
+  async function handleTransferSave() {
+    if (!amount || !fromAccountId || !toAccountId || fromAccountId === toAccountId) return
+    setSaving(true)
+    try {
+      await db.addTransfer(user.id, context, {
+        fromAccountId,
+        toAccountId,
+        amount: parseFloat(amount),
+        date,
+        comment,
+      })
+      setSaved(true)
+      setTimeout(() => navigate('/dashboard', { replace: true }), 900)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function handleSave() {
+    if (type === 'transfer') return handleTransferSave()
     if (!selected || !amount) return
     setSaving(true)
     try {
@@ -159,33 +202,86 @@ export default function EntryScreen() {
     <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('entry.title')} />
       <div className="flex-1 px-4 py-4 space-y-4">
-        <Card className="!p-3.5 space-y-2.5 border-l-[3px] !border-l-primary bg-surface2/40">
-          <p className="text-xs font-semibold text-muted uppercase tracking-wide flex items-center gap-1.5">
-            <Wand2 size={13} className="text-primary" /> {t('entry.quickLabel')}
-          </p>
-          <div className="flex gap-2">
-            <input
-              value={quickText}
-              onChange={(e) => setQuickText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && runQuickParse()}
-              placeholder={t('entry.quickPlaceholder')}
-              className="flex-1 bg-surface border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary focus:ring-1 focus:ring-primary/40"
-            />
-            <Button variant="secondary" className="!w-auto px-3.5" onClick={runQuickParse} type="button">{t('entry.quickParse')}</Button>
-          </div>
-          {quickResult && (
-            <p className="text-xs text-muted">
-              {quickResult.amount ? t('entry.quickResultAmount', { amt: quickResult.amount }) : t('entry.quickResultNoAmount')}
-              {quickResult.suggestion ? t('entry.quickResultCatFound') : t('entry.quickResultCatNotFound')}
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { key: 'income', label: t('entry.typeIncome') },
+            { key: 'expense', label: t('entry.typeExpense') },
+            { key: 'transfer', label: t('entry.typeTransfer') },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => changeType(tab.key)}
+              className={`text-sm font-semibold py-2.5 rounded-xl border transition-all ${
+                type === tab.key ? 'border-primary text-primary bg-primary/10' : 'border-border text-muted bg-surface2'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {type !== 'transfer' && (
+          <Card className="!p-3.5 space-y-2.5 border-l-[3px] !border-l-primary bg-surface2/40">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wide flex items-center gap-1.5">
+              <Wand2 size={13} className="text-primary" /> {t('entry.quickLabel')}
             </p>
-          )}
-        </Card>
+            <div className="flex gap-2">
+              <input
+                value={quickText}
+                onChange={(e) => setQuickText(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && runQuickParse()}
+                placeholder={t('entry.quickPlaceholder')}
+                className="flex-1 bg-surface border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary focus:ring-1 focus:ring-primary/40"
+              />
+              <Button variant="secondary" className="!w-auto px-3.5" onClick={runQuickParse} type="button">{t('entry.quickParse')}</Button>
+            </div>
+            {quickResult && (
+              <p className="text-xs text-muted">
+                {quickResult.amount ? t('entry.quickResultAmount', { amt: quickResult.amount }) : t('entry.quickResultNoAmount')}
+                {quickResult.suggestion ? t('entry.quickResultCatFound') : t('entry.quickResultCatNotFound')}
+              </p>
+            )}
+          </Card>
+        )}
 
         <Card className="space-y-3">
           <Input label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
           <Input label={t('entry.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           <Input label={t('entry.comment')} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('entry.commentPlaceholder')} />
-          {accounts.length > 0 && (
+          {type === 'transfer' ? (
+            <>
+              <label className="block text-sm">
+                <span className="text-muted text-xs font-medium">{t('entry.fromAccount')}</span>
+                <select
+                  value={fromAccountId}
+                  onChange={(e) => setFromAccountId(e.target.value)}
+                  className="mt-1 w-full bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
+                >
+                  <option value="">—</option>
+                  {accounts.map((a) => (
+                    <option key={a.id} value={a.id}>{a.name}{a.type === 'credit' ? ` (${t('accounts.credit')})` : ''}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm">
+                <span className="text-muted text-xs font-medium">{t('entry.toAccount')}</span>
+                <select
+                  value={toAccountId}
+                  onChange={(e) => setToAccountId(e.target.value)}
+                  className="mt-1 w-full bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
+                >
+                  <option value="">—</option>
+                  {accounts.map((a) => (
+                    <option key={a.id} value={a.id}>{a.name}{a.type === 'credit' ? ` (${t('accounts.credit')})` : ''}</option>
+                  ))}
+                </select>
+              </label>
+              {fromAccountId && toAccountId && fromAccountId === toAccountId && (
+                <p className="text-[11px] text-wants -mt-1">{t('entry.sameAccountError')}</p>
+              )}
+            </>
+          ) : accounts.length > 0 && (
             <label className="block text-sm">
               <span className="text-muted text-xs font-medium">{t('entry.accountLabel')}</span>
               <select
@@ -200,10 +296,10 @@ export default function EntryScreen() {
               </select>
             </label>
           )}
-          {selected?.group === 'income' && (
+          {type === 'income' && (
             <p className="text-[11px] text-muted -mt-1">{t('entry.incomeAccountHint')}</p>
           )}
-          {topGoal && (
+          {type === 'expense' && topGoal && (
             <label className="flex items-center justify-between text-sm pt-1 cursor-pointer">
               <span className="text-muted">{t('entry.roundUpLabel', { name: topGoal.name })}</span>
               <input type="checkbox" checked={roundUp} onChange={(e) => setRoundUp(e.target.checked)} className="w-4 h-4 accent-primary" />
@@ -211,6 +307,7 @@ export default function EntryScreen() {
           )}
         </Card>
 
+        {type !== 'transfer' && (
         <Card className="space-y-3">
           <Input
             label={t('entry.category')}
@@ -222,27 +319,6 @@ export default function EntryScreen() {
             }}
             placeholder={t('entry.categoryPlaceholder')}
           />
-
-          {!selected && !pendingCat && suggestions.length > 0 && (
-            <div className="space-y-2">
-              {suggestions.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => pickSuggestion(s)}
-                  type="button"
-                  className="w-full text-left bg-surface2 border border-border rounded-xl p-3 hover:border-primary"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      {t(`group.${s.group}`)} → {s.label}{s.sub ? ` → ${s.sub}` : ''}
-                    </span>
-                    <Pill className={GROUP_PILL_CLASSES[s.group]}>{s.group}</Pill>
-                  </div>
-                  {s.explanation && <p className="text-xs text-muted mt-1">🤖 {s.explanation}</p>}
-                </button>
-              ))}
-            </div>
-          )}
 
           {selected && (
             <div className="bg-surface2 border border-primary rounded-xl p-3">
@@ -288,29 +364,41 @@ export default function EntryScreen() {
             </div>
           )}
 
-          <details className="text-sm">
-            <summary className="text-muted cursor-pointer">{t('entry.manualPick')}</summary>
-            <div className="mt-2 space-y-3">
-              {Object.entries(CATEGORY_TREE).map(([group, cats]) => (
+          {!pendingCat && (
+            <div className="space-y-3 pt-1 border-t border-border/60">
+              {visibleGroups.map(([group, cats]) => (
                 <div key={group}>
-                  <p className="text-xs text-muted mb-1">{t(`group.${group}`)}</p>
+                  <p className="text-xs text-muted mb-1.5 mt-2">{t(`group.${group}`)}</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {cats.map((c) => (
-                      <button
-                        key={c.key}
-                        type="button"
-                        onClick={() => pickManualCategory(group, c.key)}
-                        className="text-xs px-2.5 py-1.5 rounded-lg bg-surface2 border border-border"
-                      >
-                        {pickLang(c.label, lang)}
-                      </button>
-                    ))}
+                    {cats.map((c) => {
+                      const id = `${group}:${c.key}`
+                      const isSelected = selected && selected.group === group && selected.key === c.key
+                      const isMatched = !matchedKeys || matchedKeys.has(id)
+                      const dim = selected ? !isSelected : !isMatched
+                      return (
+                        <button
+                          key={c.key}
+                          type="button"
+                          onClick={() => pickManualCategory(group, c.key)}
+                          className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all ${
+                            isSelected
+                              ? 'bg-primary/15 border-primary text-primary font-semibold'
+                              : dim
+                                ? 'bg-surface2/50 border-border/50 text-muted/60'
+                                : 'bg-surface2 border-border'
+                          }`}
+                        >
+                          {pickLang(c.label, lang)}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               ))}
             </div>
-          </details>
+          )}
         </Card>
+        )}
 
         {wantsImpactDays !== null && wantsImpactDays > 0 && (
           <Card className="bg-wants/10 border-wants/30">
@@ -336,8 +424,21 @@ export default function EntryScreen() {
         )}
       </div>
       <div className="px-4 pb-4">
-        <Button onClick={handleSave} disabled={!selected || !amount || saving}>
-          {saving ? t('entry.saving') : t('entry.saveBtn')}
+        <Button
+          onClick={handleSave}
+          disabled={
+            saving ||
+            !amount ||
+            (type === 'transfer' ? !fromAccountId || !toAccountId || fromAccountId === toAccountId : !selected)
+          }
+        >
+          {saving
+            ? t('entry.saving')
+            : type === 'transfer'
+              ? t('entry.saveBtnTransfer')
+              : type === 'income'
+                ? t('entry.saveBtnIncome')
+                : t('entry.saveBtnExpense')}
         </Button>
       </div>
       <BottomNav />
