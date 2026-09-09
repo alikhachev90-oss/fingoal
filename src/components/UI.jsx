@@ -12,7 +12,7 @@ export function Card({ children, className = '', animate = true, ...rest }) {
 export function Button({ children, variant = 'primary', className = '', icon: Icon, ...props }) {
   const base = 'w-full min-h-12 py-3.5 px-4 rounded-2xl font-semibold text-[15px] tracking-[-.01em] transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 flex items-center justify-center gap-2'
   const variants = {
-    primary: 'bg-gradient-to-b from-[#f7d58b] via-[#e5b862] to-[#c78b35] text-[#19130a] shadow-[0_16px_34px_-14px_rgb(var(--color-primary)/0.95),0_1px_0_rgb(255_255_255/0.44)_inset] hover:brightness-105',
+    primary: 'bg-gradient-to-b from-[#8df0ca] via-[#53dca5] to-[#2dad78] text-[#041711] shadow-[0_16px_34px_-14px_rgb(var(--color-primary)/0.85),0_1px_0_rgb(255_255_255/0.44)_inset] hover:brightness-105',
     secondary: 'glass text-text hover:border-primary/55 hover:bg-white/[.08]',
     ghost: 'bg-transparent text-muted hover:text-text',
     danger: 'bg-danger/10 text-danger hover:bg-danger/15',

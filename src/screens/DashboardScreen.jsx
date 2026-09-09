@@ -227,7 +227,7 @@ export default function DashboardScreen() {
         active={tourActive}
         onActiveChange={setTourActive}
       />
-      <div className="relative px-5 pt-[max(env(safe-area-inset-top),18px)] pb-3">
+      <div className="dashboard-hero relative mx-4 mt-[max(env(safe-area-inset-top),14px)] rounded-[30px] px-5 pt-4 pb-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[.18em] text-white/45">{t('dashboard.title')}</p>
@@ -245,7 +245,7 @@ export default function DashboardScreen() {
         </div>
       </div>
       <div className="flex-1 px-4 py-3 space-y-4">
-        <Card className="!p-4" data-tour="dash-money-flow">
+        <Card className="flow-card !p-4" data-tour="dash-money-flow">
           <p className="text-[10.5px] font-bold tracking-wide text-muted uppercase mb-3">{t('dashboard.moneyFlowTitle')}</p>
           <div className="grid grid-cols-3 gap-2">
             <div>
@@ -264,7 +264,7 @@ export default function DashboardScreen() {
         </Card>
 
         {coachAction && (
-          <Card className={`!p-4 overflow-hidden ${coachAction.tone === 'warn' ? '!border-wants/25' : coachAction.tone === 'good' ? '!border-savings/25' : '!border-primary/25'}`}>
+          <Card className={`coach-card !p-4 overflow-hidden ${coachAction.tone === 'warn' ? '!border-wants/25' : coachAction.tone === 'good' ? '!border-savings/25' : '!border-primary/25'}`}>
             <div className="flex items-start gap-3">
               <IconCircle
                 icon={Sparkles}

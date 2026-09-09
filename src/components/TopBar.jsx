@@ -36,7 +36,7 @@ export default function TopBar({ title, subtitle, onHelp }) {
         </div>
         <div className="mt-3 flex rounded-2xl p-1 bg-black/[.12] border border-white/10">
           {[{ key: 'personal', label: t('topbar.personal'), icon: User }, { key: 'business', label: t('topbar.business'), icon: Briefcase }].map(({ key, label, icon: Icon }) => (
-            <button key={key} onClick={() => key !== context && toggleContext()} className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-semibold transition-all ${context === key ? 'bg-gradient-to-b from-[#f4cf80] to-primary text-onprimary shadow-[0_8px_20px_-10px_rgb(var(--color-primary)/.95)]' : 'text-muted hover:text-text'}`}>
+            <button key={key} onClick={() => key !== context && toggleContext()} className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-semibold transition-all ${context === key ? 'bg-gradient-to-b from-[#8df0ca] to-primary text-onprimary shadow-[0_8px_20px_-10px_rgb(var(--color-primary)/.8)]' : 'text-muted hover:text-text'}`}>
               <Icon size={14} strokeWidth={2.3} /> {label}
             </button>
           ))}

@@ -213,7 +213,7 @@ export default function EntryScreen() {
               type="button"
               onClick={() => changeType(tab.key)}
               className={`text-sm font-semibold py-2.5 rounded-xl border transition-all ${
-                type === tab.key ? 'border-primary text-primary bg-primary/10' : 'border-border text-muted bg-surface2'
+                type === tab.key ? 'entry-mode-active border-primary/55 text-primary' : 'border-border text-muted bg-surface2'
               }`}
             >
               {tab.label}
