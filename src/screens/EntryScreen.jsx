@@ -322,7 +322,7 @@ export default function EntryScreen() {
         >
           <span className="flex items-center gap-2 text-sm font-medium">
             <span className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center">{selected ? '✓' : '+'}</span>
-            {selected ? selected.label : lang === 'ru' ? 'Выбрать категорию' : 'Choose category'}
+            {selected ? pickLang(findCategory(selected.group, selected.key)?.label, lang) || selected.label : t('entry.chooseCategory')}
           </span>
           <ChevronDown size={17} className={`text-muted transition-transform ${categoriesOpen ? 'rotate-180' : ''}`} />
         </button>

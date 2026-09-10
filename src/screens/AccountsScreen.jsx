@@ -54,7 +54,7 @@ export default function AccountsScreen() {
   }
 
   async function removeAccount(id) {
-    if (!window.confirm(lang === 'en' ? 'Delete this account?' : 'Удалить этот счёт?')) return
+    if (!window.confirm(t('accounts.deleteConfirm'))) return
     await db.deleteAccount(user.id, id)
     refresh()
   }
@@ -65,7 +65,7 @@ export default function AccountsScreen() {
     await db.addTransaction(user.id, context, {
       amount: amt,
       date: new Date().toISOString().slice(0, 10),
-      comment: lang === 'en' ? `Payment: ${account.name}` : `Оплата: ${account.name}`,
+      comment: t('accounts.paymentComment', { name: account.name }),
       group: 'needs',
       category_key: 'other',
       sub: null,
@@ -120,7 +120,7 @@ export default function AccountsScreen() {
       <TopBar title={L.title} subtitle={L.subtitle} />
       <div className="flex-1 px-4 py-4 space-y-3">
         <Link to="/dashboard" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">
-          <ArrowLeft size={13} /> {lang === 'en' ? 'Overview' : 'Обзор'}
+          <ArrowLeft size={13} /> {t('nav.overview')}
         </Link>
 
         {rows.map((a) => (

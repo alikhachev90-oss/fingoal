@@ -2,7 +2,6 @@
 .app-ambient:has(.home-reference) { background: #0b0e13; }
 .app-ambient:has(.home-reference)::before { background: radial-gradient(ellipse 65% 40% at 100% 0%, #26324066, transparent 75%), radial-gradient(ellipse 75% 35% at 0% 60%, #33302a22, transparent 80%), linear-gradient(160deg,#161c24,#090e13 65%); }
 .app-ambient:has(.home-reference)::after { background: none; }
-.home-reference { --color-primary: 220 185 121; --color-muted: 158 167 177; --color-text: 241 243 244; --color-savings: 106 209 173; --color-income: 142 181 218; }
 .home-heading { padding: max(25px,env(safe-area-inset-top)) 25px 8px; }
 .home-greeting > p:first-child { font-size: 13px; color: #d2d6dc; }
 .home-greeting h1 { font-size: 34px; letter-spacing: -.045em; font-weight: 400; line-height: 1.15; margin-top: 3px; }

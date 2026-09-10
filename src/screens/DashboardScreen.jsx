@@ -1,5 +1,7 @@
 import './DashboardScreen.css'
 import FeedbackButton from '../components/FeedbackButton'
+import EssentialPaymentsEditor from '../components/EssentialPaymentsEditor'
+import { billLabel } from '../lib/essentialBudget'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
@@ -14,7 +16,7 @@ import TourGuide from '../components/TourGuide'
 import { Card, Button, StatTile, IconCircle, EmptyState } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { findCategory, pickLang, subLabel, subHint, CATEGORY_TREE } from '../lib/categories'
+import { findCategory, pickLang, subLabel, subHint } from '../lib/categories'
 import { computeGoalPlan, computeSafeToSpendToday } from '../lib/finance'
 import { detectHabitTip, dismissHabitTip } from '../lib/habitTips'
 import { TOURS } from '../lib/tours'
@@ -39,6 +41,7 @@ const MONTH_FMT = { en: 'en-US', es: 'es-ES', fr: 'fr-FR', ru: 'ru-RU' }
 export default function DashboardScreen() {
   const { user, context, t, lang } = useApp()
   const [settings, setSettings] = useState(null)
+  const [editingBills, setEditingBills] = useState(false)
   const [transactions, setTransactions] = useState([])
   const [goals, setGoals] = useState([])
   const [debts, setDebts] = useState([])
@@ -119,7 +122,7 @@ export default function DashboardScreen() {
     const totals = {}
     for (const t of chartMonthTx) {
       if (t.group !== drilldown.group || t.category_key !== drilldown.key) continue
-      const displayLabel = t.sub ? subLabel(drilldown.group, drilldown.key, t.sub, lang) : (lang === 'en' ? 'Uncategorized' : 'Без подкатегории')
+      const displayLabel = t.sub ? subLabel(drilldown.group, drilldown.key, t.sub, lang) : pickLang({ ru: 'Без подкатегории', en: 'Uncategorized', es: 'Sin subcategoría', fr: 'Sans sous-catégorie' }, lang)
       const id = t.sub || '__none__'
       totals[id] = totals[id] || { value: 0, name: displayLabel, hint: t.sub ? subHint(drilldown.group, drilldown.key, t.sub, lang) : null }
       totals[id].value += t.amount
@@ -168,10 +171,9 @@ export default function DashboardScreen() {
 
   const safeToday = computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, byGroup.wants)
 
-  const needsCats = CATEGORY_TREE.needs || []
-  const billsFromNeeds = needsCats
-    .filter((c) => (settings?.needs_budget?.[c.key] || 0) > 0)
-    .map((c) => ({ billId: `needs:${c.key}`, label: pickLang(c.label, lang), amount: settings.needs_budget[c.key] }))
+  const billsFromNeeds = Object.entries(settings?.needs_budget || {})
+    .filter(([, amount]) => amount > 0)
+    .map(([key, amount]) => ({ billId: `needs:${key}`, label: billLabel(key, lang), amount }))
   const billsFromDebts = (debts || [])
     .filter((d) => (d.min_payment || 0) > 0)
     .map((d) => ({ billId: `debt:${d.id}`, label: t('bills.debtLabel', { name: d.name }), amount: d.min_payment }))
@@ -230,14 +232,14 @@ export default function DashboardScreen() {
       />
       <header className="home-heading">
         <div className="home-greeting">
-          <p>Добро пожаловать,</p>
+          <p>{t('home.welcome')}</p>
           <h1>{displayName}</h1>
-          <p className="home-tagline">Лучшие инвестиции — в себя.</p>
+          <p className="home-tagline">{t('home.tagline')}</p>
         </div>
         <div className="home-toolbar">
           <span>{context === 'personal' ? t('topbar.personal') : t('topbar.business')}</span>
           <div className="flex items-center gap-2">
-            <button type="button" aria-label="Обзор приложения" onClick={() => setTourActive(true)} className="home-tool"><Compass size={16} /></button>
+            <button type="button" aria-label={t('home.tour')} onClick={() => setTourActive(true)} className="home-tool"><Compass size={16} /></button>
             <FeedbackButton inline />
             <Link to="/settings" aria-label={t('topbar.settings')} className="home-tool"><Settings size={16} /></Link>
           </div>
@@ -327,9 +329,13 @@ export default function DashboardScreen() {
           <DailyQuoteCard />
         </div>
 
-        {bills.length > 0 && (
+        {(
           <Card className="space-y-3" data-tour="dash-bills">
-            <p className="text-sm font-semibold">{t('bills.title')}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold">{t('bills.title')}</p>
+              <button type="button" className="text-xs text-primary py-3" onClick={() => setEditingBills(true)}>{t('bills.edit')}</button>
+            </div>
+            {!bills.length && <p className="text-xs text-muted">{t('bills.empty')}</p>}
             <div className="space-y-2">
               {bills.map((b) => (
                 <div key={b.billId} className="flex items-center justify-between gap-2">
@@ -525,6 +531,7 @@ export default function DashboardScreen() {
         </Card>
       </div>
       <BottomNav persistent />
+      {editingBills && <EssentialPaymentsEditor key={user.id + ':' + context} settings={settings} onSaved={setSettings} onClose={() => setEditingBills(false)} />}
     </div>
   )
 }

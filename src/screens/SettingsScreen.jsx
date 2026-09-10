@@ -140,6 +140,7 @@ export default function SettingsScreen() {
                   key={key}
                   type="button"
                   onClick={() => setTheme(key)}
+                  aria-pressed={theme === key}
                   className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-xs font-semibold ${theme === key ? 'bg-primary text-onprimary' : 'text-muted'}`}
                 >
                   <Icon size={13} /> {label}
@@ -165,21 +166,24 @@ export default function SettingsScreen() {
           <div>
             <p className="text-xs text-muted mb-0.5">{t('settings.background')}</p>
             <p className="text-[11px] text-muted/80 mb-1.5">{t('settings.backgroundNote')}</p>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {BACKGROUNDS.map((b) => (
                 <button
                   key={b.id}
                   type="button"
                   onClick={() => setBackground(b.id)}
                   aria-label={b.label[lang] || b.label.ru}
+                  aria-pressed={background === b.id}
                   className={`relative aspect-square rounded-xl border-2 overflow-hidden transition-all ${
                     background === b.id ? 'border-primary scale-[1.03]' : 'border-border/60'
                   }`}
                 >
                   <span className="absolute inset-0 bg-[rgb(24,26,29)]" />
                   <span className="absolute inset-0" style={{ background: b.css }} />
-                  <span className="absolute inset-x-0 bottom-0 px-1 py-0.5 text-[8.5px] font-semibold text-white/90 bg-black/25 truncate text-center leading-tight">
-                    {b.category[lang] || b.category.ru}
+                  <span className="absolute left-3 right-3 top-3 h-8 rounded-lg border border-white/20 bg-white/10" />
+                  <span className="absolute left-3 top-14 w-8 h-2 rounded-full" style={{ background: b.accent }} />
+                  <span className="absolute inset-x-0 bottom-0 px-1 py-2 text-[11px] font-medium bg-black/25 text-center leading-tight" style={{ color: '#fff' }}>
+                    {b.label[lang] || b.label.ru}
                   </span>
                 </button>
               ))}

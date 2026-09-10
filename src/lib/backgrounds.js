@@ -1,61 +1,10 @@
-// Curated backdrops for the "personal space" ambient layer behind every
-// glass card (see .app-ambient in index.css). Deliberately CSS-only —
-// gradients, not photos — so a choice here is instant, needs no network,
-// no storage, and never breaks the load. `css` is applied as the ambient
-// layer's background (and reused verbatim for the swatch preview in
-// Settings), `dark` overrides it for dark mode where a preset needs a
-// different balance to keep glass legible.
-
+// Stable IDs preserve previously saved appearance preferences.
 export const BACKGROUNDS = [
-  {
-    id: 'default',
-    category: { ru: 'Минимал', en: 'Minimal', es: 'Mínimo', fr: 'Minimal' },
-    label: { ru: 'Тихий свет', en: 'Quiet light', es: 'Luz suave', fr: 'Lumière douce' },
-    css: `radial-gradient(ellipse 60% 40% at 18% -8%, rgb(129 158 186 / 0.11), transparent 60%),
-          radial-gradient(ellipse 55% 45% at 88% 8%, rgb(92 138 172 / 0.10), transparent 55%),
-          radial-gradient(ellipse 70% 50% at 50% 110%, rgb(129 158 186 / 0.06), transparent 60%)`,
-  },
-  {
-    id: 'dynamic',
-    category: { ru: 'Кинематик', en: 'Dynamic', es: 'Dinámico', fr: 'Dynamique' },
-    label: { ru: 'Восход', en: 'Daybreak', es: 'Amanecer', fr: 'Aube' },
-    css: `radial-gradient(ellipse 70% 55% at 15% -10%, rgb(129 158 186 / 0.10), transparent 55%),
-          radial-gradient(ellipse 65% 60% at 100% 20%, rgb(73 159 202 / 0.10), transparent 55%),
-          radial-gradient(ellipse 80% 60% at 50% 120%, rgb(120 165 214 / 0.14), transparent 60%)`,
-  },
-  {
-    id: 'nature',
-    category: { ru: 'Природа', en: 'Nature', es: 'Naturaleza', fr: 'Nature' },
-    label: { ru: 'Лесной полог', en: 'Canopy', es: 'Dosel', fr: 'Canopée' },
-    css: `radial-gradient(ellipse 75% 55% at 20% -10%, rgb(129 158 186 / 0.10), transparent 58%),
-          radial-gradient(ellipse 60% 50% at 90% 30%, rgb(71 105 94 / 0.10), transparent 55%),
-          radial-gradient(ellipse 70% 60% at 50% 115%, rgb(83 128 158 / 0.08), transparent 60%)`,
-  },
-  {
-    id: 'architecture',
-    category: { ru: 'Архитектура', en: 'Architecture', es: 'Arquitectura', fr: 'Architecture' },
-    label: { ru: 'Стекло и сталь', en: 'Glass and steel', es: 'Vidrio y acero', fr: 'Verre et acier' },
-    css: `linear-gradient(155deg, rgb(96 145 186 / 0.14) 0%, transparent 45%),
-          radial-gradient(ellipse 60% 45% at 85% 0%, rgb(139 159 165 / 0.10), transparent 55%),
-          radial-gradient(ellipse 70% 50% at 10% 100%, rgb(129 158 186 / 0.08), transparent 60%)`,
-  },
-  {
-    id: 'abstract',
-    category: { ru: 'Абстракция', en: 'Abstract', es: 'Abstracto', fr: 'Abstrait' },
-    label: { ru: 'Смешение', en: 'Blend', es: 'Mezcla', fr: 'Fusion' },
-    css: `conic-gradient(from 200deg at 20% 0%, rgb(129 158 186 / 0.09), rgb(72 132 187 / 0.14), transparent 60%),
-          radial-gradient(ellipse 60% 50% at 90% 100%, rgb(120 165 214 / 0.14), transparent 55%)`,
-  },
-  {
-    id: 'premium',
-    category: { ru: 'Премиум', en: 'Premium', es: 'Premium', fr: 'Premium' },
-    label: { ru: 'Частный клуб', en: 'Private club', es: 'Club privado', fr: 'Club privé' },
-    css: `linear-gradient(135deg, rgb(129 158 186 / 0.09) 0%, transparent 35%),
-          linear-gradient(315deg, rgb(92 135 170 / 0.12) 0%, transparent 40%),
-          radial-gradient(ellipse 90% 70% at 50% 50%, transparent 40%, rgb(0 0 0 / 0.10))`,
-  },
+  { id: 'default', label: { ru: 'Графит', en: 'Graphite', es: 'Grafito', fr: 'Graphite' }, css: 'linear-gradient(135deg, #434141, #18191e 65%)', accent: '#e2bd79' },
+  { id: 'nature', label: { ru: 'Изумруд', en: 'Emerald', es: 'Esmeralda', fr: 'Émeraude' }, css: 'linear-gradient(135deg, #176c59, #082e28 65%)', accent: '#76e6bd' },
+  { id: 'dynamic', label: { ru: 'Сапфир', en: 'Sapphire', es: 'Zafiro', fr: 'Saphir' }, css: 'linear-gradient(135deg, #344c9c, #111c49 65%)', accent: '#a5bdff' },
 ]
-
 export function getBackground(id) {
-  return BACKGROUNDS.find((b) => b.id === id) || BACKGROUNDS[0]
+  const aliases = { premium: 'default', architecture: 'default', abstract: 'dynamic' }
+  return BACKGROUNDS.find((b) => b.id === (aliases[id] || id)) || BACKGROUNDS[0]
 }

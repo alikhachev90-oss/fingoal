@@ -385,7 +385,7 @@ const STRINGS = {
 }
 
 export function translate(key, lang, params) {
-  const entry = STRINGS[key]
+  const entry = UI_STRINGS[key] || STRINGS[key]
   let str = entry ? (entry[lang] || entry.ru || key) : key
   if (params) {
     for (const [k, v] of Object.entries(params)) {
@@ -394,3 +394,4 @@ export function translate(key, lang, params) {
   }
   return str
 }
+import { UI_STRINGS } from './ui'

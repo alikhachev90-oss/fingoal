@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import * as db from '../lib/db'
 import { translate } from '../i18n/strings'
+import { getBackground } from '../lib/backgrounds'
 
 const AppContext = createContext(null)
 
@@ -15,7 +16,7 @@ export function AppProvider({ children }) {
   const [context, setContext] = useState(() => localStorage.getItem('fintrack_context') || 'personal')
   const [theme, setTheme] = useState(() => localStorage.getItem('fintrack_theme') || 'system')
   const [lang, setLang] = useState(() => localStorage.getItem('fintrack_lang') || detectDefaultLang())
-  const [background, setBackground] = useState(() => localStorage.getItem('fintrack_background') || 'default')
+  const [background, setBackground] = useState(() => getBackground(localStorage.getItem('fintrack_background')).id)
 
   useEffect(() => {
     db.getSession().then(setUser)
@@ -27,6 +28,7 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem('fintrack_lang', lang)
+    document.documentElement.lang = lang
   }, [lang])
 
   useEffect(() => {

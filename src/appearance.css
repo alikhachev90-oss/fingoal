@@ -1,0 +1,65 @@
+/* One palette for the entire app. Screen styles control layout, never tokens. */
+html { --color-text: 30 34 42; --color-muted: 91 101 116; --color-bg: 242 243 246; }
+html.dark { --color-text: 241 243 247; --color-muted: 171 180 194; --color-bg: 17 18 23; }
+body { background: rgb(var(--color-bg)); }
+.app-ambient.theme-default {
+  --tone: 224 187 119; --color-primary: 224 187 119; --color-primary2: 248 220 166;
+  --color-bg: 17 18 23; --color-surface: 39 39 45; --color-surface2: 52 51 58;
+  --color-on-primary: 40 29 12; --ambient-glow: 104 86 61;
+}
+.app-ambient.theme-nature {
+  --tone: 100 224 174; --color-primary: 100 224 174; --color-primary2: 180 250 215;
+  --color-bg: 6 31 27; --color-surface: 16 64 52; --color-surface2: 23 80 65;
+  --color-on-primary: 5 40 26; --ambient-glow: 18 134 95;
+}
+.app-ambient.theme-dynamic {
+  --tone: 153 180 255; --color-primary: 153 180 255; --color-primary2: 212 223 255;
+  --color-bg: 13 22 53; --color-surface: 31 48 94; --color-surface2: 41 60 111;
+  --color-on-primary: 17 30 70; --ambient-glow: 65 90 188;
+}
+.app-ambient[class*="theme-"] {
+  --color-text: 241 243 247; --color-muted: 171 180 194; --color-border: 167 180 202;
+  --color-savings: 106 209 173; --color-income: 142 181 218;
+  color: rgb(var(--color-text)); background: rgb(var(--color-bg));
+}
+html:not(.dark) .theme-default { --color-bg: 244 241 235; --color-surface: 255 253 247; --color-surface2: 233 228 219; --color-primary: 125 86 23; --color-primary2: 160 115 43; --ambient-glow: 204 180 133; }
+html:not(.dark) .theme-nature { --color-bg: 226 243 235; --color-surface: 249 255 251; --color-surface2: 209 234 222; --color-primary: 9 111 76; --color-primary2: 22 135 92; --ambient-glow: 113 203 165; }
+html:not(.dark) .theme-dynamic { --color-bg: 232 238 255; --color-surface: 250 252 255; --color-surface2: 214 225 251; --color-primary: 50 79 165; --color-primary2: 73 104 190; --ambient-glow: 141 163 226; }
+html:not(.dark) .app-ambient[class*="theme-"] {
+  --color-text: 30 34 42; --color-muted: 91 101 116; --color-border: 96 111 133;
+  --color-on-primary: 255 255 255; --color-savings: 13 119 80; --color-income: 50 96 161;
+  --color-needs: 177 63 57; --color-wants: 153 92 23; --color-danger: 186 49 52;
+}
+.app-ambient[class*="theme-"]::before {
+  background: radial-gradient(ellipse at 10% 0%, rgb(var(--ambient-glow) / .38), transparent 65%), rgb(var(--color-bg));
+}
+.app-ambient[class*="theme-"] .glass {
+  background: linear-gradient(135deg, rgb(var(--color-surface) / .9), rgb(var(--color-surface) / .5));
+  border-color: rgb(var(--color-border) / .23);
+  box-shadow: 0 1px 0 rgb(255 255 255 / .08) inset, 0 14px 30px -25px rgb(0 0 0 / .65);
+}
+.app-ambient[class*="theme-"] .balance-hero,
+.app-ambient[class*="theme-"] .learning-hero {
+  background: radial-gradient(ellipse at 0 0, rgb(var(--tone) / .17), transparent 85%), rgb(var(--color-surface) / .7);
+  border-color: rgb(var(--color-primary) / .4);
+}
+.app-ambient[class*="theme-"] .nav-material { background: rgb(var(--color-surface) / .95); }
+.app-ambient[class*="theme-"] .action-primary {
+  background: linear-gradient(135deg, rgb(var(--color-primary2)), rgb(var(--color-primary)));
+  color: rgb(var(--color-on-primary)); border-color: rgb(var(--color-primary) / .4);
+}
+.app-ambient .bg-surface2 { background-color: rgb(var(--color-surface2) / .65) !important; }
+.app-ambient .border-border { border-color: rgb(var(--color-border) / .25) !important; }
+.app-ambient .entry-mode-active { background: rgb(var(--color-primary) / .15); border-color: rgb(var(--color-primary) / .6); }
+.app-ambient .home-greeting > p:first-child, .app-ambient .home-checkin > p,
+.app-ambient .home-tool, .app-ambient .balance-hero a { color: rgb(var(--color-text)); }
+.app-ambient .home-caption, .app-ambient .home-tagline, .app-ambient .home-toolbar > span { color: rgb(var(--color-muted)); }
+.app-ambient .home-habit-stat > svg { color: rgb(var(--color-primary)); }
+.app-ambient .home-reference .flow-card .text-savings { color: rgb(var(--color-income)); }
+.app-ambient input, .app-ambient select, .app-ambient textarea { color-scheme: dark; }
+html:not(.dark) .app-ambient input, html:not(.dark) .app-ambient select,
+html:not(.dark) .app-ambient textarea { color-scheme: light; }
+html:not(.dark) .app-ambient [class*="text-white"] { color: rgb(var(--color-text)); }
+html:not(.dark) .app-ambient [class*="border-white"] { border-color: rgb(var(--color-border) / .25); }
+.payments-dialog { width: min(440px, calc(100vw - 24px)); max-height: 85svh; padding: 20px; border-radius: 22px; border: 1px solid rgb(var(--color-border) / .3); background: rgb(var(--color-surface)); color: rgb(var(--color-text)); overflow-y: auto; }
+.payments-dialog::backdrop { background: rgb(0 0 0 / .65); backdrop-filter: blur(8px); }

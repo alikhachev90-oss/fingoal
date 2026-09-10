@@ -67,12 +67,12 @@ export default function LessonsScreen() {
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-[.18em] text-primary font-bold">FINANCIAL IQ</p>
-              <p className="font-display text-[20px] leading-tight mt-2">{lang === 'en' ? 'Build knowledge in small steps.' : 'Прокачивай финансовое мышление маленькими шагами.'}</p>
-              <p className="text-xs text-muted leading-relaxed mt-2">{lang === 'en' ? 'Short lessons, tied to what is actually happening with your money.' : 'Короткие уроки, связанные с тем, что реально происходит с твоими деньгами.'}</p>
+              <p className="font-display text-[20px] leading-tight mt-2">{t('lessons.heroTitle')}</p>
+              <p className="text-xs text-muted leading-relaxed mt-2">{t('lessons.heroBody')}</p>
             </div>
             <div className="w-[60px] h-[60px] rounded-full border border-primary/25 bg-primary/10 flex flex-col items-center justify-center shrink-0 shadow-[0_0_35px_-16px_rgb(var(--color-primary)/.9)]">
               <span className="text-xl font-bold font-num text-primary">{progressPct}%</span>
-              <span className="text-[9px] uppercase tracking-wide text-muted">{lang === 'en' ? 'done' : 'пройдено'}</span>
+              <span className="text-[9px] uppercase tracking-wide text-muted">{t('lessons.doneLabel')}</span>
             </div>
           </div>
           <div className="w-full h-1.5 rounded-full bg-white/[.06] overflow-hidden mt-4">
@@ -97,7 +97,7 @@ export default function LessonsScreen() {
 
         <div className="pt-2 flex items-center justify-between gap-3">
           <p className="text-[13px] font-bold tracking-wide text-muted uppercase">{t('lessons.storiesSection')}</p>
-          {recommended && <span className="inline-flex items-center gap-1 text-[11px] text-primary font-semibold"><Sparkles size={12} /> {lang === 'en' ? 'For you' : 'Для тебя'}</span>}
+          {recommended && <span className="inline-flex items-center gap-1 text-[11px] text-primary font-semibold"><Sparkles size={12} /> {t('lessons.forYou')}</span>}
         </div>
         {orderedLessons.map((lesson) => {
           const isDone = completed.includes(lesson.key)
@@ -124,7 +124,7 @@ export default function LessonsScreen() {
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold font-display text-[15px] leading-snug">{lesson.title}</p>
-                  {recommended?.key === lesson.key && <p className="text-[10px] uppercase tracking-[.14em] text-primary font-bold mt-1">{lang === 'en' ? 'Recommended now' : 'Рекомендуем сейчас'}</p>}
+                  {recommended?.key === lesson.key && <p className="text-[10px] uppercase tracking-[.14em] text-primary font-bold mt-1">{t('lessons.recommendedNow')}</p>}
                   <p className="text-xs text-muted flex items-center gap-1 mt-0.5">
                     {!lesson.unlocked ? (
                       t('lessons.locked')

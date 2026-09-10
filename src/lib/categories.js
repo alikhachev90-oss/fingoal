@@ -4,10 +4,10 @@
 // English 50/30/20 terms still live in the Lessons content, where there's
 // room to explain them; everywhere else people should read their own language.
 export const GROUP_LABELS = {
-  needs: { ru: 'Обязательное', en: 'Needs' },
-  wants: { ru: 'Необязательное', en: 'Wants' },
-  savings: { ru: 'Накопления', en: 'Savings' },
-  income: { ru: 'Доход', en: 'Income' },
+  needs: { ru: 'Обязательное', en: 'Needs', es: "Necesidades", fr: "Essentiel" },
+  wants: { ru: 'Необязательное', en: 'Wants', es: "Extras", fr: "Envies" },
+  savings: { ru: 'Накопления', en: 'Savings', es: "Ahorros", fr: "Épargne" },
+  income: { ru: 'Доход', en: 'Income', es: "Ingresos", fr: "Revenus" },
 }
 
 export const GROUP_LABELS_SHORT = GROUP_LABELS
@@ -37,61 +37,61 @@ export const CATEGORY_TREE = {
   needs: [
     {
       key: 'housing',
-      label: { ru: 'Жильё', en: 'Housing' },
+      label: { ru: 'Жильё', en: 'Housing', es: "Vivienda", fr: "Logement" },
       subs: [
-        { key: 'rent', label: { ru: 'Аренда', en: 'Rent' }, hint: { ru: 'Ежемесячный платёж за съём жилья или ипотека.', en: 'Your monthly rent or mortgage payment.' } },
-        { key: 'utilities', label: { ru: 'Коммуналка', en: 'Utilities' }, hint: { ru: 'Свет, вода, газ, отопление, вывоз мусора — регулярные счета за само жильё.', en: 'Electricity, water, gas, heat, trash — the recurring bills for the place itself.' } },
-        { key: 'household', label: { ru: 'Быт (уборка, мелочи по дому)', en: 'Household (cleaning, small home items)' }, hint: { ru: 'Уборщица, лампочки, бытовая химия, мелкий инвентарь — то, что нужно для жизни в доме, но не сама аренда и не коммуналка.', en: 'A cleaner, lightbulbs, cleaning supplies, small household items — things you need to live in the place, but not the rent or utility bill itself.' } },
-        { key: 'repair', label: { ru: 'Ремонт', en: 'Repairs' }, hint: { ru: 'Разовый ремонт или починка — не регулярный платёж, а конкретная работа (покрасить стену, починить кран).', en: 'A one-off repair or fix — not a recurring bill, a specific job (painting a wall, fixing a leak).' } },
+        { key: 'rent', label: { ru: 'Аренда', en: 'Rent', es: "Alquiler", fr: "Loyer" }, hint: { ru: 'Ежемесячный платёж за съём жилья или ипотека.', en: 'Your monthly rent or mortgage payment.' } },
+        { key: 'utilities', label: { ru: 'Коммуналка', en: 'Utilities', es: "Servicios del hogar", fr: "Charges" }, hint: { ru: 'Свет, вода, газ, отопление, вывоз мусора — регулярные счета за само жильё.', en: 'Electricity, water, gas, heat, trash — the recurring bills for the place itself.' } },
+        { key: 'household', label: { ru: 'Быт (уборка, мелочи по дому)', en: 'Household (cleaning, small home items)', es: "Hogar y limpieza", fr: "Entretien du logement" }, hint: { ru: 'Уборщица, лампочки, бытовая химия, мелкий инвентарь — то, что нужно для жизни в доме, но не сама аренда и не коммуналка.', en: 'A cleaner, lightbulbs, cleaning supplies, small household items — things you need to live in the place, but not the rent or utility bill itself.' } },
+        { key: 'repair', label: { ru: 'Ремонт', en: 'Repairs', es: "Reparaciones", fr: "Réparations" }, hint: { ru: 'Разовый ремонт или починка — не регулярный платёж, а конкретная работа (покрасить стену, починить кран).', en: 'A one-off repair or fix — not a recurring bill, a specific job (painting a wall, fixing a leak).' } },
       ],
     },
     {
       key: 'transport',
-      label: { ru: 'Транспорт', en: 'Transport' },
+      label: { ru: 'Транспорт', en: 'Transport', es: "Transporte", fr: "Transport" },
       subs: [
-        { key: 'payment', label: { ru: 'Платёж за авто', en: 'Car payment' }, hint: { ru: 'Ежемесячный кредитный/лизинговый платёж за саму машину.', en: 'The monthly loan or lease payment on the car itself.' } },
-        { key: 'fuel', label: { ru: 'Топливо', en: 'Fuel' }, hint: { ru: 'Бензин/заправка — переменная трата, зависит от того, сколько ездите.', en: 'Gas — a variable cost that depends on how much you drive.' } },
-        { key: 'insurance', label: { ru: 'Страховка авто', en: 'Car insurance' }, hint: { ru: 'Регулярный (обычно раз в полгода-год) обязательный платёж за страховку машины — да, это тоже Транспорт, а не отдельная категория «страховки».', en: "A regular (usually every 6-12 months) required payment for car insurance — yes, this is Transport too, not a separate \"insurance\" category." } },
-        { key: 'maintenance', label: { ru: 'Обслуживание', en: 'Maintenance' }, hint: { ru: 'Замена масла, шиномонтаж, мелкий ремонт машины — нерегулярные, но обязательные траты на содержание авто.', en: 'Oil changes, tire swaps, small repairs — irregular but necessary costs of keeping the car running.' } },
-        { key: 'tax', label: { ru: 'Налог на авто', en: 'Vehicle tax' }, hint: { ru: 'Ежегодный транспортный налог/регистрация.', en: 'Annual vehicle tax or registration fee.' } },
-        { key: 'parking', label: { ru: 'Парковка', en: 'Parking' }, hint: { ru: 'Платная парковка, включая абонементы.', en: 'Paid parking, including monthly passes.' } },
+        { key: 'payment', label: { ru: 'Платёж за авто', en: 'Car payment', es: "Cuota del coche", fr: "Mensualité automobile" }, hint: { ru: 'Ежемесячный кредитный/лизинговый платёж за саму машину.', en: 'The monthly loan or lease payment on the car itself.' } },
+        { key: 'fuel', label: { ru: 'Топливо', en: 'Fuel', es: "Combustible", fr: "Carburant" }, hint: { ru: 'Бензин/заправка — переменная трата, зависит от того, сколько ездите.', en: 'Gas — a variable cost that depends on how much you drive.' } },
+        { key: 'insurance', label: { ru: 'Страховка авто', en: 'Car insurance', es: "Seguro del coche", fr: "Assurance automobile" }, hint: { ru: 'Регулярный (обычно раз в полгода-год) обязательный платёж за страховку машины — да, это тоже Транспорт, а не отдельная категория «страховки».', en: "A regular (usually every 6-12 months) required payment for car insurance — yes, this is Transport too, not a separate \"insurance\" category." } },
+        { key: 'maintenance', label: { ru: 'Обслуживание', en: 'Maintenance', es: "Mantenimiento", fr: "Entretien" }, hint: { ru: 'Замена масла, шиномонтаж, мелкий ремонт машины — нерегулярные, но обязательные траты на содержание авто.', en: 'Oil changes, tire swaps, small repairs — irregular but necessary costs of keeping the car running.' } },
+        { key: 'tax', label: { ru: 'Налог на авто', en: 'Vehicle tax', es: "Impuesto del vehículo", fr: "Taxe automobile" }, hint: { ru: 'Ежегодный транспортный налог/регистрация.', en: 'Annual vehicle tax or registration fee.' } },
+        { key: 'parking', label: { ru: 'Парковка', en: 'Parking', es: "Aparcamiento", fr: "Stationnement" }, hint: { ru: 'Платная парковка, включая абонементы.', en: 'Paid parking, including monthly passes.' } },
       ],
     },
-    { key: 'groceries', label: { ru: 'Продукты', en: 'Groceries' }, subs: [] },
+    { key: 'groceries', label: { ru: 'Продукты', en: 'Groceries', es: "Alimentación", fr: "Courses" }, subs: [] },
     {
       key: 'health',
-      label: { ru: 'Здоровье', en: 'Health' },
+      label: { ru: 'Здоровье', en: 'Health', es: "Salud", fr: "Santé" },
       subs: [
-        { key: 'insurance', label: { ru: 'Страховка', en: 'Insurance' }, hint: { ru: 'Регулярный платёж за медстраховку.', en: 'Your regular health insurance payment.' } },
-        { key: 'medicine', label: { ru: 'Лекарства', en: 'Medicine' }, hint: { ru: 'Аптека, рецептурные и безрецептурные препараты.', en: 'Pharmacy, prescription and over-the-counter medicine.' } },
-        { key: 'doctor', label: { ru: 'Приём врача', en: 'Doctor visit' }, hint: { ru: 'Оплата самого визита/приёма — то, что не покрыла страховка.', en: 'The cost of the visit itself — whatever insurance didn\'t cover.' } },
+        { key: 'insurance', label: { ru: 'Страховка', en: 'Insurance', es: "Seguro", fr: "Assurance" }, hint: { ru: 'Регулярный платёж за медстраховку.', en: 'Your regular health insurance payment.' } },
+        { key: 'medicine', label: { ru: 'Лекарства', en: 'Medicine', es: "Medicamentos", fr: "Médicaments" }, hint: { ru: 'Аптека, рецептурные и безрецептурные препараты.', en: 'Pharmacy, prescription and over-the-counter medicine.' } },
+        { key: 'doctor', label: { ru: 'Приём врача', en: 'Doctor visit', es: "Consulta médica", fr: "Consultation médicale" }, hint: { ru: 'Оплата самого визита/приёма — то, что не покрыла страховка.', en: 'The cost of the visit itself — whatever insurance didn\'t cover.' } },
       ],
     },
-    { key: 'other', label: { ru: 'Другое (обязательное)', en: 'Other (essential)' }, subs: [] },
+    { key: 'other', label: { ru: 'Другое (обязательное)', en: 'Other (essential)', es: "Otros gastos esenciales", fr: "Autres dépenses essentielles" }, subs: [] },
   ],
   wants: [
-    { key: 'cafe', label: { ru: 'Кафе/рестораны', en: 'Cafes/restaurants' }, subs: [] },
-    { key: 'coffee', label: { ru: 'Кофе на вынос', en: 'Coffee to go' }, subs: [] },
-    { key: 'entertainment', label: { ru: 'Развлечения', en: 'Entertainment' }, subs: [] },
-    { key: 'subscriptions', label: { ru: 'Подписки', en: 'Subscriptions' }, subs: [] },
-    { key: 'clothes', label: { ru: 'Одежда', en: 'Clothes' }, subs: [] },
-    { key: 'gifts', label: { ru: 'Подарки', en: 'Gifts' }, subs: [] },
-    { key: 'hobby', label: { ru: 'Хобби', en: 'Hobby' }, subs: [] },
-    { key: 'other', label: { ru: 'Другое (необязательное)', en: 'Other (discretionary)' }, subs: [] },
+    { key: 'cafe', label: { ru: 'Кафе/рестораны', en: 'Cafes/restaurants', es: "Cafés y restaurantes", fr: "Cafés et restaurants" }, subs: [] },
+    { key: 'coffee', label: { ru: 'Кофе на вынос', en: 'Coffee to go', es: "Café para llevar", fr: "Café à emporter" }, subs: [] },
+    { key: 'entertainment', label: { ru: 'Развлечения', en: 'Entertainment', es: "Entretenimiento", fr: "Loisirs" }, subs: [] },
+    { key: 'subscriptions', label: { ru: 'Подписки', en: 'Subscriptions', es: "Suscripciones", fr: "Abonnements" }, subs: [] },
+    { key: 'clothes', label: { ru: 'Одежда', en: 'Clothes', es: "Ropa", fr: "Vêtements" }, subs: [] },
+    { key: 'gifts', label: { ru: 'Подарки', en: 'Gifts', es: "Regalos", fr: "Cadeaux" }, subs: [] },
+    { key: 'hobby', label: { ru: 'Хобби', en: 'Hobby', es: "Aficiones", fr: "Passions" }, subs: [] },
+    { key: 'other', label: { ru: 'Другое (необязательное)', en: 'Other (discretionary)', es: "Otros gastos opcionales", fr: "Autres envies" }, subs: [] },
   ],
   savings: [
-    { key: 'emergency', label: { ru: 'Подушка безопасности', en: 'Emergency fund' }, subs: [] },
-    { key: 'investments', label: { ru: 'Инвестиции', en: 'Investments' }, subs: [] },
-    { key: 'debt_extra', label: { ru: 'Допплатежи по долгам', en: 'Extra debt payments' }, subs: [] },
+    { key: 'emergency', label: { ru: 'Подушка безопасности', en: 'Emergency fund', es: "Fondo de emergencia", fr: "Fonds d’urgence" }, subs: [] },
+    { key: 'investments', label: { ru: 'Инвестиции', en: 'Investments', es: "Inversiones", fr: "Investissements" }, subs: [] },
+    { key: 'debt_extra', label: { ru: 'Допплатежи по долгам', en: 'Extra debt payments', es: "Pagos extra de deudas", fr: "Remboursements supplémentaires" }, subs: [] },
   ],
   // Money coming in — tagged with a source account so accounts.jsx can show
   // real balances (income adds, spending subtracts), not just card debt.
   income: [
-    { key: 'salary', label: { ru: 'Зарплата', en: 'Salary' }, subs: [] },
-    { key: 'transfer', label: { ru: 'Перевод', en: 'Transfer' }, subs: [] },
-    { key: 'gift', label: { ru: 'Подарок', en: 'Gift' }, subs: [] },
-    { key: 'refund', label: { ru: 'Возврат/кэшбек', en: 'Refund/cashback' }, subs: [] },
-    { key: 'other', label: { ru: 'Другое', en: 'Other' }, subs: [] },
+    { key: 'salary', label: { ru: 'Зарплата', en: 'Salary', es: "Salario", fr: "Salaire" }, subs: [] },
+    { key: 'transfer', label: { ru: 'Перевод', en: 'Transfer', es: "Transferencia", fr: "Virement" }, subs: [] },
+    { key: 'gift', label: { ru: 'Подарок', en: 'Gift', es: "Regalo", fr: "Cadeau" }, subs: [] },
+    { key: 'refund', label: { ru: 'Возврат/кэшбек', en: 'Refund/cashback', es: "Reembolso", fr: "Remboursement" }, subs: [] },
+    { key: 'other', label: { ru: 'Другое', en: 'Other', es: "Otros", fr: "Autres" }, subs: [] },
   ],
 }
 
