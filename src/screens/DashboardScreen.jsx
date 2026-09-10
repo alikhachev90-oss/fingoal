@@ -1,3 +1,5 @@
+import './DashboardScreen.css'
+import FeedbackButton from '../components/FeedbackButton'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
@@ -215,7 +217,7 @@ export default function DashboardScreen() {
   }
 
   return (
-    <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+    <div className="home-reference flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <HabitTipModal tip={habitTip} lang={lang} onClose={closeHabitTip} />
       <TourGuide
         userId={user?.id}
@@ -226,23 +228,21 @@ export default function DashboardScreen() {
         active={tourActive}
         onActiveChange={setTourActive}
       />
-      <div className="dashboard-hero relative mx-5 mt-[max(env(safe-area-inset-top),20px)] pt-2 pb-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[11px] uppercase tracking-[.18em] text-white/45">{t('dashboard.title')}</p>
-            <p className="text-sm text-white/65 mt-1">{context === 'personal' ? t('topbar.personal') : t('topbar.business')}</p>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button type="button" onClick={() => setTourActive(true)} className="w-10 h-10 rounded-full glass flex items-center justify-center text-white/80"><Compass size={17} /></button>
-            <Link to="/settings" className="w-10 h-10 rounded-full glass flex items-center justify-center text-white/80"><Settings size={17} /></Link>
+      <header className="home-heading">
+        <div className="home-greeting">
+          <p>Добро пожаловать,</p>
+          <h1>{displayName}</h1>
+          <p className="home-tagline">Лучшие инвестиции — в себя.</p>
+        </div>
+        <div className="home-toolbar">
+          <span>{context === 'personal' ? t('topbar.personal') : t('topbar.business')}</span>
+          <div className="flex items-center gap-2">
+            <button type="button" aria-label="Обзор приложения" onClick={() => setTourActive(true)} className="home-tool"><Compass size={16} /></button>
+            <FeedbackButton inline />
+            <Link to="/settings" aria-label={t('topbar.settings')} className="home-tool"><Settings size={16} /></Link>
           </div>
         </div>
-        <div className="mt-6">
-          <p className="text-[13px] text-white/50">Добро пожаловать,</p>
-          <h1 className="hero-name mt-2 text-white">{displayName}</h1>
-          <p className="text-[13px] text-white/60 mt-3">Лучшие инвестиции — в себя.</p>
-        </div>
-      </div>
+      </header>
       <div className="dashboard-content flex-1 px-5 py-3 space-y-4">
         <Card data-tour="dash-safe-to-spend" className="balance-hero !p-6">
           <div className="flex items-center gap-3">
@@ -294,39 +294,14 @@ export default function DashboardScreen() {
           </Card>
         )}
 
-        <div data-tour="dash-quote" className="px-1">
-          <DailyQuoteCard />
-        </div>
-
-        <Card className="streak-card !p-0 overflow-hidden" data-tour="dash-streak">
-          <div className="px-5 pt-5 pb-5 border-b border-white/8 bg-white/[.018]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full border border-primary/50 bg-primary/10 flex items-center justify-center shrink-0">
-                  <Flame size={20} className="text-primary" strokeWidth={2} />
-                </div>
-                <div>
-                  <p className="text-2xl font-semibold font-display leading-none text-text">{streak} {t('common.days')}</p>
-                  <p className="text-xs text-muted mt-1 uppercase tracking-wide flex items-center gap-1">
-                    {t('dashboard.streakLabel')}
-                    <span className="opacity-70">
-                      <InfoTag>{t('dashboard.streakInfo')}</InfoTag>
-                    </span>
-                  </p>
-                </div>
-              </div>
-              <p className="text-xs font-medium text-muted text-right max-w-[8rem] leading-snug">{t('dashboard.checkinPrompt')}</p>
-            </div>
+        <Card className="home-habit" data-tour="dash-streak">
+          <div className="home-habit-stat">
+            <Flame size={23} strokeWidth={1.5} />
+            <div><p className="home-streak-number">{streak} {t('common.days')}</p><p className="home-caption">{t('dashboard.streakLabel')} <InfoTag>{t('dashboard.streakInfo')}</InfoTag></p></div>
           </div>
-          <div className="p-3">
-            {checkedInToday ? (
-              <p className="text-sm text-savings font-semibold text-center bg-savings/10 rounded-xl py-2.5">{t('dashboard.checkedIn')}</p>
-            ) : (
-              <div className="flex gap-2">
-                <Button onClick={handleCheckIn} type="button">{t('dashboard.checkinYes')}</Button>
-                <Button variant="secondary" type="button" onClick={() => {}} className="!w-auto px-4">{t('dashboard.checkinNo')}</Button>
-              </div>
-            )}
+          <div className="home-checkin">
+            <p>{t('dashboard.checkinPrompt')}</p>
+            {checkedInToday ? <p className="text-savings">{t('dashboard.checkedIn')}</p> : <div className="flex gap-1.5"><Button type="button" onClick={handleCheckIn}>{t('dashboard.checkinYes')}</Button><Button type="button" variant="secondary" onClick={() => {}}>{t('dashboard.checkinNo')}</Button></div>}
           </div>
         </Card>
 
@@ -346,6 +321,10 @@ export default function DashboardScreen() {
             icon={PiggyBank}
             iconClassName="bg-savings/10 text-savings"
           />
+        </div>
+
+        <div data-tour="dash-quote" className="px-1">
+          <DailyQuoteCard />
         </div>
 
         {bills.length > 0 && (
@@ -545,7 +524,7 @@ export default function DashboardScreen() {
           )}
         </Card>
       </div>
-      <BottomNav />
+      <BottomNav persistent />
     </div>
   )
 }

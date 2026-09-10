@@ -1,3 +1,4 @@
+import FeedbackButton from './FeedbackButton'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sun, Moon, User, Briefcase, Globe, HelpCircle, Settings } from 'lucide-react'
@@ -19,6 +20,7 @@ export default function TopBar({ title, subtitle, onHelp }) {
             {subtitle && <p className="text-[11px] text-muted mt-0.5 truncate">{subtitle}</p>}
           </div>
           <div className="header-tools flex items-center gap-1.5 shrink-0">
+            <FeedbackButton inline />
             {onHelp && <IconButton icon={HelpCircle} onClick={onHelp} aria-label="?" />}
             <div className="relative">
               <IconButton icon={Globe} onClick={() => setLangOpen((o) => !o)} aria-label={t('topbar.language')} />

@@ -127,7 +127,7 @@ export default function ReportScreen() {
   }
 
   return (
-    <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+    <div className="screen-report flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('reports.title')} subtitle={t('reports.subtitle')} />
       <div className="flex-1 px-4 py-4 space-y-3">
         <Link to="/insights" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">

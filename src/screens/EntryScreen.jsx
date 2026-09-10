@@ -199,7 +199,7 @@ export default function EntryScreen() {
   }
 
   return (
-    <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+    <div className="screen-entry flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('entry.title')} />
       <div className="flex-1 px-4 py-4 space-y-4">
         <div className="grid grid-cols-3 gap-2">
@@ -247,8 +247,10 @@ export default function EntryScreen() {
 
         <Card className="entry-form space-y-4">
           <Input className="amount-input" label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
+          <div className="entry-details">
           <Input label={t('entry.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           <Input label={t('entry.comment')} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('entry.commentPlaceholder')} />
+          </div>
           {type === 'transfer' ? (
             <>
               <label className="block text-sm">

@@ -13,13 +13,14 @@ const items = [
 
 const AUTO_HIDE_MS = 6500
 
-export default function BottomNav() {
+export default function BottomNav({ persistent = true }) {
   const { t } = useApp()
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(persistent)
   const hideTimer = useRef(null)
   const touchStartY = useRef(null)
 
   function scheduleHide() {
+    if (persistent) return
     clearTimeout(hideTimer.current)
     hideTimer.current = setTimeout(() => setExpanded(false), AUTO_HIDE_MS)
   }
@@ -48,7 +49,7 @@ export default function BottomNav() {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  onClick={() => setExpanded(false)}
+                  onClick={() => { if (!persistent) setExpanded(false) }}
                   className={({ isActive }) => `relative flex-1 flex flex-col items-center gap-1 px-1 py-1.5 rounded-2xl text-[10px] font-semibold transition-all duration-200 ${isActive ? 'text-primary' : 'text-muted hover:text-text'}`}
                 >
                   {({ isActive }) => (
@@ -67,7 +68,7 @@ export default function BottomNav() {
           </div>
         </nav>
 
-        <button
+        {!persistent && <button
           type="button"
           aria-label="Open navigation"
           aria-expanded={expanded}
@@ -87,7 +88,7 @@ export default function BottomNav() {
           }`}
         >
           <span className="block w-12 h-1 rounded-full bg-white/45 shadow-[0_1px_0_rgb(255_255_255/.20)_inset,0_0_16px_rgb(255_255_255/.08)]" />
-        </button>
+        </button>}
       </div>
     </div>
   )

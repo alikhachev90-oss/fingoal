@@ -60,17 +60,17 @@ export default function LessonsScreen() {
   const orderedLessons = recommended ? [recommended, ...lessons.filter((lesson) => lesson.key !== recommended.key)] : lessons
 
   return (
-    <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+    <div className="screen-lessons flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('lessons.title')} subtitle={t('lessons.doneOfUnlocked', { done: doneCount, total: unlockedCount })} />
       <div className="flex-1 px-4 py-4 space-y-3">
         <Card className="!p-5 overflow-hidden learning-hero">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-[.18em] text-primary font-bold">FINANCIAL IQ</p>
-              <p className="font-display text-[24px] leading-tight mt-2">{lang === 'en' ? 'Build knowledge in small steps.' : 'Прокачивай финансовое мышление маленькими шагами.'}</p>
+              <p className="font-display text-[20px] leading-tight mt-2">{lang === 'en' ? 'Build knowledge in small steps.' : 'Прокачивай финансовое мышление маленькими шагами.'}</p>
               <p className="text-xs text-muted leading-relaxed mt-2">{lang === 'en' ? 'Short lessons, tied to what is actually happening with your money.' : 'Короткие уроки, связанные с тем, что реально происходит с твоими деньгами.'}</p>
             </div>
-            <div className="w-[72px] h-[72px] rounded-full border border-primary/25 bg-primary/10 flex flex-col items-center justify-center shrink-0 shadow-[0_0_35px_-16px_rgb(var(--color-primary)/.9)]">
+            <div className="w-[60px] h-[60px] rounded-full border border-primary/25 bg-primary/10 flex flex-col items-center justify-center shrink-0 shadow-[0_0_35px_-16px_rgb(var(--color-primary)/.9)]">
               <span className="text-xl font-bold font-num text-primary">{progressPct}%</span>
               <span className="text-[9px] uppercase tracking-wide text-muted">{lang === 'en' ? 'done' : 'пройдено'}</span>
             </div>

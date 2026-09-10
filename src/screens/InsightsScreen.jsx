@@ -126,7 +126,7 @@ export default function InsightsScreen() {
   }
 
   return (
-    <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+    <div className="screen-insights flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TourGuide
         userId={user?.id}
         context={context}

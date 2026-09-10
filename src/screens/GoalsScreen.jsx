@@ -104,7 +104,7 @@ export default function GoalsScreen() {
   }
 
   return (
-    <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+    <div className="screen-goals flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TourGuide
         userId={user?.id}
         context={context}
@@ -161,7 +161,7 @@ export default function GoalsScreen() {
                     })
                     setShowForm(true)
                   }}
-                  className="glass rounded-2xl p-3 text-left min-h-[112px] hover:border-primary/35 transition-all active:scale-[.98]"
+                  className="glass rounded-2xl p-3 text-left min-h-[98px] hover:border-primary/35 transition-all active:scale-[.98]"
                 >
                   <IconCircle icon={preset.icon} className="bg-primary/10 text-primary" size={34} iconSize={15} />
                   <p className="text-sm font-semibold mt-3 leading-tight">{pickLang(preset.name, lang)}</p>
@@ -180,7 +180,7 @@ export default function GoalsScreen() {
               )
             : null
           return (
-            <Card key={goal.id} className="space-y-3">
+            <Card key={goal.id} className="goal-card space-y-3">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-semibold">{goal.name}</p>

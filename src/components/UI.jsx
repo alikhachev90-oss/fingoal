@@ -1,7 +1,7 @@
 export function Card({ children, className = '', animate = true, ...rest }) {
   return (
     <div
-      className={`glass rounded-[22px] p-5 ${animate ? 'animate-slide-up' : ''} ${className}`}
+      className={`glass rounded-[18px] p-4 ${animate ? 'animate-slide-up' : ''} ${className}`}
       {...rest}
     >
       {children}
@@ -10,7 +10,7 @@ export function Card({ children, className = '', animate = true, ...rest }) {
 }
 
 export function Button({ children, variant = 'primary', className = '', icon: Icon, ...props }) {
-  const base = 'w-full min-h-12 py-3.5 px-4 rounded-2xl font-semibold text-[15px] tracking-[-.01em] transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 flex items-center justify-center gap-2'
+  const base = 'w-full min-h-11 py-2.5 px-4 rounded-xl font-medium text-[13px] tracking-[-.01em] transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 flex items-center justify-center gap-2'
   const variants = {
     primary: 'action-primary text-[#05251c] hover:brightness-110',
     secondary: 'glass text-text hover:border-primary/55 hover:bg-white/[.08]',
@@ -43,7 +43,7 @@ export function Input({ label, icon: Icon, className = '', ...props }) {
       <div className="relative">
         {Icon && <Icon size={16} strokeWidth={2.25} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />}
         <input
-          className={`w-full bg-surface2 border border-border rounded-2xl px-4 ${Icon ? 'pl-10' : ''} py-3.5 text-[15px] font-num text-text outline-none transition-all focus:border-primary/70 focus:ring-2 focus:ring-primary/20 placeholder:text-muted/60 placeholder:font-sans ${className}`}
+          className={`w-full bg-surface2 border border-border rounded-2xl px-4 ${Icon ? 'pl-10' : ''} py-3 text-[14px] font-sans text-text outline-none transition-all focus:border-primary/70 focus:ring-2 focus:ring-primary/20 placeholder:text-muted/60 placeholder:font-sans ${className}`}
           {...props}
         />
       </div>

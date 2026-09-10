@@ -73,7 +73,7 @@ export default function ConnectBankScreen() {
   }
 
   return (
-    <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+    <div className="screen-connectbank flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title="Привязать банк (бета)" subtitle="Только для владельца — скрыто от остальных" />
       <div className="flex-1 px-4 py-4 space-y-3">
         <Link to="/insights" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">

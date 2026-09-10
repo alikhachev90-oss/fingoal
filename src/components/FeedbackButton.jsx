@@ -9,12 +9,12 @@ import { Button, Card } from './UI'
 // sent" claim, no third-party form service).
 const FEEDBACK_EMAIL = 'a.likhachev90@gmail.com'
 
-export default function FeedbackButton() {
+export default function FeedbackButton({ inline = false }) {
   const { user, context, lang, t } = useApp()
   const [open, setOpen] = useState(false)
   const [text, setText] = useState('')
 
-  if (!user) return null
+  if (!user || !inline) return null
 
   function send() {
     const subject = encodeURIComponent(t('feedback.subject'))
@@ -31,7 +31,7 @@ export default function FeedbackButton() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={t('feedback.button')}
-        className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+72px)] z-30 w-11 h-11 rounded-full bg-primary text-onprimary shadow-soft flex items-center justify-center"
+        className={inline ? "home-tool" : "fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+72px)] z-30 w-11 h-11 rounded-full bg-primary text-onprimary shadow-soft flex items-center justify-center"}
       >
         <MessageCircle size={19} strokeWidth={2.25} />
       </button>

@@ -1,0 +1,48 @@
+/* Shared material and scale approved on the home screen. */
+:root, .dark { --color-bg:11 14 19; --color-surface:25 31 39; --color-surface2:30 37 46; --color-primary:220 185 121; --color-primary2:237 212 167; --color-on-primary:41 32 22; --color-text:241 243 244; --color-muted:158 167 177; --color-savings:106 209 173; --color-income:142 181 218; }
+html:not(.dark) { --color-bg:19 24 32; --color-surface:33 40 49; --color-muted:174 185 197; }
+.app-ambient { background:rgb(var(--color-bg)); }
+.app-ambient::before { background:var(--app-bg-image),linear-gradient(160deg,#161c24,#090e13 65%); }
+.app-ambient::after { background:none; }
+.glass { border-radius:18px; background:linear-gradient(125deg,#b5c5d514,#a3b5c303 65%); border:1px solid #c5d4e125; box-shadow:0 1px 0 #eff6ff0a inset,0 14px 30px -25px #000; backdrop-filter:blur(24px); }
+.action-primary { background:linear-gradient(135deg,#e6c994,#b88e4c); color:#292016; border-color:#f5ddb033; box-shadow:0 1px 0 #fff3 inset; }
+.page-header-inner > div:first-child { flex-wrap:wrap; row-gap:12px; }
+.page-header-inner > div:first-child > div:first-child { flex:1 1 100%; }
+.page-title { font-size:30px; font-weight:400; letter-spacing:-.04em; }
+.header-tools { margin-left:auto; }
+.header-tools button { width:32px; height:32px; border-radius:50%; }
+.header-tools .home-tool svg { width:15px; height:15px; }
+.page-header-inner > div:last-child { margin-top:12px; border-radius:13px; }
+.page-header-inner > div:last-child > button { padding:7px 8px; font-size:11px; font-weight:400; }
+.page-header + .flex-1 { padding-top:12px; }
+.page-header + .flex-1 > .glass { padding:15px; }
+.nav-material { border-radius:26px; background:linear-gradient(150deg,#27313ce8,#111921f5); border-color:#c3d2df30; padding:5px 6px; }
+nav a { font-size:9px !important; font-weight:400 !important; gap:1px !important; }
+nav a > div { height:29px !important; }
+nav a svg { width:17px; height:17px; stroke-width:1.6; }
+nav a > span.absolute { display:none; }
+.learning-hero { background:radial-gradient(ellipse at 100% 0%,#8eafce1a,transparent 70%),linear-gradient(140deg,#ccb27e12,transparent); }
+.learning-hero .font-display { font-size:20px; font-weight:400; }
+.entry-details { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.entry-details > label { min-width:0; }
+.entry-details input { padding:10px; font-size:12px; border-radius:12px; min-height:44px; }
+.entry-form .amount-input { height:72px; font-size:42px; padding-bottom:12px; }
+.entry-mode-active { background:linear-gradient(135deg,#e1c28c20,#b4986320); border-color:#ddbd7960; }
+.screen-entry .entry-form { background:radial-gradient(ellipse at 100% 0%,#88add411,transparent 65%),linear-gradient(125deg,#b5c5d514,#a3b5c303); }
+.screen-entry .entry-form select { font-size:13px; min-height:44px; border-radius:12px; }
+.screen-entry .entry-form + .glass button { font-size:12px; }
+.screen-goals .goal-card { background:radial-gradient(ellipse at 0% 0%,#62cba712,transparent 75%),linear-gradient(125deg,#b5c5d514,#a3b5c303); }
+.goal-card [role='progressbar'] circle:last-child { stroke:rgb(var(--color-savings)); }
+.screen-goals .goal-card > div:first-child p:first-child { font-size:17px; font-weight:500; }
+.screen-goals .goal-card .bg-surface2 { border:1px solid #ffffff09; border-radius:12px; padding:12px; line-height:1.65; }
+.screen-goals .grid > button:nth-child(2) svg { color:#dbab8c; }
+.screen-goals .grid > button:nth-child(3) svg { color:#96b5d4; }
+.screen-goals .grid > button:nth-child(4) svg { color:#83cdb0; }
+.screen-lessons .uppercase, .screen-insights .uppercase { font-size:10px; letter-spacing:.09em; font-weight:500; }
+.screen-settings .page-header + .flex-1 > .glass:first-of-type { background:radial-gradient(ellipse at 100% 0%,#8fafd51a,transparent 75%),linear-gradient(125deg,#b5c5d514,#a3b5c303); }
+.screen-settings input { font-size:14px; }
+.screen-settings .uppercase { font-size:10px; font-weight:500; letter-spacing:.08em; }
+.screen-insights .page-header + .flex-1 > .glass:first-of-type { border-color:#ddbd7933; background:linear-gradient(130deg,#af936212,#ffffff03); }
+.screen-insights .text-sm { line-height:1.6; }
+.screen-accounts .font-num, .screen-report .font-num, .screen-taxestimate .font-num { font-weight:500; }
+@media(max-width:360px) { .entry-details { grid-template-columns:1fr; } .page-title { font-size:28px; } }
