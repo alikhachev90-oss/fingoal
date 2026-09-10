@@ -45,4 +45,21 @@ nav a > span.absolute { display:none; }
 .screen-insights .page-header + .flex-1 > .glass:first-of-type { border-color:#ddbd7933; background:linear-gradient(130deg,#af936212,#ffffff03); }
 .screen-insights .text-sm { line-height:1.6; }
 .screen-accounts .font-num, .screen-report .font-num, .screen-taxestimate .font-num { font-weight:500; }
+.theme-default { --color-primary: 220 185 121; --color-primary2: 237 212 167; --color-savings: 106 209 173; --color-income: 142 181 218; }
+.theme-dynamic { --color-primary: 139 187 226; --color-primary2: 191 219 244; --color-savings: 104 214 186; --color-income: 164 201 232; }
+.theme-nature { --color-primary: 106 209 173; --color-primary2: 165 236 205; --color-savings: 106 209 173; --color-income: 149 201 218; }
+.theme-architecture { --color-primary: 185 202 216; --color-primary2: 225 234 242; --color-savings: 122 212 190; --color-income: 153 190 228; }
+.theme-abstract { --color-primary: 194 154 224; --color-primary2: 225 197 241; --color-savings: 104 214 186; --color-income: 151 188 235; }
+.theme-premium { --color-primary: 230 190 112; --color-primary2: 247 221 164; --color-savings: 116 214 170; --color-income: 151 190 224; }
+.theme-default .glass { border-color:#d4bd8b26; }
+.theme-dynamic .glass { border-color:#a7cbed2b; background:linear-gradient(125deg,#b7d5ed13,#729cc309 65%); }
+.theme-nature .glass { border-color:#77d7b02b; background:linear-gradient(125deg,#9be0c316,#5eb99008 65%); }
+.theme-architecture .glass { border-color:#c1d5e12b; background:linear-gradient(125deg,#d4e3ef12,#8ca5b40a 65%); }
+.theme-abstract .glass { border-color:#d4afe62b; background:linear-gradient(125deg,#d6b5ec13,#9c79be09 65%); }
+.theme-premium .glass { border-color:#e8c68135; background:linear-gradient(125deg,#e5c27c16,#9f6f3308 65%); }
+.theme-default .action-primary, .theme-premium .action-primary { background:linear-gradient(135deg,#e6c994,#b88e4c); }
+.theme-dynamic .action-primary { background:linear-gradient(135deg,#c3e2f8,#6f9fc4); color:#102332; }
+.theme-nature .action-primary { background:linear-gradient(135deg,#b9efd8,#5ebd95); color:#09251b; }
+.theme-architecture .action-primary { background:linear-gradient(135deg,#e4edf5,#9eb3c4); color:#1a2833; }
+.theme-abstract .action-primary { background:linear-gradient(135deg,#e4c9f4,#a277c3); color:#251433; }
 @media(max-width:360px) { .entry-details { grid-template-columns:1fr; } .page-title { font-size:28px; } }

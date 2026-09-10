@@ -9,7 +9,7 @@ import { suggestCategories, CATEGORY_TREE, findCategory, pickLang, subLabel, sub
 import InfoTag from '../components/InfoTag'
 import { computeGoalPlan, daysSavedByAmount, crossedMilestone } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
-import { Wand2 } from 'lucide-react'
+import { ChevronDown, Wand2 } from 'lucide-react'
 
 export default function EntryScreen() {
   const { user, context, t, lang } = useApp()
@@ -35,6 +35,7 @@ export default function EntryScreen() {
   const [type, setType] = useState('expense') // 'income' | 'expense' | 'transfer'
   const [fromAccountId, setFromAccountId] = useState('')
   const [toAccountId, setToAccountId] = useState('')
+  const [categoriesOpen, setCategoriesOpen] = useState(false)
 
   function changeType(next) {
     setType(next)
@@ -79,6 +80,7 @@ export default function EntryScreen() {
     const subDisplay = s.sub ? subLabel(s.group, s.key, s.sub, lang) : null
     setSelected({ ...s, sub: s.sub, subDisplay })
     setQuery(subDisplay ? `${s.label} → ${subDisplay}` : s.label)
+    setCategoriesOpen(false)
   }
 
   function runQuickParse() {
@@ -110,6 +112,7 @@ export default function EntryScreen() {
     setSelected({ group, key, sub: subKey || null, subDisplay, label, explanation: null })
     setQuery(subDisplay ? `${label} → ${subDisplay}` : label)
     setPendingCat(null)
+    setCategoriesOpen(false)
   }
 
   const goalPlan = useMemo(() => {
@@ -310,7 +313,20 @@ export default function EntryScreen() {
         </Card>
 
         {type !== 'transfer' && (
-        <Card className="space-y-3">
+        <>
+        <button
+          type="button"
+          aria-expanded={categoriesOpen}
+          onClick={() => setCategoriesOpen((open) => !open)}
+          className="category-toggle w-full flex items-center justify-between rounded-2xl px-4 py-3.5 glass text-left"
+        >
+          <span className="flex items-center gap-2 text-sm font-medium">
+            <span className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center">{selected ? '✓' : '+'}</span>
+            {selected ? selected.label : lang === 'ru' ? 'Выбрать категорию' : 'Choose category'}
+          </span>
+          <ChevronDown size={17} className={`text-muted transition-transform ${categoriesOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {categoriesOpen && <Card className="category-panel space-y-3">
           <Input
             label={t('entry.category')}
             value={query}
@@ -399,7 +415,8 @@ export default function EntryScreen() {
               ))}
             </div>
           )}
-        </Card>
+        </Card>}
+        </>
         )}
 
         {wantsImpactDays !== null && wantsImpactDays > 0 && (

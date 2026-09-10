@@ -131,7 +131,7 @@ function AmbientShell() {
   const { background } = useApp()
   const preset = getBackground(background)
   return (
-    <div className="app-ambient w-full max-w-app min-h-[100svh]" style={{ '--app-bg-image': preset.css }}>
+    <div className={`app-ambient theme-${background} w-full max-w-app min-h-[100svh]`} style={{ '--app-bg-image': preset.css }}>
       <BrowserRouter>
         <Shell />
       </BrowserRouter>

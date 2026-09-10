@@ -47,14 +47,6 @@ export const BACKGROUNDS = [
           radial-gradient(ellipse 60% 50% at 90% 100%, rgb(120 165 214 / 0.14), transparent 55%)`,
   },
   {
-    id: 'seasonal',
-    category: { ru: 'Сезон', en: 'Seasonal', es: 'Estacional', fr: 'Saisonnier' },
-    label: { ru: 'Позднее лето', en: 'Late summer', es: 'Verano tardío', fr: 'Fin d’été' },
-    css: `radial-gradient(ellipse 70% 55% at 12% -8%, rgb(79 144 182 / 0.14), transparent 55%),
-          radial-gradient(ellipse 60% 50% at 92% 15%, rgb(129 158 186 / 0.15), transparent 55%),
-          radial-gradient(ellipse 70% 55% at 50% 115%, rgb(82 110 145 / 0.08), transparent 60%)`,
-  },
-  {
     id: 'premium',
     category: { ru: 'Премиум', en: 'Premium', es: 'Premium', fr: 'Premium' },
     label: { ru: 'Частный клуб', en: 'Private club', es: 'Club privado', fr: 'Club privé' },
