@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Settings, Landmark, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
-import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import DailyQuoteCard from '../components/DailyQuoteCard'
 import BatteryProgress from '../components/BatteryProgress'
@@ -227,7 +226,7 @@ export default function DashboardScreen() {
         active={tourActive}
         onActiveChange={setTourActive}
       />
-      <div className="dashboard-hero relative mx-4 mt-[max(env(safe-area-inset-top),14px)] rounded-[30px] px-5 pt-4 pb-5">
+      <div className="dashboard-hero relative mx-5 mt-[max(env(safe-area-inset-top),20px)] pt-2 pb-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[.18em] text-white/45">{t('dashboard.title')}</p>
@@ -238,13 +237,24 @@ export default function DashboardScreen() {
             <Link to="/settings" className="w-10 h-10 rounded-full glass flex items-center justify-center text-white/80"><Settings size={17} /></Link>
           </div>
         </div>
-        <div className="mt-7">
+        <div className="mt-6">
           <p className="text-[13px] text-white/50">Добро пожаловать,</p>
           <h1 className="hero-name mt-2 text-white">{displayName}</h1>
           <p className="text-[13px] text-white/60 mt-3">Лучшие инвестиции — в себя.</p>
         </div>
       </div>
-      <div className="flex-1 px-4 py-3 space-y-4">
+      <div className="dashboard-content flex-1 px-5 py-3 space-y-4">
+        <Card data-tour="dash-safe-to-spend" className="balance-hero !p-6">
+          <div className="flex items-center gap-3">
+            <IconCircle icon={Wallet} className="bg-primary/10 text-primary !rounded-full" size={38} iconSize={18} />
+            <p className="text-sm text-white/80">{monthlyIncome > 0 ? t('dashboard.safeToSpend') : t('dashboard.moneyLeft')}</p>
+          </div>
+          <div className="flex items-center justify-between gap-3 mt-5">
+            <p className={`metric-hero font-num ${(monthlyIncome > 0 ? safeToday.safePerDay : totalBalance) < 0 ? 'text-wants' : 'text-text'}`}>{fmt(monthlyIncome > 0 ? safeToday.safePerDay : totalBalance)}</p>
+            <Link to="/entry" aria-label={t('nav.entry')} className="glass rounded-full w-11 h-11 flex items-center justify-center text-primary shrink-0"><ArrowRight size={19} /></Link>
+          </div>
+          {monthlyIncome > 0 && <p className="text-xs text-muted mt-4 leading-relaxed">{safeToday.safePerDay >= 0 ? `${t('dashboard.safeToSpendHintOk')} (${safeToday.daysRemaining} ${t('common.days')})` : t('dashboard.safeToSpendHintNeg')}</p>}
+        </Card>
         <Card className="flow-card !p-4" data-tour="dash-money-flow">
           <p className="text-[10.5px] font-bold tracking-wide text-muted uppercase mb-3">{t('dashboard.moneyFlowTitle')}</p>
           <div className="grid grid-cols-3 gap-2">
@@ -263,7 +273,7 @@ export default function DashboardScreen() {
           </div>
         </Card>
 
-        {coachAction && (
+        {coachAction && transactions.length >= 3 && (
           <Card className={`coach-card !p-4 overflow-hidden ${coachAction.tone === 'warn' ? '!border-wants/25' : coachAction.tone === 'good' ? '!border-savings/25' : '!border-primary/25'}`}>
             <div className="flex items-start gap-3">
               <IconCircle
@@ -288,7 +298,7 @@ export default function DashboardScreen() {
           <DailyQuoteCard />
         </div>
 
-        <Card className="!p-0 overflow-hidden" data-tour="dash-streak">
+        <Card className="streak-card !p-0 overflow-hidden" data-tour="dash-streak">
           <div className="px-5 pt-5 pb-5 border-b border-white/8 bg-white/[.018]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -296,8 +306,8 @@ export default function DashboardScreen() {
                   <Flame size={20} className="text-primary" strokeWidth={2} />
                 </div>
                 <div>
-                  <p className="text-2xl font-semibold font-display leading-none text-[#f3ede0]">{streak} {t('common.days')}</p>
-                  <p className="text-xs text-[#a39a85] mt-1 uppercase tracking-wide flex items-center gap-1">
+                  <p className="text-2xl font-semibold font-display leading-none text-text">{streak} {t('common.days')}</p>
+                  <p className="text-xs text-muted mt-1 uppercase tracking-wide flex items-center gap-1">
                     {t('dashboard.streakLabel')}
                     <span className="opacity-70">
                       <InfoTag>{t('dashboard.streakInfo')}</InfoTag>
@@ -305,7 +315,7 @@ export default function DashboardScreen() {
                   </p>
                 </div>
               </div>
-              <p className="text-xs font-medium text-[#c9bfa8] text-right max-w-[8rem] leading-snug">{t('dashboard.checkinPrompt')}</p>
+              <p className="text-xs font-medium text-muted text-right max-w-[8rem] leading-snug">{t('dashboard.checkinPrompt')}</p>
             </div>
           </div>
           <div className="p-3">
@@ -319,23 +329,6 @@ export default function DashboardScreen() {
             )}
           </div>
         </Card>
-
-        {monthlyIncome > 0 && (
-          <Card data-tour="dash-safe-to-spend" className={`!p-5 flex items-center justify-between overflow-hidden ${safeToday.safePerDay >= 0 ? 'green-glow' : ''}`}>
-            <div>
-              <p className="section-label">{t('dashboard.safeToSpend')}</p>
-              <p className={`metric-hero mt-2 ${safeToday.safePerDay >= 0 ? 'text-savings' : 'text-wants'}`}>
-                {safeToday.safePerDay >= 0 ? fmt(safeToday.safePerDay) : `−${fmt(Math.abs(safeToday.safePerDay))}`}
-              </p>
-              <p className="text-xs text-muted mt-0.5">
-                {safeToday.safePerDay >= 0
-                  ? `${t('dashboard.safeToSpendHintOk')} (${safeToday.daysRemaining} ${t('common.days')})`
-                  : t('dashboard.safeToSpendHintNeg')}
-              </p>
-            </div>
-            <IconCircle icon={PiggyBank} className={safeToday.safePerDay >= 0 ? 'bg-savings/10 text-savings' : 'bg-wants/10 text-wants'} size={40} iconSize={18} />
-          </Card>
-        )}
 
         <div className="grid grid-cols-2 gap-3">
           <StatTile label={t('dashboard.income')} value={fmt(monthlyIncome)} icon={Wallet} iconClassName="bg-primary/10 text-primary" />
@@ -434,8 +427,8 @@ export default function DashboardScreen() {
                       data={rankedPieData}
                       dataKey="value"
                       nameKey="name"
-                      innerRadius={0}
-                      outerRadius={60}
+                      innerRadius={43}
+                      outerRadius={68}
                       strokeWidth={2}
                       stroke="rgb(var(--color-surface))"
                       onClick={(d) => setDrilldown({ group: d.group, key: d.key, name: d.name, total: d.value })}

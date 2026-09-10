@@ -124,9 +124,9 @@ export default function AuthScreen() {
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <Input icon={Mail} label={t('auth.email')} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-          <Input icon={Lock} label={t('auth.password')} type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+        <form onSubmit={handleSubmit} autoComplete="on" className="space-y-3">
+          <Input icon={Mail} label={t('auth.email')} id="auth-email" name="username" autoComplete="username" autoCapitalize="none" spellCheck={false} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+          <Input icon={Lock} label={t('auth.password')} id="auth-password" name="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
           {error && <p className="text-danger text-sm font-medium">{error}</p>}
           <Button type="submit" disabled={loading}>
             {loading ? t('auth.loading') : mode === 'signin' ? t('auth.submitSignin') : t('auth.submitSignup')}

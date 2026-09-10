@@ -232,7 +232,7 @@ export default function EntryScreen() {
                 onChange={(e) => setQuickText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && runQuickParse()}
                 placeholder={t('entry.quickPlaceholder')}
-                className="flex-1 bg-surface border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary focus:ring-1 focus:ring-primary/40"
+                className="min-w-0 flex-1 bg-surface border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary focus:ring-1 focus:ring-primary/40"
               />
               <Button variant="secondary" className="!w-auto px-3.5" onClick={runQuickParse} type="button">{t('entry.quickParse')}</Button>
             </div>
@@ -245,8 +245,8 @@ export default function EntryScreen() {
           </Card>
         )}
 
-        <Card className="space-y-3">
-          <Input label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
+        <Card className="entry-form space-y-4">
+          <Input className="amount-input" label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
           <Input label={t('entry.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           <Input label={t('entry.comment')} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('entry.commentPlaceholder')} />
           {type === 'transfer' ? (

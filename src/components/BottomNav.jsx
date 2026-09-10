@@ -11,7 +11,7 @@ const items = [
   { to: '/lessons', icon: GraduationCap, key: 'nav.lessons' },
 ]
 
-const AUTO_HIDE_MS = 4200
+const AUTO_HIDE_MS = 6500
 
 export default function BottomNav() {
   const { t } = useApp()
@@ -36,6 +36,7 @@ export default function BottomNav() {
       <div className="max-w-app mx-auto relative h-[92px]">
         <nav
           aria-hidden={!expanded}
+          inert={!expanded}
           onPointerEnter={scheduleHide}
           className={`absolute inset-x-3 bottom-[max(env(safe-area-inset-bottom),10px)] pointer-events-auto transition-all duration-300 ease-out ${
             expanded ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-[115%] opacity-0 scale-[.97] pointer-events-none'
@@ -81,11 +82,11 @@ export default function BottomNav() {
             }
           }}
           onTouchEnd={() => { touchStartY.current = null }}
-          className={`pointer-events-auto absolute left-1/2 -translate-x-1/2 bottom-[max(env(safe-area-inset-bottom),7px)] px-6 pt-2.5 pb-2 rounded-full transition-all duration-300 ${
-            expanded ? 'opacity-0 translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0 glass'
+          className={`pointer-events-auto absolute left-1/2 -translate-x-1/2 bottom-[max(env(safe-area-inset-bottom),2px)] w-24 h-11 flex items-center justify-center rounded-full transition-all duration-300 ${
+            expanded ? 'opacity-0 translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'
           }`}
         >
-          <span className="block w-11 h-1 rounded-full bg-white/35 shadow-[0_1px_0_rgb(255_255_255/.20)_inset,0_0_16px_rgb(255_255_255/.08)]" />
+          <span className="block w-12 h-1 rounded-full bg-white/45 shadow-[0_1px_0_rgb(255_255_255/.20)_inset,0_0_16px_rgb(255_255_255/.08)]" />
         </button>
       </div>
     </div>

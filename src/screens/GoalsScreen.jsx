@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
-import { Button, Input, Card, Pill } from '../components/UI'
+import { Button, Input, Card, Pill, IconCircle } from '../components/UI'
 import BatteryProgress from '../components/BatteryProgress'
 import GoalReminderButton from '../components/GoalReminderButton'
 import TourGuide from '../components/TourGuide'
