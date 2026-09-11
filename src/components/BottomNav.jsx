@@ -37,10 +37,10 @@ export default function BottomNav({ persistent = false }) {
       <div className="max-w-app mx-auto relative h-[92px]">
         <nav
           aria-hidden={!expanded}
-          inert={!expanded}
+          inert={expanded ? undefined : true}
           onPointerDown={scheduleHide}
           onFocus={scheduleHide}
-          className={`absolute inset-x-3 bottom-[max(env(safe-area-inset-bottom),10px)] pointer-events-auto transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+          className={`absolute z-40 inset-x-3 bottom-[max(env(safe-area-inset-bottom),10px)] pointer-events-auto transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
             expanded ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-[115%] opacity-0 scale-[.97] pointer-events-none'
           }`}
         >
@@ -85,7 +85,7 @@ export default function BottomNav({ persistent = false }) {
             }
           }}
           onTouchEnd={() => { touchStartY.current = null }}
-          className={`pointer-events-auto absolute left-1/2 -translate-x-1/2 bottom-[calc(max(env(safe-area-inset-bottom),2px)+8px)] w-24 h-11 flex items-center justify-center rounded-full transition-all duration-[600ms] motion-reduce:transition-none ${
+          className={`pointer-events-auto absolute z-50 left-1/2 -translate-x-1/2 bottom-[calc(max(env(safe-area-inset-bottom),2px)+8px)] w-24 h-11 flex items-center justify-center rounded-full transition-all duration-[600ms] motion-reduce:transition-none ${
             expanded ? 'opacity-0 translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'
           }`}
         >
