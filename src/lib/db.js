@@ -28,7 +28,11 @@ function uid() {
 // ---------------------------------------------------------------------- auth
 export async function signUp(email, password) {
   if (supabaseEnabled) {
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/auth` },
+    })
     if (error) throw error
     return data
   }
@@ -39,6 +43,16 @@ export async function signUp(email, password) {
   saveMock(db)
   localStorage.setItem(SESSION_KEY, JSON.stringify(user))
   return user
+}
+
+export async function resendSignupEmail(email) {
+  if (!supabaseEnabled) return
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: { emailRedirectTo: `${window.location.origin}/auth` },
+  })
+  if (error) throw error
 }
 
 export async function sendPhoneCode(phone, shouldCreateUser = false) {
