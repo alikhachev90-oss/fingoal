@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Target, Mail, Lock, Sparkles, HelpCircle, Globe } from 'lucide-react'
+import { Target, Mail, Lock, Sparkles, HelpCircle, Globe, Eye, EyeOff, Phone } from 'lucide-react'
 import { Button, Input, Card } from '../components/UI'
 import HowItWorksModal from '../components/HowItWorksModal'
 import { useApp } from '../context/AppContext'
@@ -12,12 +12,24 @@ export default function AuthScreen() {
   const [mode, setMode] = useState('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [authMethod, setAuthMethod] = useState('email')
+  const [phone, setPhone] = useState('')
+  const [phoneCode, setPhoneCode] = useState('')
+  const [phoneCodeSent, setPhoneCodeSent] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [rememberEmail, setRememberEmail] = useState(() => localStorage.getItem('fintera_remember_email') !== '0')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showHowItWorks, setShowHowItWorks] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const { user, refreshUser, lang, setLang, t } = useApp()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const saved = localStorage.getItem('fintera_saved_email')
+    if (saved) setEmail(saved)
+  }, [])
 
   // A back-button press (or any other navigation) can land here while a
   // session is still valid — e.g. Android's back button walking through SPA
@@ -31,14 +43,34 @@ export default function AuthScreen() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    setNotice('')
     setLoading(true)
     try {
-      if (mode === 'signup') {
-        await db.signUp(email, password)
+      if (authMethod === 'phone') {
+        if (!phoneCodeSent) {
+          await db.sendPhoneCode(phone.trim(), mode === 'signup')
+          setPhoneCodeSent(true)
+          setNotice(t('auth.smsSent'))
+          return
+        }
+        await db.verifyPhoneCode(phone.trim(), phoneCode.trim())
+      } else if (mode === 'signup') {
+        const result = await db.signUp(email, password)
+        if (rememberEmail) localStorage.setItem('fintera_saved_email', email)
+        if (supabaseEnabled && !result.session) {
+          setNotice(t('auth.emailSent'))
+          return
+        }
       } else {
         await db.signIn(email, password)
+        if (rememberEmail) localStorage.setItem('fintera_saved_email', email)
+        else localStorage.removeItem('fintera_saved_email')
       }
       const loggedInUser = await refreshUser()
+      if (!loggedInUser) {
+        setNotice(t('auth.emailSent'))
+        return
+      }
       const settings = await db.getSettings(loggedInUser.id, 'personal')
       navigate(settings?.onboarded ? '/dashboard' : '/onboarding', { replace: true })
     } catch (err) {
@@ -46,6 +78,14 @@ export default function AuthScreen() {
     } finally {
       setLoading(false)
     }
+  }
+
+  function switchMode(next) {
+    setMode(next)
+    setPhoneCodeSent(false)
+    setPhoneCode('')
+    setError('')
+    setNotice('')
   }
 
   return (
@@ -107,13 +147,21 @@ export default function AuthScreen() {
           {['signin', 'signup'].map((m) => (
             <button
               key={m}
-              onClick={() => setMode(m)}
+              onClick={() => switchMode(m)}
               type="button"
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                 mode === m ? 'bg-surface shadow-softer text-text' : 'text-muted'
               }`}
             >
               {m === 'signin' ? t('auth.signin') : t('auth.signup')}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex bg-surface2 rounded-xl p-1 border border-border">
+          {['email', 'phone'].map((method) => (
+            <button key={method} type="button" onClick={() => { setAuthMethod(method); setPhoneCodeSent(false); setNotice('') }} className={`flex-1 py-2 rounded-lg text-xs font-semibold ${authMethod === method ? 'bg-surface text-text shadow-softer' : 'text-muted'}`}>
+              {method === 'email' ? t('auth.emailMethod') : t('auth.phoneMethod')}
             </button>
           ))}
         </div>
@@ -125,8 +173,27 @@ export default function AuthScreen() {
         )}
 
         <form onSubmit={handleSubmit} autoComplete="on" className="space-y-3">
-          <Input icon={Mail} label={t('auth.email')} id="auth-email" name="username" autoComplete="username" autoCapitalize="none" spellCheck={false} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-          <Input icon={Lock} label={t('auth.password')} id="auth-password" name="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+          {authMethod === 'email' ? (
+            <>
+              <Input icon={Mail} label={t('auth.email')} id="auth-email" name="username" autoComplete="username" autoCapitalize="none" spellCheck={false} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+              <div className="relative">
+                <Input icon={Lock} label={t('auth.password')} id="auth-password" name="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} type={showPassword ? 'text' : 'password'} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-12" />
+                <button type="button" aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')} onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-[31px] p-2 text-muted hover:text-text">
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+              <label className="flex items-center gap-2 text-xs text-muted cursor-pointer">
+                <input type="checkbox" checked={rememberEmail} onChange={(e) => setRememberEmail(e.target.checked)} className="accent-primary" />
+                {t('auth.remember')}
+              </label>
+            </>
+          ) : (
+            <>
+              <Input icon={Phone} label={t('auth.phone')} id="auth-phone" name="tel" autoComplete="tel" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 123 4567" />
+              {phoneCodeSent && <Input label={t('auth.smsCode')} id="auth-sms-code" name="one-time-code" autoComplete="one-time-code" inputMode="numeric" type="text" required value={phoneCode} onChange={(e) => setPhoneCode(e.target.value)} placeholder="123456" />}
+            </>
+          )}
+          {notice && <p role="status" className="text-savings text-sm font-medium">{notice}</p>}
           {error && <p className="text-danger text-sm font-medium">{error}</p>}
           <Button type="submit" disabled={loading}>
             {loading ? t('auth.loading') : mode === 'signin' ? t('auth.submitSignin') : t('auth.submitSignup')}
