@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Target, Mail, Lock, Sparkles, HelpCircle, Globe, Eye, EyeOff, Phone } from 'lucide-react'
+import { Target, Mail, Lock, Sparkles, HelpCircle, Globe, Eye, EyeOff } from 'lucide-react'
 import { Button, Input, Card } from '../components/UI'
 import HowItWorksModal from '../components/HowItWorksModal'
 import { useApp } from '../context/AppContext'
@@ -13,10 +13,6 @@ export default function AuthScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [authMethod, setAuthMethod] = useState('email')
-  const [phone, setPhone] = useState('')
-  const [phoneCode, setPhoneCode] = useState('')
-  const [phoneCodeSent, setPhoneCodeSent] = useState(false)
   const [notice, setNotice] = useState('')
   const [rememberEmail, setRememberEmail] = useState(() => localStorage.getItem('fintera_remember_email') !== '0')
   const [error, setError] = useState('')
@@ -46,15 +42,7 @@ export default function AuthScreen() {
     setNotice('')
     setLoading(true)
     try {
-      if (authMethod === 'phone') {
-        if (!phoneCodeSent) {
-          await db.sendPhoneCode(phone.trim(), mode === 'signup')
-          setPhoneCodeSent(true)
-          setNotice(t('auth.smsSent'))
-          return
-        }
-        await db.verifyPhoneCode(phone.trim(), phoneCode.trim())
-      } else if (mode === 'signup') {
+      if (mode === 'signup') {
         const result = await db.signUp(email, password)
         if (rememberEmail) localStorage.setItem('fintera_saved_email', email)
         if (supabaseEnabled && !result.session) {
@@ -82,8 +70,6 @@ export default function AuthScreen() {
 
   function switchMode(next) {
     setMode(next)
-    setPhoneCodeSent(false)
-    setPhoneCode('')
     setError('')
     setNotice('')
   }
@@ -158,14 +144,6 @@ export default function AuthScreen() {
           ))}
         </div>
 
-        <div className="flex bg-surface2 rounded-xl p-1 border border-border">
-          {['email', 'phone'].map((method) => (
-            <button key={method} type="button" onClick={() => { setAuthMethod(method); setPhoneCodeSent(false); setNotice('') }} className={`flex-1 py-2 rounded-lg text-xs font-semibold ${authMethod === method ? 'bg-surface text-text shadow-softer' : 'text-muted'}`}>
-              {method === 'email' ? t('auth.emailMethod') : t('auth.phoneMethod')}
-            </button>
-          ))}
-        </div>
-
         {mode === 'signup' && (
           <p className="text-xs text-muted leading-relaxed bg-surface2 border border-border rounded-lg px-3 py-2.5">
             {t('auth.disclaimer')}
@@ -173,26 +151,17 @@ export default function AuthScreen() {
         )}
 
         <form onSubmit={handleSubmit} autoComplete="on" className="space-y-3">
-          {authMethod === 'email' ? (
-            <>
-              <Input icon={Mail} label={t('auth.email')} id="auth-email" name="username" autoComplete="username" autoCapitalize="none" spellCheck={false} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-              <div className="relative">
-                <Input icon={Lock} label={t('auth.password')} id="auth-password" name="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} type={showPassword ? 'text' : 'password'} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-12" />
-                <button type="button" aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')} onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-[31px] p-2 text-muted hover:text-text">
-                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                </button>
-              </div>
-              <label className="flex items-center gap-2 text-xs text-muted cursor-pointer">
-                <input type="checkbox" checked={rememberEmail} onChange={(e) => setRememberEmail(e.target.checked)} className="accent-primary" />
-                {t('auth.remember')}
-              </label>
-            </>
-          ) : (
-            <>
-              <Input icon={Phone} label={t('auth.phone')} id="auth-phone" name="tel" autoComplete="tel" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 123 4567" />
-              {phoneCodeSent && <Input label={t('auth.smsCode')} id="auth-sms-code" name="one-time-code" autoComplete="one-time-code" inputMode="numeric" type="text" required value={phoneCode} onChange={(e) => setPhoneCode(e.target.value)} placeholder="123456" />}
-            </>
-          )}
+          <Input icon={Mail} label={t('auth.email')} id="auth-email" name="username" autoComplete="username" autoCapitalize="none" spellCheck={false} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+          <div className="relative">
+            <Input icon={Lock} label={t('auth.password')} id="auth-password" name="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} type={showPassword ? 'text' : 'password'} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-12" />
+            <button type="button" aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')} onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-[31px] p-2 text-muted hover:text-text">
+              {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+            </button>
+          </div>
+          <label className="flex items-center gap-2 text-xs text-muted cursor-pointer">
+            <input type="checkbox" checked={rememberEmail} onChange={(e) => setRememberEmail(e.target.checked)} className="accent-primary" />
+            {t('auth.remember')}
+          </label>
           {notice && <p role="status" className="text-savings text-sm font-medium">{notice}</p>}
           {error && <p className="text-danger text-sm font-medium">{error}</p>}
           <Button type="submit" disabled={loading}>
