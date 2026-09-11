@@ -14,6 +14,7 @@ export default function AuthScreen() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [notice, setNotice] = useState('')
+  const [resending, setResending] = useState(false)
   const [rememberEmail, setRememberEmail] = useState(() => localStorage.getItem('fintera_remember_email') !== '0')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -162,7 +163,32 @@ export default function AuthScreen() {
             <input type="checkbox" checked={rememberEmail} onChange={(e) => setRememberEmail(e.target.checked)} className="accent-primary" />
             {t('auth.remember')}
           </label>
-          {notice && <p role="status" className="text-savings text-sm font-medium">{notice}</p>}
+          {notice && (
+            <div className="space-y-2">
+              <p role="status" className="text-savings text-sm font-medium">{notice}</p>
+              {supabaseEnabled && mode === 'signup' && (
+                <button
+                  type="button"
+                  disabled={resending}
+                  onClick={async () => {
+                    setError('')
+                    setResending(true)
+                    try {
+                      await db.resendSignupEmail(email)
+                      setNotice(t('auth.emailResent'))
+                    } catch (err) {
+                      setError(err.message || t('auth.emailResendFailed'))
+                    } finally {
+                      setResending(false)
+                    }
+                  }}
+                  className="text-primary text-sm font-semibold underline underline-offset-4 disabled:opacity-50"
+                >
+                  {resending ? t('auth.loading') : t('auth.resendEmail')}
+                </button>
+              )}
+            </div>
+          )}
           {error && <p className="text-danger text-sm font-medium">{error}</p>}
           <Button type="submit" disabled={loading}>
             {loading ? t('auth.loading') : mode === 'signin' ? t('auth.submitSignin') : t('auth.submitSignup')}
