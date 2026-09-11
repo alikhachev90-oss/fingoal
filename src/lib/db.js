@@ -168,12 +168,17 @@ export async function listDebts(userId, context) {
 }
 
 export async function addDebt(userId, context, debt) {
-  const row = { id: uid(), user_id: userId, context, created_at: new Date().toISOString(), ...debt }
   if (supabaseEnabled) {
-    const { data, error } = await supabase.from('debts').insert(row).select().single()
+    // Let Postgres generate the UUID and timestamp. The local mock uses its own id.
+    const { data, error } = await supabase
+      .from('debts')
+      .insert({ user_id: userId, context, ...debt })
+      .select()
+      .single()
     if (error) throw error
     return data
   }
+  const row = { id: uid(), user_id: userId, context, created_at: new Date().toISOString(), ...debt }
   const db = loadMock()
   db.debts.push(row)
   saveMock(db)
