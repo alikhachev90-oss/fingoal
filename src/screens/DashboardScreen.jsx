@@ -40,7 +40,7 @@ const MONTH_FMT = { en: 'en-US', es: 'es-ES', fr: 'fr-FR', ru: 'ru-RU' }
 
 export default function DashboardScreen() {
   const { user, context, t, lang } = useApp()
-  const [settings, setSettings] = useState(null)
+  const [settings, setSettings] = useState(undefined)
   const [editingBills, setEditingBills] = useState(false)
   const [transactions, setTransactions] = useState([])
   const [goals, setGoals] = useState([])
@@ -202,7 +202,7 @@ export default function DashboardScreen() {
 
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Александр'
 
-  if (settings === null) {
+  if (settings === undefined) {\n    return <div className="min-h-[100svh] flex items-center justify-center text-muted">Загрузка…</div>\n  }\n\n  if (!settings) {
     return (
       <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full items-center justify-center px-6">
         <EmptyState
