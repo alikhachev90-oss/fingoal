@@ -1,4 +1,13 @@
 export const UI_STRINGS = {
+  "auth.emailMethod": { "ru": "Почта", "en": "Email", "es": "Correo", "fr": "E-mail" },
+  "auth.phoneMethod": { "ru": "Телефон", "en": "Phone", "es": "Teléfono", "fr": "Téléphone" },
+  "auth.phone": { "ru": "Номер телефона", "en": "Phone number", "es": "Teléfono", "fr": "Numéro de téléphone" },
+  "auth.smsCode": { "ru": "Код из SMS", "en": "SMS code", "es": "Código SMS", "fr": "Code SMS" },
+  "auth.smsSent": { "ru": "Код отправлен по SMS. Введи его ниже.", "en": "SMS code sent. Enter it below.", "es": "Código SMS enviado. Escríbelo abajo.", "fr": "Code SMS envoyé. Saisissez-le ci-dessous." },
+  "auth.emailSent": { "ru": "Проверь почту и подтверди адрес. После подтверждения можно войти.", "en": "Check your email and confirm your address. Then you can sign in.", "es": "Revisa tu correo y confirma la dirección. Después podrás iniciar sesión.", "fr": "Vérifiez votre e-mail et confirmez votre adresse. Vous pourrez ensuite vous connecter." },
+  "auth.showPassword": { "ru": "Показать пароль", "en": "Show password", "es": "Mostrar contraseña", "fr": "Afficher le mot de passe" },
+  "auth.hidePassword": { "ru": "Скрыть пароль", "en": "Hide password", "es": "Ocultar contraseña", "fr": "Masquer le mot de passe" },
+  "auth.remember": { "ru": "Запомнить email", "en": "Remember email", "es": "Recordar correo", "fr": "Mémoriser l’e-mail" },
   "dashboard.checkinLater": { "ru": "Хорошо, можно вернуться позже.", "en": "Okay, you can come back later.", "es": "Bien, puedes volver más tarde.", "fr": "D’accord, vous pouvez revenir plus tard." },
   "goals.contributionRecorded": { "ru": "Записано {amt} в цель «{name}». Прогресс обновлён.", "en": "Recorded {amt} toward “{name}”. Progress updated.", "es": "Registrado {amt} para «{name}». Progreso actualizado.", "fr": "{amt} enregistrés pour «{name}». Progression actualisée." },
   "nav.open": { "ru": "Открыть меню", "en": "Open menu", "es": "Abrir menú", "fr": "Ouvrir le menu" },
