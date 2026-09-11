@@ -30,7 +30,7 @@ export async function signUp(email, password) {
   if (supabaseEnabled) {
     const { data, error } = await supabase.auth.signUp({ email, password })
     if (error) throw error
-    return data.user
+    return data
   }
   const db = loadMock()
   if (db.users.find((u) => u.email === email)) throw new Error('Пользователь с таким email уже существует')
@@ -39,6 +39,22 @@ export async function signUp(email, password) {
   saveMock(db)
   localStorage.setItem(SESSION_KEY, JSON.stringify(user))
   return user
+}
+
+export async function sendPhoneCode(phone, shouldCreateUser = false) {
+  if (!supabaseEnabled) throw new Error('Телефонная регистрация доступна после подключения Supabase')
+  const { error } = await supabase.auth.signInWithOtp({
+    phone,
+    options: { shouldCreateUser },
+  })
+  if (error) throw error
+}
+
+export async function verifyPhoneCode(phone, token) {
+  if (!supabaseEnabled) throw new Error('Подтверждение телефона доступно после подключения Supabase')
+  const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: 'sms' })
+  if (error) throw error
+  return data.user
 }
 
 export async function signIn(email, password) {
