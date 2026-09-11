@@ -11,9 +11,9 @@ const items = [
   { to: '/lessons', icon: GraduationCap, key: 'nav.lessons' },
 ]
 
-const AUTO_HIDE_MS = 6500
+const AUTO_HIDE_MS = 15000
 
-export default function BottomNav({ persistent = true }) {
+export default function BottomNav({ persistent = false }) {
   const { t } = useApp()
   const [expanded, setExpanded] = useState(persistent)
   const hideTimer = useRef(null)
@@ -38,8 +38,9 @@ export default function BottomNav({ persistent = true }) {
         <nav
           aria-hidden={!expanded}
           inert={!expanded}
-          onPointerEnter={scheduleHide}
-          className={`absolute inset-x-3 bottom-[max(env(safe-area-inset-bottom),10px)] pointer-events-auto transition-all duration-300 ease-out ${
+          onPointerDown={scheduleHide}
+          onFocus={scheduleHide}
+          className={`absolute inset-x-3 bottom-[max(env(safe-area-inset-bottom),10px)] pointer-events-auto transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
             expanded ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-[115%] opacity-0 scale-[.97] pointer-events-none'
           }`}
         >
@@ -70,7 +71,8 @@ export default function BottomNav({ persistent = true }) {
 
         {!persistent && <button
           type="button"
-          aria-label="Open navigation"
+          aria-label={t('nav.open')}
+          tabIndex={expanded ? -1 : 0}
           aria-expanded={expanded}
           onClick={() => expanded ? setExpanded(false) : reveal()}
           onTouchStart={(e) => { touchStartY.current = e.touches[0].clientY }}
@@ -83,11 +85,11 @@ export default function BottomNav({ persistent = true }) {
             }
           }}
           onTouchEnd={() => { touchStartY.current = null }}
-          className={`pointer-events-auto absolute left-1/2 -translate-x-1/2 bottom-[max(env(safe-area-inset-bottom),2px)] w-24 h-11 flex items-center justify-center rounded-full transition-all duration-300 ${
+          className={`pointer-events-auto absolute left-1/2 -translate-x-1/2 bottom-[calc(max(env(safe-area-inset-bottom),2px)+8px)] w-24 h-11 flex items-center justify-center rounded-full transition-all duration-[600ms] motion-reduce:transition-none ${
             expanded ? 'opacity-0 translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'
           }`}
         >
-          <span className="block w-12 h-1 rounded-full bg-white/45 shadow-[0_1px_0_rgb(255_255_255/.20)_inset,0_0_16px_rgb(255_255_255/.08)]" />
+          <span className="block w-12 h-1 rounded-full bg-muted shadow-[0_1px_0_rgb(255_255_255/.20)_inset,0_0_16px_rgb(255_255_255/.08)]" />
         </button>}
       </div>
     </div>

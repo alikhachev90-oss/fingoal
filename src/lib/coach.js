@@ -2,7 +2,7 @@ function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
 }
 
-export function getCoachAction({ settings, transactions = [], goals = [], debts = [], lang = 'ru' }) {
+export function getCoachAction({ settings, transactions = [], goals = [], debts = [], lang = 'ru', checkedInToday = false }) {
   const en = lang === 'en'
   const now = new Date()
   const monthTx = transactions.filter((t) => {
@@ -12,17 +12,6 @@ export function getCoachAction({ settings, transactions = [], goals = [], debts 
   const incomeLogged = monthTx.filter((t) => t.group === 'income').reduce((s, t) => s + (t.amount || 0), 0)
   const wants = monthTx.filter((t) => t.group === 'wants').reduce((s, t) => s + (t.amount || 0), 0)
   const income = settings?.monthly_income || incomeLogged || 0
-
-  if (transactions.length < 3) {
-    return {
-      tone: 'neutral',
-      eyebrow: en ? 'Start here' : 'Начни отсюда',
-      title: en ? 'Give FinTrack a little context' : 'Дай FinTrack немного контекста',
-      text: en ? 'Add a few real transactions. The app will start explaining your money instead of only showing empty charts.' : 'Добавь несколько реальных операций. После этого приложение начнёт объяснять твои деньги, а не просто показывать пустые графики.',
-      action: en ? 'Add transaction' : 'Добавить операцию',
-      to: '/entry',
-    }
-  }
 
   const highRateDebt = [...debts].filter((d) => Number(d.rate) > 15).sort((a, b) => Number(b.rate) - Number(a.rate))[0]
   if (highRateDebt) {
@@ -47,6 +36,33 @@ export function getCoachAction({ settings, transactions = [], goals = [], debts 
     }
   }
 
+  const goal = goals.find((g) => Number(g.target_amount) > Number(g.saved_amount || 0))
+  if (!goal) return null
+  const monthlyNeeds = Object.values(settings?.needs_budget || {}).reduce((sum, amount) => sum + (Number(amount) || 0), 0)
+  const daysLeftThisMonth = Math.max(1, new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1)
+  const dailyAvailable = Math.max(0, (income - monthlyNeeds - wants) / daysLeftThisMonth)
+  const remaining = Math.max(0, (goal.target_amount || 0) - (goal.saved_amount || 0))
+  const daysLeft = Math.max(1, Math.ceil((new Date(goal.deadline).setHours(0, 0, 0, 0) - now.setHours(0, 0, 0, 0)) / 86400000))
+  const dailyGoalStep = remaining / daysLeft
+  const savedRecently = transactions.some((t) => {
+    const age = Date.now() - new Date(t.date).getTime()
+    return t.group === 'savings' && age >= 0 && age < 14 * 86400000
+  })
+
+  if (remaining > 0 && Number.isFinite(dailyGoalStep) && dailyGoalStep > 0 && !savedRecently && !checkedInToday && dailyAvailable >= 1 && wants <= income * 0.3) {
+    const suggestedAmount = Math.max(1, Math.min(Math.ceil(dailyGoalStep), Math.floor(dailyAvailable)))
+    return {
+      tone: 'good',
+      eyebrow: en ? 'Today’s move' : 'Действие на сегодня',
+      title: en ? `One step toward “${goal.name}”` : `Шаг к «${goal.name}»`,
+      text: en
+        ? `The goal plan needs about ${fmt(dailyGoalStep)} a day. Suggested step: ${fmt(suggestedAmount)}, based on your monthly budget. Record it once you have actually set the money aside.`
+        : `Для цели нужно около ${fmt(dailyGoalStep)} в день. Предлагаемый шаг — ${fmt(suggestedAmount)} по твоему месячному бюджету. Запиши его, когда действительно отложишь деньги.`,
+      action: en ? `Set aside ${fmt(suggestedAmount)}` : `Отложить ${fmt(suggestedAmount)}`,
+      to: `/goals?goal=${encodeURIComponent(goal.id)}&amount=${suggestedAmount}`,
+    }
+  }
+
   if (income > 0 && wants > income * 0.3) {
     const pct = Math.round((wants / income) * 100)
     return {
@@ -59,9 +75,7 @@ export function getCoachAction({ settings, transactions = [], goals = [], debts 
     }
   }
 
-  const goal = goals[0]
   if (goal) {
-    const remaining = Math.max(0, (goal.target_amount || 0) - (goal.saved_amount || 0))
     return {
       tone: 'good',
       eyebrow: en ? 'On course' : 'Курс задан',

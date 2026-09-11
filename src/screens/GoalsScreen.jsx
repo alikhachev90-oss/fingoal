@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import { Button, Input, Card, Pill, IconCircle } from '../components/UI'
@@ -46,12 +47,22 @@ export default function GoalsScreen() {
   const [milestoneHit, setMilestoneHit] = useState(null)
   const [tourActive, setTourActive] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [suggestedAmount, setSuggestedAmount] = useState('')
+  const [contributionBusy, setContributionBusy] = useState(false)
+  const contributionLock = useRef(false)
+  const [contributionMessage, setContributionMessage] = useState('')
+  const suggestedGoalId = searchParams.get('goal')
 
   useEffect(() => {
     if (!user) return
     db.getSettings(user.id, context).then(setSettings)
     refresh()
   }, [user, context])
+
+  useEffect(() => {
+    if (suggestedGoalId) setSuggestedAmount(searchParams.get('amount') || '')
+  }, [suggestedGoalId, searchParams])
 
   function refresh() {
     db.listGoals(user.id, context).then(setGoals)
@@ -81,10 +92,14 @@ export default function GoalsScreen() {
     }
   }
 
-  async function addSavings(goal) {
-    const amt = window.prompt(t('goals.addSavingsPrompt', { name: goal.name }))
+  async function addSavings(goal, rawAmount) {
+    const amt = rawAmount ?? window.prompt(t('goals.addSavingsPrompt', { name: goal.name }))
     const num = parseFloat(amt)
-    if (!num || num <= 0) return
+    if (!Number.isFinite(num) || num <= 0 || contributionLock.current) return false
+    contributionLock.current = true
+    setContributionBusy(true)
+    setContributionMessage('')
+    try {
     const prevPct = goal.target_amount > 0 ? Math.min(100, Math.round(((goal.saved_amount || 0) / goal.target_amount) * 100)) : 0
     const updated = await db.addToGoalSavings(user.id, goal.id, num)
     const newPct = goal.target_amount > 0 ? Math.min(100, Math.round(((updated?.saved_amount || 0) / goal.target_amount) * 100)) : 0
@@ -93,8 +108,23 @@ export default function GoalsScreen() {
       setMilestoneHit({ pct: milestone, goalName: goal.name })
       setTimeout(() => setMilestoneHit(null), 4000)
     }
-    await db.checkInToday(user.id, context)
+    setContributionMessage(t('goals.contributionRecorded', { amt: fmt(num), name: goal.name }))
+    await db.checkInToday(user.id, context).catch(() => {})
     refresh()
+    return true
+    } catch {
+      setContributionMessage(t('bills.error'))
+      return false
+    } finally {
+      contributionLock.current = false
+      setContributionBusy(false)
+    }
+  }
+
+  async function saveSuggestedContribution(event, goal) {
+    event.preventDefault()
+    const saved = await addSavings(goal, suggestedAmount)
+    if (saved) setSearchParams({})
   }
 
   async function removeGoal(id) {
@@ -116,6 +146,7 @@ export default function GoalsScreen() {
       />
       <TopBar title={t('goals.title')} onHelp={() => setTourActive(true)} />
       <div className="flex-1 px-4 py-4 space-y-4">
+        {contributionMessage && <p role="status" className="glass rounded-xl p-3 text-sm">{contributionMessage}</p>}
         {milestoneHit && (
           <Card className="bg-primary/10 border-primary/30 text-center">
             <p className="text-sm font-medium">{t('goals.milestoneToast', { name: milestoneHit.goalName, pct: milestoneHit.pct })}</p>
@@ -173,6 +204,7 @@ export default function GoalsScreen() {
         )}
 
         {goals.map((goal) => {
+          const isSuggestedGoal = suggestedGoalId === goal.id
           const plan = settings
             ? computeGoalPlan(
                 { targetAmount: goal.target_amount, savedAmount: goal.saved_amount, deadline: goal.deadline },
@@ -217,8 +249,19 @@ export default function GoalsScreen() {
                 </div>
               )}
 
+              {isSuggestedGoal && (
+                <form onSubmit={(event) => saveSuggestedContribution(event, goal)} className="bg-primary/10 border border-primary/25 rounded-xl p-3 space-y-2.5">
+                  <p className="text-sm font-medium">{t('goals.coachContributionTitle')}</p>
+                  <p className="text-xs text-muted">{t('goals.coachContributionHint')}</p>
+                  <div className="flex items-end gap-2">
+                    <Input label={t('goals.coachContributionAmount')} type="number" min="1" step="1" required value={suggestedAmount} onChange={(event) => setSuggestedAmount(event.target.value)} />
+                    <Button type="submit" disabled={contributionBusy} className="!w-auto px-4 shrink-0">{t(contributionBusy ? 'common.saving' : 'goals.coachContributionSave')}</Button>
+                  </div>
+                </form>
+              )}
+
               <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="secondary" onClick={() => addSavings(goal)} type="button" className="!w-auto flex-1">{t('goals.addSavingsToday')}</Button>
+                <Button variant="secondary" disabled={contributionBusy} onClick={() => addSavings(goal)} type="button" className="!w-auto flex-1">{t('goals.addSavingsToday')}</Button>
                 <span data-tour="goals-reminder">
                   <GoalReminderButton goalId={goal.id} />
                 </span>

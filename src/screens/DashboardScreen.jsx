@@ -48,6 +48,7 @@ export default function DashboardScreen() {
   const [accounts, setAccounts] = useState([])
   const [streak, setStreak] = useState(0)
   const [checkedInToday, setCheckedInToday] = useState(false)
+  const [checkinSkipped, setCheckinSkipped] = useState(false)
   const [habitTip, setHabitTip] = useState(null)
   const [tourActive, setTourActive] = useState(false)
   const [monthOffset, setMonthOffset] = useState(0)
@@ -197,7 +198,7 @@ export default function DashboardScreen() {
     { monthlyIncome, monthlyNeeds: monthlyNeedsBudget },
   ) : null
 
-  const coachAction = getCoachAction({ settings, transactions, goals, debts, lang })
+  const coachAction = getCoachAction({ settings, transactions, goals, debts, lang, checkedInToday })
 
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Александр'
 
@@ -303,7 +304,7 @@ export default function DashboardScreen() {
           </div>
           <div className="home-checkin">
             <p>{t('dashboard.checkinPrompt')}</p>
-            {checkedInToday ? <p className="text-savings">{t('dashboard.checkedIn')}</p> : <div className="flex gap-1.5"><Button type="button" onClick={handleCheckIn}>{t('dashboard.checkinYes')}</Button><Button type="button" variant="secondary" onClick={() => {}}>{t('dashboard.checkinNo')}</Button></div>}
+            {checkedInToday ? <p className="text-savings">{t('dashboard.checkedIn')}</p> : checkinSkipped ? <p className="text-muted">{t('dashboard.checkinLater')}</p> : <div className="flex gap-1.5"><Button type="button" onClick={handleCheckIn}>{t('dashboard.checkinYes')}</Button><Button type="button" variant="secondary" onClick={() => setCheckinSkipped(true)}>{t('dashboard.checkinNo')}</Button></div>}
           </div>
         </Card>
 
@@ -530,7 +531,7 @@ export default function DashboardScreen() {
           )}
         </Card>
       </div>
-      <BottomNav persistent />
+      <BottomNav />
       {editingBills && <EssentialPaymentsEditor key={user.id + ':' + context} settings={settings} onSaved={setSettings} onClose={() => setEditingBills(false)} />}
     </div>
   )

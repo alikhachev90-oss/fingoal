@@ -313,20 +313,7 @@ export default function EntryScreen() {
         </Card>
 
         {type !== 'transfer' && (
-        <>
-        <button
-          type="button"
-          aria-expanded={categoriesOpen}
-          onClick={() => setCategoriesOpen((open) => !open)}
-          className="category-toggle w-full flex items-center justify-between rounded-2xl px-4 py-3.5 glass text-left"
-        >
-          <span className="flex items-center gap-2 text-sm font-medium">
-            <span className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center">{selected ? '✓' : '+'}</span>
-            {selected ? pickLang(findCategory(selected.group, selected.key)?.label, lang) || selected.label : t('entry.chooseCategory')}
-          </span>
-          <ChevronDown size={17} className={`text-muted transition-transform ${categoriesOpen ? 'rotate-180' : ''}`} />
-        </button>
-        {categoriesOpen && <Card className="category-panel space-y-3">
+        <Card className="category-panel space-y-3">
           <Input
             label={t('entry.category')}
             value={query}
@@ -382,8 +369,14 @@ export default function EntryScreen() {
             </div>
           )}
 
-          {!pendingCat && (
-            <div className="space-y-3 pt-1 border-t border-border/60">
+          <button type="button" aria-expanded={categoriesOpen} aria-controls="category-groups"
+            onClick={() => setCategoriesOpen((open) => !open)}
+            className="w-full flex items-center justify-between text-sm text-primary py-2">
+            {t(categoriesOpen ? 'entry.hideCategories' : 'entry.chooseCategory')}
+            <ChevronDown size={17} className={`transition-transform ${categoriesOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {!pendingCat && (categoriesOpen || liveMatches) && (
+            <div id="category-groups" className="space-y-3 pt-1 border-t border-border/60">
               {visibleGroups.map(([group, cats]) => (
                 <div key={group}>
                   <p className="text-xs text-muted mb-1.5 mt-2">{t(`group.${group}`)}</p>
@@ -415,8 +408,7 @@ export default function EntryScreen() {
               ))}
             </div>
           )}
-        </Card>}
-        </>
+        </Card>
         )}
 
         {wantsImpactDays !== null && wantsImpactDays > 0 && (
@@ -442,7 +434,7 @@ export default function EntryScreen() {
           </Card>
         )}
       </div>
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-[calc(100px+env(safe-area-inset-bottom))]">
         <Button
           onClick={handleSave}
           disabled={

@@ -15,7 +15,7 @@ function fmt(n) {
 const emptyForm = { name: '', type: 'cash', credit_limit: '', statement_day: '', due_day: '' }
 
 export default function AccountsScreen() {
-  const { user, context, lang } = useApp()
+  const { user, context, lang, t } = useApp()
   const [accounts, setAccounts] = useState([])
   const [transactions, setTransactions] = useState([])
   const [showForm, setShowForm] = useState(false)

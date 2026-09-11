@@ -1,4 +1,8 @@
 export const UI_STRINGS = {
+  "dashboard.checkinLater": { "ru": "Хорошо, можно вернуться позже.", "en": "Okay, you can come back later.", "es": "Bien, puedes volver más tarde.", "fr": "D’accord, vous pouvez revenir plus tard." },
+  "goals.contributionRecorded": { "ru": "Записано {amt} в цель «{name}». Прогресс обновлён.", "en": "Recorded {amt} toward “{name}”. Progress updated.", "es": "Registrado {amt} para «{name}». Progreso actualizado.", "fr": "{amt} enregistrés pour «{name}». Progression actualisée." },
+  "nav.open": { "ru": "Открыть меню", "en": "Open menu", "es": "Abrir menú", "fr": "Ouvrir le menu" },
+  "entry.hideCategories": { "ru": "Скрыть категории", "en": "Hide categories", "es": "Ocultar categorías", "fr": "Masquer les catégories" },
   "settings.background": {
     "ru": "Стиль оформления",
     "en": "Visual style",
@@ -160,6 +164,30 @@ export const UI_STRINGS = {
     "en": "Payment: {name}",
     "es": "Pago: {name}",
     "fr": "Paiement : {name}"
+  },
+  "goals.coachContributionTitle": {
+    "ru": "Сделай шаг к цели сейчас",
+    "en": "Make today’s move",
+    "es": "Da el paso de hoy",
+    "fr": "Faites le pas d’aujourd’hui"
+  },
+  "goals.coachContributionHint": {
+    "ru": "Сумма обновит прогресс цели и дневной стрик.",
+    "en": "This updates goal progress and today’s streak.",
+    "es": "Actualiza el progreso de tu meta y la racha de hoy.",
+    "fr": "Cela met à jour votre objectif et votre série du jour."
+  },
+  "goals.coachContributionAmount": {
+    "ru": "Сколько откладываешь, $",
+    "en": "Amount to set aside, $",
+    "es": "Importe a ahorrar, $",
+    "fr": "Montant à mettre de côté, $"
+  },
+  "goals.coachContributionSave": {
+    "ru": "Отложить",
+    "en": "Set aside",
+    "es": "Ahorrar",
+    "fr": "Mettre de côté"
   },
   "dashboard.uncategorized": {
     "ru": "Без подкатегории",
