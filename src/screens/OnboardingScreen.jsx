@@ -15,7 +15,7 @@ export default function OnboardingScreen() {
   const [needs, setNeeds] = useState({ housing: '', transport: '', groceries: '', health: '' })
   const [hasDebts, setHasDebts] = useState(null)
   const [debts, setDebts] = useState([{ ...emptyDebt }])
-  const [saving, setSaving] = useState(false)
+  const [saving, setSaving] = useState(false)\n  const [error, setError] = useState('')
 
   const NEEDS_FIELDS = [
     { key: 'housing', label: t('onboarding.needsFieldHousing'), hint: t('onboarding.needsFieldHousingHint'), icon: Home, color: 'bg-needs/10 text-needs' },
@@ -191,7 +191,7 @@ export default function OnboardingScreen() {
 
       <div className="flex-1">{steps[step]}</div>
 
-      <div className="flex gap-3 mt-8">
+      {error && <p role="alert" className="text-danger text-sm font-medium mt-4">{error}</p>}\n\n      <div className="flex gap-3 mt-8">
         {step > 0 && (
           <Button variant="secondary" icon={ChevronLeft} onClick={() => setStep((s) => s - 1)} type="button" className="!w-auto px-4">
             {t('common.back')}
