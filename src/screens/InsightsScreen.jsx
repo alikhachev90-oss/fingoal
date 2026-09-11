@@ -41,7 +41,7 @@ const TONE_STYLE = {
 
 export default function InsightsScreen() {
   const { user, context, t, lang } = useApp()
-  const [settings, setSettings] = useState(null)
+  const [settings, setSettings] = useState(undefined)
   const [debts, setDebts] = useState([])
   const [goals, setGoals] = useState([])
   const [transactions, setTransactions] = useState([])
@@ -71,7 +71,7 @@ export default function InsightsScreen() {
     [user, context, transactions, radarTick],
   )
 
-  if (settings === null) {
+  if (settings === undefined) {\n    return <div className="min-h-[100svh] flex items-center justify-center text-muted">Загрузка…</div>\n  }\n\n  if (!settings) {
     return (
       <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full items-center justify-center px-6">
         <EmptyState icon={Sparkles} title={t('insights.onboardingRequiredTitle')} subtitle={t('insights.onboardingRequiredSubtitle')} />
