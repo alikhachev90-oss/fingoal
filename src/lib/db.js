@@ -246,10 +246,25 @@ export async function listGoals(userId, context) {
     .sort((a, b) => a.priority - b.priority)
 }
 
+// True when Postgres/PostgREST rejected the write because the table has no
+// such column — the goal form sends `why`, which older databases lack.
+function isUnknownColumn(error, column) {
+  if (!error) return false
+  const text = `${error.message || ''} ${error.details || ''} ${error.hint || ''}`
+  return (error.code === 'PGRST204' || error.code === '42703') && text.includes(column)
+}
+
 export async function upsertGoal(userId, context, goal) {
   if (supabaseEnabled) {
     const row = goal.id ? goal : { ...goal, user_id: userId, context }
-    const { data, error } = await supabase.from('goals').upsert(row).select().single()
+    let { data, error } = await supabase.from('goals').upsert(row).select().single()
+    if (isUnknownColumn(error, 'why')) {
+      // Save the goal anyway, just without the optional "why" note, instead of
+      // silently losing the whole thing.
+      const { why, ...withoutWhy } = row
+      void why
+      ;({ data, error } = await supabase.from('goals').upsert(withoutWhy).select().single())
+    }
     if (error) throw error
     return data
   }
