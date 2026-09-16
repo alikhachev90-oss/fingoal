@@ -208,6 +208,14 @@ const STRINGS = {
   'entry.commentPlaceholder': { ru: 'Необязательно', en: 'Optional', es: 'Opcional', fr: 'Facultatif' },
   'entry.category': { ru: 'Категория', en: 'Category', es: 'Categoría', fr: 'Catégorie' },
   'entry.categoryPlaceholder': { ru: 'Начните вводить, например «кофе»', en: 'Start typing, e.g. "coffee"', es: 'Empieza a escribir, ej. "café"', fr: 'Commencez à taper, ex. « café »' },
+  'entry.categoryPlaceholderIncome': { ru: 'Начните вводить, например «зарплата»', en: 'Start typing, e.g. "salary"', es: 'Empieza a escribir, ej. "salario"', fr: 'Commencez à taper, ex. « salaire »' },
+  'entry.createAccount': { ru: 'Создать счёт', en: 'Create account', es: 'Crear cuenta', fr: 'Créer un compte' },
+  'entry.newAccountName': { ru: 'Название счёта', en: 'Account name', es: 'Nombre de la cuenta', fr: 'Nom du compte' },
+  'entry.newAccountNamePlaceholder': { ru: 'Например, BOFA, Наличные, Чек', en: 'e.g. BOFA, Cash, Check', es: 'ej. BOFA, Efectivo, Cheque', fr: 'ex. BOFA, Espèces, Chèque' },
+  'entry.addAccount': { ru: 'Добавить', en: 'Add', es: 'Añadir', fr: 'Ajouter' },
+  'accounts.type.cash': { ru: 'Нал', en: 'Cash', es: 'Efectivo', fr: 'Espèces' },
+  'accounts.type.debit': { ru: 'Безнал', en: 'Debit', es: 'Débito', fr: 'Débit' },
+  'accounts.type.credit': { ru: 'Кредитка', en: 'Credit', es: 'Crédito', fr: 'Crédit' },
   'entry.manualPick': { ru: 'Выбрать категорию вручную', en: 'Pick category manually', es: 'Elegir categoría manualmente', fr: 'Choisir la catégorie manuellement' },
   'entry.saveBtn': { ru: 'Сохранить трату', en: 'Save expense', es: 'Guardar gasto', fr: 'Enregistrer la dépense' },
   'entry.saved': { ru: '✅ Сохранено!', en: '✅ Saved!', es: '✅ ¡Guardado!', fr: '✅ Enregistré !' },
@@ -385,7 +393,7 @@ const STRINGS = {
 }
 
 export function translate(key, lang, params) {
-  const entry = UI_STRINGS[key] || STRINGS[key]
+  const entry = STRINGS[key]
   let str = entry ? (entry[lang] || entry.ru || key) : key
   if (params) {
     for (const [k, v] of Object.entries(params)) {
@@ -394,4 +402,3 @@ export function translate(key, lang, params) {
   }
   return str
 }
-import { UI_STRINGS } from './ui'
