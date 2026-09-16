@@ -1,5 +1,36 @@
 // Goal / budget math helpers.
 
+// Monthly income is derived from what the person actually logged, never from a
+// number typed once at signup — that number went stale immediately and
+// contradicted the real figures shown right next to it.
+//
+// This month's logged income wins as soon as there is any. Before the first
+// paycheque of a new month lands, fall back to the average of the last three
+// months that had income, so "safe to spend" doesn't collapse to zero every
+// 1st of the month. Returns 0 when nothing was ever logged — callers show a
+// "log your income first" hint instead of a fake number.
+export function deriveMonthlyIncome(transactions, today = new Date()) {
+  const byMonth = new Map()
+  for (const t of transactions || []) {
+    if (t.group !== 'income') continue
+    const key = String(t.date).slice(0, 7) // YYYY-MM
+    byMonth.set(key, (byMonth.get(key) || 0) + Number(t.amount || 0))
+  }
+  const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  const thisMonth = byMonth.get(monthKey(today)) || 0
+  if (thisMonth > 0) return Math.round(thisMonth * 100) / 100
+
+  const previous = []
+  for (let back = 1; back <= 3; back++) {
+    const d = new Date(today.getFullYear(), today.getMonth() - back, 1)
+    const amount = byMonth.get(monthKey(d)) || 0
+    if (amount > 0) previous.push(amount)
+  }
+  if (!previous.length) return 0
+  const avg = previous.reduce((sum, v) => sum + v, 0) / previous.length
+  return Math.round(avg * 100) / 100
+}
+
 export function daysBetween(from, to) {
   const ms = new Date(to).setHours(0, 0, 0, 0) - new Date(from).setHours(0, 0, 0, 0)
   return Math.max(1, Math.round(ms / 86400000))

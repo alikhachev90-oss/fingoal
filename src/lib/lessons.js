@@ -3,6 +3,8 @@
 // paragraph computed from the user's OWN numbers — so it reads as "this is
 // about your money," not a generic finance blog post.
 
+import { deriveMonthlyIncome } from './finance'
+
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
 }
@@ -169,7 +171,8 @@ export function getLessonsWithStatus({ settings, debts = [], goals = [], transac
   })
   const monthTx = { wants: monthTxList.filter((t) => t.group === 'wants').reduce((s, t) => s + t.amount, 0) }
 
-  const ctx = { settings, debts, goals, transactions, monthTx, monthlyIncome: settings?.monthly_income || 0 }
+  // Income derived from logged transactions — the signup figure is gone.
+  const ctx = { settings, debts, goals, transactions, monthTx, monthlyIncome: deriveMonthlyIncome(transactions, now) }
 
   return LESSONS.map((lesson) => ({
     ...lesson,

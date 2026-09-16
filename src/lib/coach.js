@@ -11,7 +11,7 @@ export function getCoachAction({ settings, transactions = [], goals = [], debts 
   })
   const incomeLogged = monthTx.filter((t) => t.group === 'income').reduce((s, t) => s + (t.amount || 0), 0)
   const wants = monthTx.filter((t) => t.group === 'wants').reduce((s, t) => s + (t.amount || 0), 0)
-  const income = settings?.monthly_income || incomeLogged || 0
+  const income = incomeLogged || 0
 
   const highRateDebt = [...debts].filter((d) => Number(d.rate) > 15).sort((a, b) => Number(b.rate) - Number(a.rate))[0]
   if (highRateDebt) {

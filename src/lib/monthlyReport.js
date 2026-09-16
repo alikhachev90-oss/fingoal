@@ -82,9 +82,9 @@ function summarize(tx, lang) {
   const byGroup = { needs: 0, wants: 0, savings: 0 }
   const byCategory = {}
   for (const t of tx) {
-    // Transfers move money between the user's own accounts — they are neither
-    // spending nor income, so they stay out of both totals.
-    if (t.group === 'transfer') continue
+    // Transfers move money between the person's own accounts, and a credit-card
+    // payment repeats spending already counted — neither is a new expense.
+    if (t.group === 'transfer' || t.is_payment) continue
     byGroup[t.group] = (byGroup[t.group] || 0) + t.amount
     if (t.group === 'savings' || t.group === 'income') continue
     const cat = findCategory(t.group, t.category_key)
@@ -104,7 +104,8 @@ function summarize(tx, lang) {
 export function computeMonthReport({ transactions, goals, settings, monthDate, lang }) {
   const tx = txForMonth(transactions, monthDate)
   const { byGroup, spent, saved, topCategories } = summarize(tx, lang)
-  const income = settings?.monthly_income || 0
+  // Income is what was actually logged that month, not a figure from signup.
+  const income = tx.filter((t) => t.group === 'income').reduce((sum, t) => sum + Number(t.amount || 0), 0)
   const leftover = income - spent - saved
   const savingsRate = income > 0 ? Math.round((saved / income) * 100) : 0
 
@@ -139,7 +140,7 @@ export function computeYearReport({ transactions, goals, settings, year, lang })
   const tx = transactions.filter((t) => new Date(t.date).getFullYear() === year)
   const { byGroup, spent, saved, topCategories } = summarize(tx, lang)
   const monthsWithData = new Set(tx.map((t) => new Date(t.date).getMonth())).size
-  const income = (settings?.monthly_income || 0) * 12
+  const income = tx.filter((t) => t.group === 'income').reduce((sum, t) => sum + Number(t.amount || 0), 0)
   const savingsRate = income > 0 ? Math.round((saved / income) * 100) : 0
 
   const goalsCompleted = (goals || []).filter((g) => g.target_amount > 0 && g.saved_amount >= g.target_amount)

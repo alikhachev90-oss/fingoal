@@ -7,6 +7,7 @@
 // call sites (EntryScreen, InsightsScreen) don't need to change.
 
 import { suggestCategories, findCategory, pickLang } from './categories'
+import { deriveMonthlyIncome } from './finance'
 
 export function categoryLabel(group, key, lang = 'ru') {
   return pickLang(findCategory(group, key)?.label, lang) || key
@@ -219,7 +220,8 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
   const monthTx = transactions.filter((t) => isSameMonth(t.date, now))
   const monthWants = monthTx.filter((t) => t.group === 'wants')
   const monthWantsTotal = monthWants.reduce((s, t) => s + t.amount, 0)
-  const income = settings?.monthly_income || 0
+  // Income comes from logged transactions now, not from a signup figure.
+  const income = deriveMonthlyIncome(transactions, now)
   const en = lang === 'en'
 
   // 1. Wants vs income this month
@@ -343,7 +345,8 @@ export function answerQuestion(question, ctx) {
 
   if (/wants|дискреционн|развлечен/.test(q)) {
     const total = monthTx.filter((t) => t.group === 'wants').reduce((s, t) => s + t.amount, 0)
-    const pct = settings?.monthly_income ? Math.round((total / settings.monthly_income) * 100) : null
+    const derivedIncome = deriveMonthlyIncome(transactions)
+    const pct = derivedIncome > 0 ? Math.round((total / derivedIncome) * 100) : null
     return en
       ? pct !== null
         ? `Wants this month — ${fmt(total)} (${pct}% of income).`
@@ -354,13 +357,14 @@ export function answerQuestion(question, ctx) {
   }
 
   if (/доход|зарплат|income|salary/.test(q)) {
-    return settings?.monthly_income
+    const loggedIncome = deriveMonthlyIncome(transactions)
+    return loggedIncome > 0
       ? en
-        ? `Your stated monthly income is ${fmt(settings.monthly_income)}.`
-        : `Указанный ежемесячный доход — ${fmt(settings.monthly_income)}.`
+        ? `Your logged monthly income is ${fmt(loggedIncome)}.`
+        : `Записанный доход за месяц — ${fmt(loggedIncome)}.`
       : en
-        ? 'Income hasn’t been filled in yet in settings.'
-        : 'Доход ещё не заполнен в настройках.'
+        ? 'No income logged yet — add one on the Entry screen.'
+        : 'Доход ещё не записан — добавьте его на экране «Запись».'
   }
 
   return en

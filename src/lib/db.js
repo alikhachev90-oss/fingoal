@@ -292,6 +292,20 @@ export async function deleteGoal(userId, goalId) {
   saveMock(db)
 }
 
+// "Delete all my data" used to clear only this browser, so everything came
+// back on the next sign-in. Wipe the rows in the database too.
+export async function deleteAllUserData(userId) {
+  localStorage.removeItem(LS_KEY)
+  localStorage.removeItem(LOCAL_LESSONS_KEY)
+  if (!supabaseEnabled) return
+  const tables = ['transactions', 'goals', 'debts', 'accounts', 'checkins', 'context_settings', 'user_lessons', 'insights']
+  for (const table of tables) {
+    const { error } = await supabase.from(table).delete().eq('user_id', userId)
+    // A table the project doesn't have (or can't touch) must not abort the rest.
+    if (error && error.code !== '42P01' && error.code !== 'PGRST205') throw error
+  }
+}
+
 export async function addToGoalSavings(userId, goalId, amount) {
   if (supabaseEnabled) {
     const { data: goal } = await supabase.from('goals').select('saved_amount').eq('id', goalId).single()
