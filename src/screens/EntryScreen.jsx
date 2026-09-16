@@ -513,11 +513,7 @@ export default function EntryScreen() {
           </Card>
         )}
       </div>
-      {/* Extra bottom clearance: BottomNav's invisible pull-handle floats
-          (position:fixed) over whatever content ends up at the viewport's
-          bottom edge, so without this gap it silently steals the tap meant
-          for Save — the exact "button presses but nothing happens" bug. */}
-      <div className="px-4 pb-4 mb-20">
+      <div className="px-4 pb-4">
         <Button
           onClick={handleSave}
           disabled={
