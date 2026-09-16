@@ -315,12 +315,18 @@ export async function listTransactions(userId, context) {
 }
 
 export async function addTransaction(userId, context, tx) {
-  const row = { id: uid(), user_id: userId, context, created_at: new Date().toISOString(), ...tx }
   if (supabaseEnabled) {
-    const { data, error } = await supabase.from('transactions').insert(row).select().single()
+    // Let Postgres generate the UUID and timestamp. uid() is not a valid uuid,
+    // so sending it made every insert fail (same fix as addDebt above).
+    const { data, error } = await supabase
+      .from('transactions')
+      .insert({ user_id: userId, context, ...tx })
+      .select()
+      .single()
     if (error) throw error
     return data
   }
+  const row = { id: uid(), user_id: userId, context, created_at: new Date().toISOString(), ...tx }
   const db = loadMock()
   db.transactions.push(row)
   saveMock(db)
