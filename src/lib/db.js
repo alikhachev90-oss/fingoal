@@ -352,10 +352,25 @@ export async function addTransaction(userId, context, tx) {
 // is recorded as two linked rows so both account balances stay correct and
 // neither leg is ever double-counted as real income/expense in reports.
 export async function addTransfer(userId, context, { fromAccountId, toAccountId, amount, date, comment }) {
-  const transferId = uid()
+  // transfer_id is a uuid column, so it needs a real uuid — not the mock uid().
+  const transferId = (globalThis.crypto?.randomUUID?.() || uid())
   const base = { amount, date, comment, group: 'transfer', category_key: 'transfer', sub: null }
-  const out = await addTransaction(userId, context, { ...base, account_id: fromAccountId, transfer_id: transferId, transfer_direction: 'out' })
-  const inn = await addTransaction(userId, context, { ...base, account_id: toAccountId, transfer_id: transferId, transfer_direction: 'in' })
+  const legs = [
+    { ...base, account_id: fromAccountId, transfer_id: transferId, transfer_direction: 'out' },
+    { ...base, account_id: toAccountId, transfer_id: transferId, transfer_direction: 'in' },
+  ]
+  if (supabaseEnabled) {
+    // Both legs in one insert: a half-written transfer would make money vanish
+    // from one account without arriving in the other.
+    const { data, error } = await supabase
+      .from('transactions')
+      .insert(legs.map((leg) => ({ user_id: userId, context, ...leg })))
+      .select()
+    if (error) throw error
+    return data
+  }
+  const out = await addTransaction(userId, context, legs[0])
+  const inn = await addTransaction(userId, context, legs[1])
   return [out, inn]
 }
 
@@ -384,7 +399,13 @@ export async function getCheckins(userId, context) {
 export async function checkInToday(userId, context) {
   const today = new Date().toISOString().slice(0, 10)
   if (supabaseEnabled) {
-    const { data, error } = await supabase.from('checkins').upsert({ user_id: userId, context, date: today, done: true }).select().single()
+    // Without onConflict, PostgREST matches on the primary key and the second
+    // check-in of the same day trips the unique(user_id, context, date) index.
+    const { data, error } = await supabase
+      .from('checkins')
+      .upsert({ user_id: userId, context, date: today, done: true }, { onConflict: 'user_id,context,date' })
+      .select()
+      .single()
     if (error) throw error
     return data
   }
@@ -408,18 +429,38 @@ export async function listCompletedLessons(userId, context) {
       .eq('context', context)
       .not('completed_at', 'is', null)
     if (error) throw error
-    return (data || []).map((r) => r.lessons?.key).filter(Boolean)
+    const fromDb = (data || []).map((r) => r.lessons?.key).filter(Boolean)
+    const fromLocal = localLessons()
+      .filter((l) => l.user_id === userId && l.context === context)
+      .map((l) => l.lesson_key)
+    return [...new Set([...fromDb, ...fromLocal])]
   }
   const db = loadMock()
   return db.completedLessons.filter((c) => c.user_id === userId && c.context === context).map((c) => c.lesson_key)
 }
 
+// Lesson content lives in the client (src/lib/lessons.js), so the `lessons`
+// table is usually empty and user_lessons — which needs a lessons.id — can't
+// record anything. Rather than the checkmark never sticking, remember it
+// locally for this browser.
+const LOCAL_LESSONS_KEY = 'fintrack_local_lessons_v1'
+function localLessons() {
+  try { return JSON.parse(localStorage.getItem(LOCAL_LESSONS_KEY)) || [] } catch { return [] }
+}
+function markLessonLocally(userId, context, lessonKey) {
+  const all = localLessons()
+  if (all.some((l) => l.user_id === userId && l.context === context && l.lesson_key === lessonKey)) return
+  all.push({ user_id: userId, context, lesson_key: lessonKey })
+  try { localStorage.setItem(LOCAL_LESSONS_KEY, JSON.stringify(all)) } catch { /* private mode */ }
+}
+
 export async function completeLesson(userId, context, lessonKey) {
   if (supabaseEnabled) {
-    // Requires a matching row in `lessons` by key; upsert-by-key via RPC would be cleaner,
-    // kept simple here since lessons content currently lives in the client.
     const { data: lesson } = await supabase.from('lessons').select('id').eq('key', lessonKey).maybeSingle()
-    if (!lesson) return
+    if (!lesson) {
+      markLessonLocally(userId, context, lessonKey)
+      return
+    }
     const { error } = await supabase
       .from('user_lessons')
       .upsert({ user_id: userId, lesson_id: lesson.id, context, completed_at: new Date().toISOString() })

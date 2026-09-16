@@ -82,6 +82,9 @@ function summarize(tx, lang) {
   const byGroup = { needs: 0, wants: 0, savings: 0 }
   const byCategory = {}
   for (const t of tx) {
+    // Transfers move money between the user's own accounts — they are neither
+    // spending nor income, so they stay out of both totals.
+    if (t.group === 'transfer') continue
     byGroup[t.group] = (byGroup[t.group] || 0) + t.amount
     if (t.group === 'savings' || t.group === 'income') continue
     const cat = findCategory(t.group, t.category_key)
