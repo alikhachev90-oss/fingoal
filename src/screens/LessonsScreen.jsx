@@ -44,7 +44,11 @@ export default function LessonsScreen() {
     refreshCompleted()
   }
 
-  if (settings === undefined) {\n    return <div className="min-h-[100svh] flex items-center justify-center text-muted">Загрузка…</div>\n  }\n\n  if (!settings) {
+  if (settings === undefined) {
+    return <div className="min-h-[100svh] flex items-center justify-center text-muted">Загрузка…</div>
+  }
+
+  if (!settings) {
     return (
       <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full items-center justify-center px-6">
         <EmptyState icon={GraduationCap} title={t('lessons.onboardingRequiredTitle')} subtitle={t('lessons.onboardingRequiredSubtitle')} />

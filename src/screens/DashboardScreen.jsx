@@ -202,7 +202,11 @@ export default function DashboardScreen() {
 
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Александр'
 
-  if (settings === undefined) {\n    return <div className="min-h-[100svh] flex items-center justify-center text-muted">Загрузка…</div>\n  }\n\n  if (!settings) {
+  if (settings === undefined) {
+    return <div className="min-h-[100svh] flex items-center justify-center text-muted">Загрузка…</div>
+  }
+
+  if (!settings) {
     return (
       <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full items-center justify-center px-6">
         <EmptyState

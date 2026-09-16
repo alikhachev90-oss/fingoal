@@ -71,7 +71,11 @@ export default function InsightsScreen() {
     [user, context, transactions, radarTick],
   )
 
-  if (settings === undefined) {\n    return <div className="min-h-[100svh] flex items-center justify-center text-muted">Загрузка…</div>\n  }\n\n  if (!settings) {
+  if (settings === undefined) {
+    return <div className="min-h-[100svh] flex items-center justify-center text-muted">Загрузка…</div>
+  }
+
+  if (!settings) {
     return (
       <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full items-center justify-center px-6">
         <EmptyState icon={Sparkles} title={t('insights.onboardingRequiredTitle')} subtitle={t('insights.onboardingRequiredSubtitle')} />
