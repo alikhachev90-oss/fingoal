@@ -9,7 +9,7 @@ import { suggestCategories, CATEGORY_TREE, findCategory, pickLang, subLabel, sub
 import InfoTag from '../components/InfoTag'
 import { computeGoalPlan, daysSavedByAmount, crossedMilestone } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
-import { ChevronDown, Wand2 } from 'lucide-react'
+import { Wand2 } from 'lucide-react'
 
 export default function EntryScreen() {
   const { user, context, t, lang } = useApp()
@@ -35,7 +35,11 @@ export default function EntryScreen() {
   const [type, setType] = useState('expense') // 'income' | 'expense' | 'transfer'
   const [fromAccountId, setFromAccountId] = useState('')
   const [toAccountId, setToAccountId] = useState('')
-  const [categoriesOpen, setCategoriesOpen] = useState(false)
+  const [recentComments, setRecentComments] = useState([])
+  const [creatingAccountFor, setCreatingAccountFor] = useState(null) // 'main' | 'from' | 'to' | null
+  const [newAccName, setNewAccName] = useState('')
+  const [newAccType, setNewAccType] = useState('cash')
+  const [creatingAccount, setCreatingAccount] = useState(false)
 
   function changeType(next) {
     setType(next)
@@ -67,7 +71,43 @@ export default function EntryScreen() {
         setAccounts(list)
       }
     })
+    // "Comment with memory": suggest comments the person has already typed
+    // before (e.g. a recurring income source or vendor name), so retyping
+    // the same note is a tap away instead of full re-entry every time.
+    db.listTransactions(user.id, context).then((txs) => {
+      const seen = new Set()
+      const recent = []
+      for (const tx of txs) {
+        const c = (tx.comment || '').trim()
+        if (!c || seen.has(c)) continue
+        seen.add(c)
+        recent.push(c)
+        if (recent.length >= 25) break
+      }
+      setRecentComments(recent)
+    })
   }, [user, context])
+
+  function startCreateAccount(target) {
+    setCreatingAccountFor(target)
+    setNewAccName('')
+    setNewAccType('cash')
+  }
+
+  async function submitCreateAccount() {
+    if (!newAccName.trim()) return
+    setCreatingAccount(true)
+    try {
+      const created = await db.upsertAccount(user.id, context, { name: newAccName.trim(), type: newAccType })
+      setAccounts((prev) => [...prev, created])
+      if (creatingAccountFor === 'from') setFromAccountId(created.id)
+      else if (creatingAccountFor === 'to') setToAccountId(created.id)
+      else setAccountId(created.id)
+      setCreatingAccountFor(null)
+    } finally {
+      setCreatingAccount(false)
+    }
+  }
 
   // Full match set (no cap) drives which grid buttons stay highlighted while
   // typing — a ranked top-5 dropdown would hide legitimate matches further
@@ -80,7 +120,6 @@ export default function EntryScreen() {
     const subDisplay = s.sub ? subLabel(s.group, s.key, s.sub, lang) : null
     setSelected({ ...s, sub: s.sub, subDisplay })
     setQuery(subDisplay ? `${s.label} → ${subDisplay}` : s.label)
-    setCategoriesOpen(false)
   }
 
   function runQuickParse() {
@@ -112,7 +151,6 @@ export default function EntryScreen() {
     setSelected({ group, key, sub: subKey || null, subDisplay, label, explanation: null })
     setQuery(subDisplay ? `${label} → ${subDisplay}` : label)
     setPendingCat(null)
-    setCategoriesOpen(false)
   }
 
   const goalPlan = useMemo(() => {
@@ -201,8 +239,39 @@ export default function EntryScreen() {
     }
   }
 
+  function renderNewAccountForm() {
+    return (
+      <div className="bg-surface2 border border-primary/60 rounded-xl p-3 space-y-2">
+        <Input
+          label={t('entry.newAccountName')}
+          value={newAccName}
+          onChange={(e) => setNewAccName(e.target.value)}
+          placeholder={t('entry.newAccountNamePlaceholder')}
+        />
+        <div className="flex gap-1.5">
+          {['cash', 'debit', 'credit'].map((tp) => (
+            <button
+              key={tp}
+              type="button"
+              onClick={() => setNewAccType(tp)}
+              className={`flex-1 py-2 rounded-lg text-xs font-semibold border ${newAccType === tp ? 'bg-primary/15 border-primary text-primary' : 'bg-surface border-border text-muted'}`}
+            >
+              {t(`accounts.type.${tp}`)}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Button variant="secondary" type="button" className="!w-auto px-3.5" onClick={() => setCreatingAccountFor(null)}>{t('common.cancel')}</Button>
+          <Button type="button" className="!w-auto px-3.5" onClick={submitCreateAccount} disabled={creatingAccount || !newAccName.trim()}>
+            {creatingAccount ? t('common.saving') : t('entry.addAccount')}
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="screen-entry flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+    <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('entry.title')} />
       <div className="flex-1 px-4 py-4 space-y-4">
         <div className="grid grid-cols-3 gap-2">
@@ -216,7 +285,7 @@ export default function EntryScreen() {
               type="button"
               onClick={() => changeType(tab.key)}
               className={`text-sm font-semibold py-2.5 rounded-xl border transition-all ${
-                type === tab.key ? 'entry-mode-active border-primary/55 text-primary' : 'border-border text-muted bg-surface2'
+                type === tab.key ? 'border-primary text-primary bg-primary/10' : 'border-border text-muted bg-surface2'
               }`}
             >
               {tab.label}
@@ -224,7 +293,7 @@ export default function EntryScreen() {
           ))}
         </div>
 
-        {type !== 'transfer' && (
+        {type === 'expense' && (
           <Card className="!p-3.5 space-y-2.5 border-l-[3px] !border-l-primary bg-surface2/40">
             <p className="text-xs font-semibold text-muted uppercase tracking-wide flex items-center gap-1.5">
               <Wand2 size={13} className="text-primary" /> {t('entry.quickLabel')}
@@ -235,7 +304,7 @@ export default function EntryScreen() {
                 onChange={(e) => setQuickText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && runQuickParse()}
                 placeholder={t('entry.quickPlaceholder')}
-                className="min-w-0 flex-1 bg-surface border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary focus:ring-1 focus:ring-primary/40"
+                className="flex-1 bg-surface border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary focus:ring-1 focus:ring-primary/40"
               />
               <Button variant="secondary" className="!w-auto px-3.5" onClick={runQuickParse} type="button">{t('entry.quickParse')}</Button>
             </div>
@@ -248,12 +317,22 @@ export default function EntryScreen() {
           </Card>
         )}
 
-        <Card className="entry-form space-y-4">
-          <Input className="amount-input" label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
-          <div className="entry-details">
+        <Card className="space-y-3">
+          <Input label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
           <Input label={t('entry.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          <Input label={t('entry.comment')} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('entry.commentPlaceholder')} />
-          </div>
+          <Input
+            label={t('entry.comment')}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder={t('entry.commentPlaceholder')}
+            list="entry-comment-suggestions"
+            autoComplete="off"
+          />
+          {recentComments.length > 0 && (
+            <datalist id="entry-comment-suggestions">
+              {recentComments.map((c) => <option key={c} value={c} />)}
+            </datalist>
+          )}
           {type === 'transfer' ? (
             <>
               <label className="block text-sm">
@@ -268,7 +347,9 @@ export default function EntryScreen() {
                     <option key={a.id} value={a.id}>{a.name}{a.type === 'credit' ? ` (${t('accounts.credit')})` : ''}</option>
                   ))}
                 </select>
+                <button type="button" onClick={() => startCreateAccount('from')} className="mt-1 text-xs text-primary font-medium">+ {t('entry.createAccount')}</button>
               </label>
+              {creatingAccountFor === 'from' && renderNewAccountForm()}
               <label className="block text-sm">
                 <span className="text-muted text-xs font-medium">{t('entry.toAccount')}</span>
                 <select
@@ -281,12 +362,14 @@ export default function EntryScreen() {
                     <option key={a.id} value={a.id}>{a.name}{a.type === 'credit' ? ` (${t('accounts.credit')})` : ''}</option>
                   ))}
                 </select>
+                <button type="button" onClick={() => startCreateAccount('to')} className="mt-1 text-xs text-primary font-medium">+ {t('entry.createAccount')}</button>
               </label>
+              {creatingAccountFor === 'to' && renderNewAccountForm()}
               {fromAccountId && toAccountId && fromAccountId === toAccountId && (
                 <p className="text-[11px] text-wants -mt-1">{t('entry.sameAccountError')}</p>
               )}
             </>
-          ) : accounts.length > 0 && (
+          ) : (
             <label className="block text-sm">
               <span className="text-muted text-xs font-medium">{t('entry.accountLabel')}</span>
               <select
@@ -299,8 +382,10 @@ export default function EntryScreen() {
                   <option key={a.id} value={a.id}>{a.name}{a.type === 'credit' ? ` (${t('accounts.credit')})` : ''}</option>
                 ))}
               </select>
+              <button type="button" onClick={() => startCreateAccount('main')} className="mt-1 text-xs text-primary font-medium">+ {t('entry.createAccount')}</button>
             </label>
           )}
+          {creatingAccountFor === 'main' && renderNewAccountForm()}
           {type === 'income' && (
             <p className="text-[11px] text-muted -mt-1">{t('entry.incomeAccountHint')}</p>
           )}
@@ -313,7 +398,7 @@ export default function EntryScreen() {
         </Card>
 
         {type !== 'transfer' && (
-        <Card className="category-panel space-y-3">
+        <Card className="space-y-3">
           <Input
             label={t('entry.category')}
             value={query}
@@ -322,7 +407,7 @@ export default function EntryScreen() {
               setSelected(null)
               setPendingCat(null)
             }}
-            placeholder={t('entry.categoryPlaceholder')}
+            placeholder={type === 'income' ? t('entry.categoryPlaceholderIncome') : t('entry.categoryPlaceholder')}
           />
 
           {selected && (
@@ -369,14 +454,8 @@ export default function EntryScreen() {
             </div>
           )}
 
-          <button type="button" aria-expanded={categoriesOpen} aria-controls="category-groups"
-            onClick={() => setCategoriesOpen((open) => !open)}
-            className="w-full flex items-center justify-between text-sm text-primary py-2">
-            {t(categoriesOpen ? 'entry.hideCategories' : 'entry.chooseCategory')}
-            <ChevronDown size={17} className={`transition-transform ${categoriesOpen ? 'rotate-180' : ''}`} />
-          </button>
-          {!pendingCat && (categoriesOpen || liveMatches) && (
-            <div id="category-groups" className="space-y-3 pt-1 border-t border-border/60">
+          {!pendingCat && (
+            <div className="space-y-3 pt-1 border-t border-border/60">
               {visibleGroups.map(([group, cats]) => (
                 <div key={group}>
                   <p className="text-xs text-muted mb-1.5 mt-2">{t(`group.${group}`)}</p>
@@ -434,7 +513,7 @@ export default function EntryScreen() {
           </Card>
         )}
       </div>
-      <div className="px-4 pb-[calc(100px+env(safe-area-inset-bottom))]">
+      <div className="px-4 pb-4">
         <Button
           onClick={handleSave}
           disabled={
