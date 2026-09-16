@@ -63,6 +63,7 @@ create table if not exists goals (
   target_amount numeric not null,
   saved_amount numeric not null default 0,
   deadline date not null,
+  why text,                                  -- optional "why this goal matters" note
   priority int not null default 0,
   created_at timestamptz not null default now()
 );
