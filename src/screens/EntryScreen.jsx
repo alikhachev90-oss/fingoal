@@ -7,7 +7,7 @@ import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { suggestCategories, CATEGORY_TREE, findCategory, pickLang, subLabel, subHint } from '../lib/categories'
 import InfoTag from '../components/InfoTag'
-import { computeGoalPlan, daysSavedByAmount, crossedMilestone } from '../lib/finance'
+import { computeGoalPlan, daysSavedByAmount, crossedMilestone, deriveMonthlyIncome } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
 import { Wand2 } from 'lucide-react'
 
@@ -37,6 +37,7 @@ export default function EntryScreen() {
   const [fromAccountId, setFromAccountId] = useState('')
   const [toAccountId, setToAccountId] = useState('')
   const [recentComments, setRecentComments] = useState([])
+  const [recentTransactions, setRecentTransactions] = useState([])
   const [creatingAccountFor, setCreatingAccountFor] = useState(null) // 'main' | 'from' | 'to' | null
   const [newAccName, setNewAccName] = useState('')
   const [newAccType, setNewAccType] = useState('cash')
@@ -76,6 +77,7 @@ export default function EntryScreen() {
     // before (e.g. a recurring income source or vendor name), so retyping
     // the same note is a tap away instead of full re-entry every time.
     db.listTransactions(user.id, context).then((txs) => {
+      setRecentTransactions(txs)
       const seen = new Set()
       const recent = []
       for (const tx of txs) {
@@ -86,7 +88,7 @@ export default function EntryScreen() {
         if (recent.length >= 25) break
       }
       setRecentComments(recent)
-    })
+    }).catch(() => { setRecentTransactions([]); setRecentComments([]) })
   }, [user, context])
 
   function startCreateAccount(target) {
@@ -159,9 +161,9 @@ export default function EntryScreen() {
     const monthlyNeeds = Object.values(settings.needs_budget || {}).reduce((s, v) => s + (v || 0), 0)
     return computeGoalPlan(
       { targetAmount: topGoal.target_amount, savedAmount: topGoal.saved_amount, deadline: topGoal.deadline },
-      { monthlyIncome: settings.monthly_income, monthlyNeeds },
+      { monthlyIncome: deriveMonthlyIncome(recentTransactions), monthlyNeeds },
     )
-  }, [topGoal, settings])
+  }, [topGoal, settings, recentTransactions])
 
   const wantsImpactDays = useMemo(() => {
     if (!selected || selected.group !== 'wants' || !goalPlan || !amount) return null
@@ -229,6 +231,9 @@ export default function EntryScreen() {
             group: 'savings',
             category_key: 'roundup',
             sub: null,
+            // The spare change leaves the same account the purchase did —
+            // without this the account balance silently drifts upward.
+            account_id: accountId || null,
           })
           const updatedGoal = await db.addToGoalSavings(user.id, topGoal.id, diff)
           const newPct = topGoal.target_amount > 0 ? Math.min(100, Math.round(((updatedGoal?.saved_amount || 0) / topGoal.target_amount) * 100)) : 0

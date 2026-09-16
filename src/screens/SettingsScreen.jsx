@@ -11,6 +11,8 @@ import { resetTour } from '../lib/tours'
 import { enablePushNotifications, disablePushNotifications, isPushEnabled, pushSupported } from '../lib/pushNotifications'
 import { pushBackendEnabled } from '../lib/pushClient'
 import { BACKGROUNDS } from '../lib/backgrounds'
+import ConfirmDialog from '../components/ConfirmDialog'
+import * as db from '../lib/db'
 
 const FEEDBACK_EMAIL = 'a.likhachev90@gmail.com'
 const TOUR_SCREENS = ['dashboard', 'goals', 'insights']
@@ -19,6 +21,9 @@ export default function SettingsScreen() {
   const { user, context, theme, setTheme, lang, setLang, background, setBackground, t, signOut, updateProfile } = useApp()
   const [notifStatus, setNotifStatus] = useState(typeof Notification !== 'undefined' ? Notification.permission : 'unsupported')
   const [toursReset, setToursReset] = useState(false)
+  const [confirmingReset, setConfirmingReset] = useState(false)
+  const [resetting, setResetting] = useState(false)
+  const [resetError, setResetError] = useState('')
   const [pushOn, setPushOn] = useState(false)
   const [pushBusy, setPushBusy] = useState(false)
   const [pushError, setPushError] = useState(null)
@@ -81,10 +86,19 @@ export default function SettingsScreen() {
   }
 
   async function resetAllData() {
-    if (!window.confirm(t('settings.resetConfirm'))) return
-    localStorage.clear()
-    await signOut()
-    window.location.href = '/auth'
+    setResetting(true)
+    try {
+      // Wipes the rows in the database too — clearing this browser alone
+      // meant everything reappeared at the next sign-in.
+      await db.deleteAllUserData(user.id)
+      localStorage.clear()
+      await signOut()
+      window.location.href = '/auth'
+    } catch {
+      setResetting(false)
+      setConfirmingReset(false)
+      setResetError(t('settings.resetFailed'))
+    }
   }
 
   const notifLabel =
@@ -236,10 +250,21 @@ export default function SettingsScreen() {
           <Button variant="secondary" onClick={signOut} type="button">
             <span className="inline-flex items-center gap-1.5"><LogOut size={14} /> {t('settings.signOut')}</span>
           </Button>
-          <Button variant="danger" onClick={resetAllData} type="button">
+          <Button variant="danger" onClick={() => { setResetError(''); setConfirmingReset(true) }} type="button">
             <span className="inline-flex items-center gap-1.5"><Trash2 size={14} /> {t('settings.resetData')}</span>
           </Button>
+          {resetError && <p className="text-xs text-danger">{resetError}</p>}
         </Card>
+
+        {confirmingReset && (
+          <ConfirmDialog
+            message={t('settings.resetConfirm')}
+            confirmLabel={t('settings.resetData')}
+            busy={resetting}
+            onConfirm={resetAllData}
+            onCancel={() => setConfirmingReset(false)}
+          />
+        )}
 
         <Card className="!p-3.5 space-y-1.5">
           <p className="text-xs font-bold tracking-wide text-muted uppercase flex items-center gap-1.5"><Info size={13} /> {t('settings.about')}</p>

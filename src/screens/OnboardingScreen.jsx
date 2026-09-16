@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Wallet, Home, Car, ShoppingCart, HeartPulse, CreditCard, ChevronLeft, PlusCircle, LayoutGrid, Target, Sparkles, GraduationCap } from 'lucide-react'
+import { Home, Car, ShoppingCart, HeartPulse, CreditCard, ChevronLeft, PlusCircle, LayoutGrid, Target, Sparkles, GraduationCap } from 'lucide-react'
 import { Button, Input, Card, IconCircle } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
@@ -11,7 +11,6 @@ export default function OnboardingScreen() {
   const { user, context, t, lang } = useApp()
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
-  const [income, setIncome] = useState('')
   const [needs, setNeeds] = useState({ housing: '', transport: '', groceries: '', health: '' })
   const [hasDebts, setHasDebts] = useState(null)
   const [debts, setDebts] = useState([{ ...emptyDebt }])
@@ -36,7 +35,6 @@ export default function OnboardingScreen() {
     setSaving(true)
     try {
       await db.saveSettings(user.id, context, {
-        monthly_income: parseFloat(income) || 0,
         needs_budget: Object.fromEntries(Object.entries(needs).map(([k, v]) => [k, parseFloat(v) || 0])),
         has_debts: hasDebts === 'yes',
         onboarded: true,
@@ -62,25 +60,13 @@ export default function OnboardingScreen() {
   }
 
   const stepMeta = [
-    { title: t('onboarding.step0Title'), icon: Wallet },
     { title: t('onboarding.step1Title'), icon: Home },
     { title: t('onboarding.step2Title'), icon: CreditCard },
     { title: lang === 'en' ? 'Your financial system is ready' : 'Твоя финансовая система готова', icon: Sparkles },
   ]
 
   const steps = [
-    // Step 0: income
-    <div key="income" className="space-y-5 animate-slide-up">
-      <p className="text-muted text-sm">
-        {t('onboarding.contextLabel')}:{' '}
-        <span className="font-semibold text-text">{context === 'personal' ? t('topbar.personal') : t('topbar.business')}</span>.{' '}
-        {t('onboarding.incomeAfterTax')}
-      </p>
-      <Input icon={Wallet} label={t('onboarding.income')} type="number" min="0" value={income} onChange={(e) => setIncome(e.target.value)} placeholder="5000" autoFocus />
-      <p className="text-xs text-muted">{t('onboarding.incomeReassure')}</p>
-    </div>,
-
-    // Step 1: needs
+    // Step 0: essential monthly payments
     <div key="needs" className="space-y-5 animate-slide-up">
       <p className="text-muted text-sm">{t('onboarding.needsHint')}</p>
       <div className="space-y-3">
@@ -108,7 +94,7 @@ export default function OnboardingScreen() {
       </div>
     </div>,
 
-    // Step 2: debts
+    // Step 1: debts
     <div key="debts" className="space-y-5 animate-slide-up">
       <p className="text-muted text-sm">{t('onboarding.debtsHint')}</p>
       <div className="flex gap-3">
@@ -137,7 +123,7 @@ export default function OnboardingScreen() {
         </div>
       )}
     </div>,
-    // Step 3: map of the system
+    // Step 2: map of the system
     <div key="system" className="space-y-5 animate-slide-up">
       <div className="glass rounded-[28px] p-5 border-primary/20 gold-glow">
         <p className="text-[10px] uppercase tracking-[.18em] text-primary font-bold">FINTRACK SYSTEM</p>
@@ -177,7 +163,7 @@ export default function OnboardingScreen() {
     </div>,
   ]
 
-  const canNext = [income !== '', true, hasDebts !== null, true][step]
+  const canNext = [true, hasDebts !== null, true][step]
   const CurrentIcon = stepMeta[step].icon
 
   return (

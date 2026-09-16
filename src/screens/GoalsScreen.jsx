@@ -7,9 +7,10 @@ import BatteryProgress from '../components/BatteryProgress'
 import GoalReminderButton from '../components/GoalReminderButton'
 import TourGuide from '../components/TourGuide'
 import InfoTag from '../components/InfoTag'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { computeGoalPlan, MILESTONES, crossedMilestone } from '../lib/finance'
+import { computeGoalPlan, MILESTONES, crossedMilestone, deriveMonthlyIncome } from '../lib/finance'
 import { TOURS } from '../lib/tours'
 import { GOAL_TIPS } from '../lib/goalGuide'
 import { Lightbulb, ShieldCheck, CreditCard, Home, TrendingUp } from 'lucide-react'
@@ -41,6 +42,7 @@ export default function GoalsScreen() {
   const { user, context, t, lang } = useApp()
   const [settings, setSettings] = useState(null)
   const [goals, setGoals] = useState([])
+  const [transactions, setTransactions] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
@@ -53,11 +55,17 @@ export default function GoalsScreen() {
   const [contributionBusy, setContributionBusy] = useState(false)
   const contributionLock = useRef(false)
   const [contributionMessage, setContributionMessage] = useState('')
+  // Inline amount entry — window.prompt silently returns null in installed PWAs.
+  const [contributingGoalId, setContributingGoalId] = useState(null)
+  const [contributionAmount, setContributionAmount] = useState('')
+  const [deletingGoal, setDeletingGoal] = useState(null)
   const suggestedGoalId = searchParams.get('goal')
 
   useEffect(() => {
     if (!user) return
-    db.getSettings(user.id, context).then(setSettings)
+    db.getSettings(user.id, context).then(setSettings).catch(() => setSettings(null))
+    // Needed to derive real monthly income for the goal plan.
+    db.listTransactions(user.id, context).then(setTransactions).catch(() => setTransactions([]))
     refresh()
   }, [user, context])
 
@@ -99,8 +107,7 @@ export default function GoalsScreen() {
   }
 
   async function addSavings(goal, rawAmount) {
-    const amt = rawAmount ?? window.prompt(t('goals.addSavingsPrompt', { name: goal.name }))
-    const num = parseFloat(amt)
+    const num = parseFloat(rawAmount)
     if (!Number.isFinite(num) || num <= 0 || contributionLock.current) return false
     contributionLock.current = true
     setContributionBusy(true)
@@ -115,6 +122,8 @@ export default function GoalsScreen() {
       setTimeout(() => setMilestoneHit(null), 4000)
     }
     setContributionMessage(t('goals.contributionRecorded', { amt: fmt(num), name: goal.name }))
+    setContributingGoalId(null)
+    setContributionAmount('')
     await db.checkInToday(user.id, context).catch(() => {})
     refresh()
     return true
@@ -134,8 +143,8 @@ export default function GoalsScreen() {
   }
 
   async function removeGoal(id) {
-    if (!window.confirm(t('goals.deleteConfirm'))) return
-    await db.deleteGoal(user.id, id)
+    setDeletingGoal(null)
+    await db.deleteGoal(user.id, id).catch(() => setSaveError(t('goals.saveError')))
     refresh()
   }
 
@@ -214,7 +223,7 @@ export default function GoalsScreen() {
           const plan = settings
             ? computeGoalPlan(
                 { targetAmount: goal.target_amount, savedAmount: goal.saved_amount, deadline: goal.deadline },
-                { monthlyIncome: settings.monthly_income, monthlyNeeds: monthlyNeedsBudget },
+                { monthlyIncome: deriveMonthlyIncome(transactions), monthlyNeeds: monthlyNeedsBudget },
               )
             : null
           return (
@@ -224,7 +233,7 @@ export default function GoalsScreen() {
                   <p className="font-semibold">{goal.name}</p>
                   <p className="text-xs text-muted">{t('goals.until', { date: new Date(goal.deadline).toLocaleDateString('en-US') })}</p>
                 </div>
-                <button onClick={() => removeGoal(goal.id)} className="text-xs text-muted">✕</button>
+                <button onClick={() => setDeletingGoal(goal)} className="text-xs text-muted">✕</button>
               </div>
 
               {goal.why && <p className="text-xs text-muted italic bg-surface2 rounded-lg px-2.5 py-2">« {goal.why} »</p>}
@@ -266,8 +275,22 @@ export default function GoalsScreen() {
                 </form>
               )}
 
+              {contributingGoalId === goal.id && (
+                <form
+                  onSubmit={(event) => { event.preventDefault(); addSavings(goal, contributionAmount) }}
+                  className="bg-primary/10 border border-primary/25 rounded-xl p-3 space-y-2.5"
+                >
+                  <p className="text-sm font-medium">{t('goals.addSavingsPromptShort', { name: goal.name })}</p>
+                  <div className="flex items-end gap-2">
+                    <Input label={t('goals.coachContributionAmount')} type="number" min="1" step="1" required autoFocus value={contributionAmount} onChange={(event) => setContributionAmount(event.target.value)} />
+                    <Button type="submit" disabled={contributionBusy} className="!w-auto px-4 shrink-0">{t(contributionBusy ? 'common.saving' : 'goals.coachContributionSave')}</Button>
+                  </div>
+                  <button type="button" className="text-xs text-muted" onClick={() => { setContributingGoalId(null); setContributionAmount('') }}>{t('common.cancel')}</button>
+                </form>
+              )}
+
               <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="secondary" disabled={contributionBusy} onClick={() => addSavings(goal)} type="button" className="!w-auto flex-1">{t('goals.addSavingsToday')}</Button>
+                <Button variant="secondary" disabled={contributionBusy} onClick={() => { setContributionMessage(''); setContributionAmount(''); setContributingGoalId(contributingGoalId === goal.id ? null : goal.id) }} type="button" className="!w-auto flex-1">{t('goals.addSavingsToday')}</Button>
                 <span data-tour="goals-reminder">
                   <GoalReminderButton goalId={goal.id} />
                 </span>
@@ -310,6 +333,14 @@ export default function GoalsScreen() {
           <Button onClick={() => setShowForm(true)} type="button" data-tour="goals-new">{t('goals.newGoal')}</Button>
         )}
       </div>
+      {deletingGoal && (
+        <ConfirmDialog
+          message={t('goals.deleteConfirmNamed', { name: deletingGoal.name })}
+          confirmLabel={t('common.delete')}
+          onConfirm={() => removeGoal(deletingGoal.id)}
+          onCancel={() => setDeletingGoal(null)}
+        />
+      )}
       <BottomNav />
     </div>
   )

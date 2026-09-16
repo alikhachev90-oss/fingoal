@@ -17,7 +17,7 @@ import { Card, Button, StatTile, IconCircle, EmptyState } from '../components/UI
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { findCategory, pickLang, subLabel, subHint } from '../lib/categories'
-import { computeGoalPlan, computeSafeToSpendToday } from '../lib/finance'
+import { computeGoalPlan, computeSafeToSpendToday, deriveMonthlyIncome } from '../lib/finance'
 import { detectHabitTip, dismissHabitTip } from '../lib/habitTips'
 import { TOURS } from '../lib/tours'
 import { computeAccountBalance, nextDateForDay, daysUntil } from '../lib/creditCards'
@@ -97,7 +97,13 @@ export default function DashboardScreen() {
 
   const byGroup = useMemo(() => {
     const totals = { needs: 0, wants: 0, savings: 0 }
-    for (const t of monthTx) totals[t.group] = (totals[t.group] || 0) + t.amount
+    for (const t of monthTx) {
+      // A credit-card payment moves money to the card; the purchases it covers
+      // were already counted as spending, so counting it again double-charges
+      // the month. Same for transfers between the person's own accounts.
+      if (t.is_payment || t.group === 'transfer') continue
+      totals[t.group] = (totals[t.group] || 0) + t.amount
+    }
     return totals
   }, [monthTx])
 
@@ -137,8 +143,9 @@ export default function DashboardScreen() {
   const chartByCategory = useMemo(() => {
     const totals = {}
     for (const tx of chartMonthTx) {
-      // A transfer is money moving between the user's own accounts, not spending.
-      if (tx.group === 'savings' || tx.group === 'income' || tx.group === 'transfer') continue
+      // Transfers move money between the person's own accounts and a card
+      // payment repeats spending already counted — neither is a new expense.
+      if (tx.group === 'savings' || tx.group === 'income' || tx.group === 'transfer' || tx.is_payment) continue
       const cat = findCategory(tx.group, tx.category_key)
       const label = pickLang(cat?.label, lang) || tx.category_key
       const id = `${tx.group}:${tx.category_key}`
@@ -149,6 +156,12 @@ export default function DashboardScreen() {
   }, [chartMonthTx, lang])
 
   const chartExpenseTotal = chartByCategory.reduce((s, c) => s + c.value, 0)
+  // The income tab must show the same month the chart is showing, and it must
+  // be logged income — not a budget figure, which is what made two different
+  // "income" numbers sit next to each other on this screen.
+  const chartIncomeTotal = chartMonthTx
+    .filter((tx) => tx.group === 'income')
+    .reduce((s, tx) => s + Number(tx.amount || 0), 0)
 
   const rankedPieData = chartByCategory.map((c, idx) => ({
     ...c,
@@ -156,7 +169,8 @@ export default function DashboardScreen() {
     pct: chartExpenseTotal > 0 ? (c.value / chartExpenseTotal) * 100 : 0,
   }))
 
-  const monthlyIncome = settings?.monthly_income || 0
+  // Income comes from logged transactions, not from a figure typed at signup.
+  const monthlyIncome = deriveMonthlyIncome(transactions)
   const monthlyNeedsBudget = Object.values(settings?.needs_budget || {}).reduce((s, v) => s + (v || 0), 0)
   const spentNeeds = byGroup.needs
   const freeMoney = monthlyIncome - monthlyNeedsBudget - byGroup.wants
@@ -263,7 +277,9 @@ export default function DashboardScreen() {
             <p className={`metric-hero font-num ${(monthlyIncome > 0 ? safeToday.safePerDay : totalBalance) < 0 ? 'text-wants' : 'text-text'}`}>{fmt(monthlyIncome > 0 ? safeToday.safePerDay : totalBalance)}</p>
             <Link to="/entry" aria-label={t('nav.entry')} className="glass rounded-full w-11 h-11 flex items-center justify-center text-primary shrink-0"><ArrowRight size={19} /></Link>
           </div>
-          {monthlyIncome > 0 && <p className="text-xs text-muted mt-4 leading-relaxed">{safeToday.safePerDay >= 0 ? `${t('dashboard.safeToSpendHintOk')} (${safeToday.daysRemaining} ${t('common.days')})` : t('dashboard.safeToSpendHintNeg')}</p>}
+          {monthlyIncome > 0
+            ? <p className="text-xs text-muted mt-4 leading-relaxed">{safeToday.safePerDay >= 0 ? `${t('dashboard.safeToSpendHintOk')} (${safeToday.daysRemaining} ${t('common.days')})` : t('dashboard.safeToSpendHintNeg')}</p>
+            : <p className="text-xs text-muted mt-4 leading-relaxed">{t('dashboard.noIncomeYetHint')}</p>}
         </Card>
         <Card className="flow-card !p-4" data-tour="dash-money-flow">
           <p className="text-[10.5px] font-bold tracking-wide text-muted uppercase mb-3">{t('dashboard.moneyFlowTitle')}</p>
@@ -404,7 +420,7 @@ export default function DashboardScreen() {
                 className={`flex-1 flex flex-col items-center py-1.5 rounded-md text-xs font-semibold transition-all ${chartTab === tab ? 'bg-surface shadow-softer text-text' : 'text-muted'}`}
               >
                 <span>{t(`dashboard.chartTab_${tab}`)}</span>
-                <span className="font-num text-[13px] mt-0.5">{fmt(tab === 'income' ? monthlyIncome : chartExpenseTotal)}</span>
+                <span className="font-num text-[13px] mt-0.5">{fmt(tab === 'income' ? chartIncomeTotal : chartExpenseTotal)}</span>
               </button>
             ))}
           </div>

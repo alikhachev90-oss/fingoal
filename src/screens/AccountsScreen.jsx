@@ -6,6 +6,7 @@ import BottomNav from '../components/BottomNav'
 import { Card, Button, Input, IconCircle } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { computeAccountBalance, computeUtilization, nextDateForDay, daysUntil, getCreditTips } from '../lib/creditCards'
 
 function fmt(n) {
@@ -23,6 +24,9 @@ export default function AccountsScreen() {
   const [saving, setSaving] = useState(false)
   const [payingId, setPayingId] = useState(null)
   const [payAmount, setPayAmount] = useState('')
+  const [payBusy, setPayBusy] = useState(false)
+  const [deletingAccount, setDeletingAccount] = useState(null)
+  const [actionError, setActionError] = useState('')
 
   useEffect(() => {
     if (!user) return
@@ -54,27 +58,41 @@ export default function AccountsScreen() {
   }
 
   async function removeAccount(id) {
-    if (!window.confirm(t('accounts.deleteConfirm'))) return
-    await db.deleteAccount(user.id, id)
-    refresh()
+    setDeletingAccount(null)
+    try {
+      await db.deleteAccount(user.id, id)
+      refresh()
+    } catch {
+      setActionError(t('bills.error'))
+    }
   }
 
   async function logPayment(account) {
     const amt = parseFloat(payAmount)
     if (!amt || amt <= 0) return
-    await db.addTransaction(user.id, context, {
-      amount: amt,
-      date: new Date().toISOString().slice(0, 10),
-      comment: t('accounts.paymentComment', { name: account.name }),
-      group: 'needs',
-      category_key: 'other',
-      sub: null,
-      account_id: account.id,
-      is_payment: true,
-    })
-    setPayingId(null)
-    setPayAmount('')
-    refresh()
+    setActionError('')
+    setPayBusy(true)
+    try {
+      await db.addTransaction(user.id, context, {
+        amount: amt,
+        date: new Date().toISOString().slice(0, 10),
+        comment: t('accounts.paymentComment', { name: account.name }),
+        group: 'needs',
+        category_key: 'other',
+        sub: null,
+        account_id: account.id,
+        // Marks this as moving money to the card, not new spending — the
+        // purchases it covers were already counted when they were logged.
+        is_payment: true,
+      })
+      setPayingId(null)
+      setPayAmount('')
+      refresh()
+    } catch {
+      setActionError(t('bills.error'))
+    } finally {
+      setPayBusy(false)
+    }
   }
 
   const rows = useMemo(
@@ -133,7 +151,7 @@ export default function AccountsScreen() {
                   <p className="text-xs text-muted">{a.type === 'credit' ? L.credit : a.type === 'cash' ? L.cash : L.debit}</p>
                 </div>
               </div>
-              <button onClick={() => removeAccount(a.id)} className="text-xs text-muted shrink-0" type="button">✕</button>
+              <button onClick={() => setDeletingAccount(a)} className="text-xs text-muted shrink-0" type="button">✕</button>
             </div>
 
             <div className="flex items-center justify-between text-sm">
@@ -170,7 +188,7 @@ export default function AccountsScreen() {
                       placeholder={L.payAmountLabel}
                       className="flex-1 bg-surface2 border border-border rounded-lg px-2.5 py-2 text-sm outline-none focus:border-primary"
                     />
-                    <Button className="!w-auto px-3 text-xs" onClick={() => logPayment(a)} type="button">{L.confirmPay}</Button>
+                    <Button className="!w-auto px-3 text-xs" disabled={payBusy || !(parseFloat(payAmount) > 0)} onClick={() => logPayment(a)} type="button">{L.confirmPay}</Button>
                   </div>
                 ) : (
                   <Button variant="secondary" onClick={() => { setPayingId(a.id); setPayAmount(a.balance > 0 ? String(a.balance) : '') }} type="button">
@@ -231,6 +249,15 @@ export default function AccountsScreen() {
           </div>
         </div>
       </div>
+      {actionError && <p className="px-4 text-xs text-danger">{actionError}</p>}
+      {deletingAccount && (
+        <ConfirmDialog
+          message={t('accounts.deleteConfirm')}
+          confirmLabel={t('common.delete')}
+          onConfirm={() => removeAccount(deletingAccount.id)}
+          onCancel={() => setDeletingAccount(null)}
+        />
+      )}
       <BottomNav />
     </div>
   )

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Calculator, AlertTriangle, Sparkles } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import { Card, Button, Input } from '../components/UI'
+import { deriveMonthlyIncome } from '../lib/finance'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { estimateFederalTax, getTaxRecommendations } from '../lib/taxEstimate'
@@ -23,10 +24,12 @@ export default function TaxEstimateScreen() {
 
   useEffect(() => {
     if (!user) return
-    db.getSettings(user.id, context).then((s) => {
-      setSettings(s)
-      if (s?.monthly_income) setWages(String(Math.round(s.monthly_income * 12)))
-    })
+    db.getSettings(user.id, context).then(setSettings).catch(() => setSettings(null))
+    // Prefill from logged income (annualised) rather than a signup figure.
+    db.listTransactions(user.id, context).then((txs) => {
+      const monthly = deriveMonthlyIncome(txs)
+      if (monthly > 0) setWages(String(Math.round(monthly * 12)))
+    }).catch(() => {})
   }, [user, context])
 
   function calculate() {
