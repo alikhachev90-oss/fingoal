@@ -44,6 +44,7 @@ export default function GoalsScreen() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [milestoneHit, setMilestoneHit] = useState(null)
   const [tourActive, setTourActive] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
@@ -76,6 +77,7 @@ export default function GoalsScreen() {
   async function createGoal(e) {
     e.preventDefault()
     setSaving(true)
+    setSaveError('')
     try {
       await db.upsertGoal(user.id, context, {
         name: form.name,
@@ -87,6 +89,10 @@ export default function GoalsScreen() {
       setForm(emptyForm)
       setShowForm(false)
       refresh()
+    } catch {
+      // Never fail silently: a dead "Create" button with no explanation is the
+      // worst possible outcome here.
+      setSaveError(t('goals.saveError'))
     } finally {
       setSaving(false)
     }
@@ -293,6 +299,7 @@ export default function GoalsScreen() {
                   className="w-full bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary resize-none"
                 />
               </div>
+              {saveError && <p className="text-xs text-wants">{saveError}</p>}
               <div className="flex gap-2">
                 <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>{t('goals.cancel')}</Button>
                 <Button type="submit" disabled={saving}>{saving ? t('goals.saving') : t('goals.submitCreate')}</Button>

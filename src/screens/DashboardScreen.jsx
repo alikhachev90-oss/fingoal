@@ -56,14 +56,16 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     if (!user) return
-    db.getSettings(user.id, context).then(setSettings)
+    // Without these catches a network/permission hiccup leaves settings as
+    // undefined forever, i.e. the screen is stuck on "Загрузка…" with no clue why.
+    db.getSettings(user.id, context).then(setSettings).catch(() => setSettings(null))
     db.listTransactions(user.id, context).then((txs) => {
       setTransactions(txs)
       setHabitTip(detectHabitTip(user.id, context, txs))
-    })
-    db.listGoals(user.id, context).then(setGoals)
-    db.listDebts(user.id, context).then(setDebts)
-    db.listAccounts(user.id, context).then(setAccounts)
+    }).catch(() => setTransactions([]))
+    db.listGoals(user.id, context).then(setGoals).catch(() => setGoals([]))
+    db.listDebts(user.id, context).then(setDebts).catch(() => setDebts([]))
+    db.listAccounts(user.id, context).then(setAccounts).catch(() => setAccounts([]))
     refreshCheckins()
   }, [user, context])
 
@@ -135,7 +137,8 @@ export default function DashboardScreen() {
   const chartByCategory = useMemo(() => {
     const totals = {}
     for (const tx of chartMonthTx) {
-      if (tx.group === 'savings' || tx.group === 'income') continue
+      // A transfer is money moving between the user's own accounts, not spending.
+      if (tx.group === 'savings' || tx.group === 'income' || tx.group === 'transfer') continue
       const cat = findCategory(tx.group, tx.category_key)
       const label = pickLang(cat?.label, lang) || tx.category_key
       const id = `${tx.group}:${tx.category_key}`

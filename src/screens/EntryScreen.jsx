@@ -22,6 +22,7 @@ export default function EntryScreen() {
   const [selected, setSelected] = useState(null) // {group,key,sub,label,explanation}
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [milestoneHit, setMilestoneHit] = useState(null)
   const [topGoal, setTopGoal] = useState(null)
   const [settings, setSettings] = useState(null)
@@ -170,6 +171,7 @@ export default function EntryScreen() {
   async function handleTransferSave() {
     if (!amount || !fromAccountId || !toAccountId || fromAccountId === toAccountId) return
     setSaving(true)
+    setSaveError('')
     try {
       await db.addTransfer(user.id, context, {
         fromAccountId,
@@ -180,6 +182,8 @@ export default function EntryScreen() {
       })
       setSaved(true)
       setTimeout(() => navigate('/dashboard', { replace: true }), 900)
+    } catch {
+      setSaveError(t('entry.saveError'))
     } finally {
       setSaving(false)
     }
@@ -189,6 +193,7 @@ export default function EntryScreen() {
     if (type === 'transfer') return handleTransferSave()
     if (!selected || !amount) return
     setSaving(true)
+    setSaveError('')
     try {
       await db.addTransaction(user.id, context, {
         amount: parseFloat(amount),
@@ -234,6 +239,9 @@ export default function EntryScreen() {
       }
       setSaved(true)
       setTimeout(() => navigate('/dashboard', { replace: true }), milestone ? 2200 : 900)
+    } catch {
+      // A dead button with no message is what made this impossible to diagnose.
+      setSaveError(t('entry.saveError'))
     } finally {
       setSaving(false)
     }
@@ -514,6 +522,7 @@ export default function EntryScreen() {
         )}
       </div>
       <div className="px-4 pb-4">
+        {saveError && <p className="text-xs text-wants mb-2">{saveError}</p>}
         <Button
           onClick={handleSave}
           disabled={
