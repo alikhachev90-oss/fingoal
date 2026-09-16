@@ -4,7 +4,7 @@ import { AppProvider, useApp } from './context/AppContext'
 import { getBackground } from './lib/backgrounds'
 import { checkDueReminders } from './lib/reminders'
 import { getGoalReminder, checkGoalReminderDue } from './lib/goalReminders'
-import { computeGoalPlan } from './lib/finance'
+import { computeGoalPlan, deriveMonthlyIncome } from './lib/finance'
 import * as db from './lib/db'
 import AuthScreen from './screens/AuthScreen'
 import OnboardingScreen from './screens/OnboardingScreen'
@@ -64,12 +64,14 @@ function GoalReminderWatcher() {
   useEffect(() => {
     if (!user) return
     async function tick() {
-      const [settings, goals, checkins] = await Promise.all([
+      const [settings, goals, checkins, transactions] = await Promise.all([
         db.getSettings(user.id, context),
         db.listGoals(user.id, context),
         db.getCheckins(user.id, context),
+        db.listTransactions(user.id, context),
       ])
       if (!settings || !goals.length) return
+      const monthlyIncome = deriveMonthlyIncome(transactions)
       const today = new Date().toISOString().slice(0, 10)
       const checkedInToday = checkins.some((c) => c.date === today)
       const monthlyNeeds = Object.values(settings.needs_budget || {}).reduce((s, v) => s + (v || 0), 0)
@@ -78,7 +80,7 @@ function GoalReminderWatcher() {
         if (!reminder || !reminder.enabled) continue
         const plan = computeGoalPlan(
           { targetAmount: goal.target_amount, savedAmount: goal.saved_amount, deadline: goal.deadline },
-          { monthlyIncome: settings.monthly_income, monthlyNeeds },
+          { monthlyIncome, monthlyNeeds },
         )
         checkGoalReminderDue(user.id, context, goal, plan, checkedInToday, lang)
       }
