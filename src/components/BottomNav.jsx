@@ -85,6 +85,12 @@ export default function BottomNav({ persistent = false }) {
             }
           }}
           onTouchEnd={() => { touchStartY.current = null }}
+          // Inline, because `pointer-events-auto` and `pointer-events-none` both
+          // sit in the class list and the utility that wins is decided by CSS
+          // order, not by the ternary — so the invisible handle kept swallowing
+          // taps while the nav was open. It sits dead centre, which is exactly
+          // where the middle tab (Цели) is: that one tab looked broken.
+          style={{ pointerEvents: expanded ? 'none' : 'auto' }}
           className={`pointer-events-auto absolute z-50 left-1/2 -translate-x-1/2 bottom-[calc(max(env(safe-area-inset-bottom),2px)+8px)] w-24 h-11 flex items-center justify-center rounded-full transition-all duration-[600ms] motion-reduce:transition-none ${
             expanded ? 'opacity-0 translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'
           }`}
