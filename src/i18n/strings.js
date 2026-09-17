@@ -31,9 +31,11 @@ const STRINGS = {
   'goals.direction': { ru: 'С чего начать копить', en: 'Where to start saving', es: 'Por dónde empezar a ahorrar', fr: 'Par où commencer à épargner' },
   'goals.monthShort': { ru: 'мес.', en: 'mo', es: 'mes', fr: 'mois' },
   'goals.coachContributionTitle': { ru: 'Отложить на цель', en: 'Put money toward the goal', es: 'Aportar a la meta', fr: 'Alimenter l’objectif' },
+  'goals.coachContributionSave': { ru: 'Отложить', en: 'Set aside', es: 'Apartar', fr: 'Mettre de côté' },
   'goals.coachContributionHint': { ru: 'Впишите сумму, которую откладываете прямо сейчас', en: 'Enter the amount you are setting aside right now', es: 'Introduce la cantidad que estás apartando ahora', fr: 'Indiquez le montant que vous mettez de côté maintenant' },
   'goals.coachContributionAmount': { ru: 'Сумма, $', en: 'Amount, $', es: 'Importe, $', fr: 'Montant, $' },
-  'goals.contributionRecorded': { ru: 'Записали ${amt} в «{name}»', en: 'Added ${amt} to "{name}"', es: 'Añadido ${amt} a "{name}"', fr: '{amt} $ ajoutés à « {name} »' },
+  // {amt} already arrives formatted with a currency sign — no extra $ here.
+  'goals.contributionRecorded': { ru: 'Записали {amt} в «{name}»', en: 'Added {amt} to "{name}"', es: 'Añadido {amt} a "{name}"', fr: '{amt} ajoutés à « {name} »' },
   'dashboard.noIncomeYetHint': { ru: 'Запишите первый доход — и здесь появится, сколько можно тратить в день', en: 'Log your first income and this becomes how much you can spend per day', es: 'Registra tu primer ingreso y aquí verás cuánto puedes gastar al día', fr: 'Enregistrez votre premier revenu et vous verrez ici combien dépenser par jour' },
   'entry.saveError': { ru: 'Не удалось сохранить. Проверьте интернет и попробуйте ещё раз', en: "Couldn't save. Check your connection and try again", es: 'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo', fr: "Échec de l'enregistrement. Vérifiez votre connexion et réessayez" },
   'goals.saveError': { ru: 'Не удалось сохранить цель. Попробуйте ещё раз', en: "Couldn't save the goal. Please try again", es: 'No se pudo guardar la meta. Inténtalo de nuevo', fr: "Impossible d'enregistrer l'objectif. Réessayez" },
@@ -408,6 +410,7 @@ const STRINGS = {
   'group.wants': { ru: 'Необязательное', en: 'Wants', es: 'Deseos', fr: 'Envies' },
   'group.savings': { ru: 'Накопления', en: 'Savings', es: 'Ahorros', fr: 'Épargne' },
 'group.income': { ru: 'Доход', en: 'Income', es: 'Ingreso', fr: 'Revenu' },
+'group.transfer': { ru: 'Перевод', en: 'Transfer', es: 'Transferencia', fr: 'Virement' },
 
   'course.examPassed': { ru: '✅ Экзамен сдан', en: '✅ Exam passed', es: '✅ Examen aprobado', fr: '✅ Examen réussi' },
   'course.examNotPassed': { ru: 'Пока не хватает баллов', en: 'Not quite enough points yet', es: 'Aún no alcanzan los puntos', fr: 'Pas encore assez de points' },
