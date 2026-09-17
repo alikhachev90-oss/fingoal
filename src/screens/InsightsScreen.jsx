@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Sparkles, Send, TrendingUp, TrendingDown, Info, Flag, Trophy, Radar, X, Calculator, ChevronRight, FileBarChart } from 'lucide-react'
+import { Sparkles, Send, TrendingUp, TrendingDown, Info, Flag, Trophy, Radar, X, Calculator, ChevronRight, FileBarChart, Check } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import BottomNav from '../components/BottomNav'
 import TourGuide from '../components/TourGuide'
@@ -164,12 +164,26 @@ export default function InsightsScreen() {
         ? { title: challengeTitle(def, lang), days: String(def.days), categoryKeys: def.categoryKeys || [] }
         : { title: '', days: '7', categoryKeys: [] },
     )
-    // The editor renders below the whole challenge list, so from the first
-    // card it opened just off the bottom of the screen — tapping "Customise"
-    // looked like nothing happened at all. Bring it into view.
-    requestAnimationFrame(() => {
-      challengeEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    })
+  }
+
+  // One plain sentence describing what the challenge actually checks, shown
+  // both on each card and live under the category chips — without it, tapping
+  // a category only lit a pill up and nothing else on screen changed.
+  function challengeRule(def) {
+    const keys = def.categoryKeys || []
+    // A built-in that matches on text carries its own wording.
+    if (!keys.length && def.rule) {
+      const template = def.rule[lang] || def.rule.ru
+      return template.replace('{days}', def.days)
+    }
+    if (!keys.length) return t('insights.challengeRuleAny', { days: def.days })
+    const names = keys
+      .map((k) => {
+        const choice = CHALLENGE_CATEGORY_CHOICES.find((c) => c.key === k)
+        return categoryLabel(choice?.group || 'wants', k, lang)
+      })
+      .join(', ')
+    return t('insights.challengeRule', { days: def.days, cats: names })
   }
 
   function toggleDraftCategory(key) {
@@ -205,6 +219,79 @@ export default function InsightsScreen() {
     resetChallengeDef(user.id, context, def.key)
     setEditingChallenge(null)
     setChallengeDefsTick((v) => v + 1)
+  }
+
+  function renderChallengeEditor() {
+    const draftDef = {
+      days: parseInt(challengeDraft.days, 10) || 0,
+      categoryKeys: challengeDraft.categoryKeys,
+    }
+    return (
+      <Card ref={challengeEditorRef} className="!p-3.5 space-y-3 border border-primary/40">
+        <p className="text-sm font-semibold">
+          {editingChallenge === 'new' ? t('insights.challengeCreate') : t('insights.challengeEdit')}
+        </p>
+        <label className="block text-sm">
+          <span className="text-muted text-xs font-medium">{t('insights.challengeName')}</span>
+          <input
+            value={challengeDraft.title}
+            onChange={(e) => setChallengeDraft((d) => ({ ...d, title: e.target.value }))}
+            placeholder={t('insights.challengeNamePlaceholder')}
+            className="w-full mt-1 bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
+          />
+        </label>
+        <label className="block text-sm">
+          <span className="text-muted text-xs font-medium">{t('insights.challengeLength')}</span>
+          <input
+            type="number"
+            min="1"
+            max="365"
+            value={challengeDraft.days}
+            onChange={(e) => setChallengeDraft((d) => ({ ...d, days: e.target.value }))}
+            className="w-full mt-1 bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
+          />
+        </label>
+        <div>
+          <p className="text-muted text-xs font-medium mb-1.5">{t('insights.challengeCategories')}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {CHALLENGE_CATEGORY_CHOICES.map((c) => {
+              const on = challengeDraft.categoryKeys.includes(c.key)
+              return (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => toggleDraftCategory(c.key)}
+                  className={`inline-flex items-center gap-1 px-2.5 py-2 rounded-lg text-xs font-medium border ${on ? 'bg-primary/15 border-primary text-primary' : 'bg-surface2 border-border text-muted'}`}
+                >
+                  {on && <Check size={12} strokeWidth={3} />}
+                  {categoryLabel(c.group, c.key, lang)}
+                </button>
+              )
+            })}
+          </div>
+          {/* Live restatement of the rule: tapping a chip has to change
+              something you can read, not just tint the chip. */}
+          <p className="text-[11px] text-primary mt-2 leading-relaxed">{challengeRule(draftDef)}</p>
+          <p className="text-[11px] text-muted mt-1 leading-relaxed">{t('insights.challengeCategoriesHint')}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="secondary" type="button" onClick={() => setEditingChallenge(null)}>{t('common.cancel')}</Button>
+          <Button type="button" onClick={saveChallengeDraft} disabled={!challengeDraft.title.trim()}>{t('common.save')}</Button>
+        </div>
+        {editingChallenge !== 'new' && (
+          <div className="flex gap-3 pt-1">
+            <button type="button" className="text-xs text-wants font-medium py-2 -my-2 pr-3" onClick={() => removeChallenge(editingChallenge)}>
+              {t('insights.challengeDelete')}
+            </button>
+            {editingChallenge.builtIn && editingChallenge.edited && (
+              <button type="button" className="text-xs text-muted font-medium py-2 -my-2" onClick={() => restoreChallenge(editingChallenge)}>
+                {t('insights.challengeReset')}
+              </button>
+            )}
+          </div>
+        )}
+      </Card>
+    )
   }
 
   return (
@@ -300,98 +387,6 @@ export default function InsightsScreen() {
 
         <div className="pt-2" data-tour="insights-challenge">
           <p className="text-[13px] font-bold tracking-wide text-muted uppercase mb-2">{t('insights.challengeSection')}</p>
-          {!activeChallenge && (
-            <div className="space-y-2">
-              {myChallenges.map((c) => (
-                <Card key={c.key} className="!p-3 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <IconCircle icon={Flag} className="bg-primary/10 text-primary" size={32} iconSize={15} />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{challengeTitle(c, lang)}</p>
-                        <p className="text-xs text-muted">{t('insights.challengeDays', { days: c.days })}</p>
-                      </div>
-                    </div>
-                    <Button variant="secondary" className="!w-auto px-3 shrink-0" onClick={() => handleStartChallenge(c.key)} type="button">
-                      {t('insights.startChallenge')}
-                    </Button>
-                  </div>
-                  {/* py/-my: grows the tap target to ~40px without moving the
-                      link a pixel — as plain text it was only 16px tall. */}
-                  <button type="button" className="self-start text-xs text-primary font-medium py-2.5 -my-2.5 pr-3" onClick={() => openChallengeEditor(c)}>
-                    {t('insights.challengeEdit')}
-                  </button>
-                </Card>
-              ))}
-
-              <Button variant="secondary" onClick={() => openChallengeEditor(null)} type="button">
-                + {t('insights.challengeCreate')}
-              </Button>
-
-              {editingChallenge && (
-                <Card ref={challengeEditorRef} className="!p-3.5 space-y-3 border border-primary/40">
-                  <p className="text-sm font-semibold">
-                    {editingChallenge === 'new' ? t('insights.challengeCreate') : t('insights.challengeEdit')}
-                  </p>
-                  <label className="block text-sm">
-                    <span className="text-muted text-xs font-medium">{t('insights.challengeName')}</span>
-                    <input
-                      value={challengeDraft.title}
-                      onChange={(e) => setChallengeDraft((d) => ({ ...d, title: e.target.value }))}
-                      placeholder={t('insights.challengeNamePlaceholder')}
-                      className="w-full mt-1 bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
-                    />
-                  </label>
-                  <label className="block text-sm">
-                    <span className="text-muted text-xs font-medium">{t('insights.challengeLength')}</span>
-                    <input
-                      type="number"
-                      min="1"
-                      max="365"
-                      value={challengeDraft.days}
-                      onChange={(e) => setChallengeDraft((d) => ({ ...d, days: e.target.value }))}
-                      className="w-full mt-1 bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
-                    />
-                  </label>
-                  <div>
-                    <p className="text-muted text-xs font-medium mb-1.5">{t('insights.challengeCategories')}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {CHALLENGE_CATEGORY_CHOICES.map((c) => {
-                        const on = challengeDraft.categoryKeys.includes(c.key)
-                        return (
-                          <button
-                            key={c.key}
-                            type="button"
-                            onClick={() => toggleDraftCategory(c.key)}
-                            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border ${on ? 'bg-primary/15 border-primary text-primary' : 'bg-surface2 border-border text-muted'}`}
-                          >
-                            {categoryLabel(c.group, c.key, lang)}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    <p className="text-[11px] text-muted mt-1.5">{t('insights.challengeCategoriesHint')}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="secondary" type="button" onClick={() => setEditingChallenge(null)}>{t('common.cancel')}</Button>
-                    <Button type="button" onClick={saveChallengeDraft} disabled={!challengeDraft.title.trim()}>{t('common.save')}</Button>
-                  </div>
-                  {editingChallenge !== 'new' && (
-                    <div className="flex gap-3 pt-1">
-                      <button type="button" className="text-xs text-wants font-medium" onClick={() => removeChallenge(editingChallenge)}>
-                        {t('insights.challengeDelete')}
-                      </button>
-                      {editingChallenge.builtIn && editingChallenge.edited && (
-                        <button type="button" className="text-xs text-muted font-medium" onClick={() => restoreChallenge(editingChallenge)}>
-                          {t('insights.challengeReset')}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </Card>
-              )}
-            </div>
-          )}
           {activeChallenge && challengeStatus && (
             <Card className="!p-3.5 space-y-2.5">
               <div className="flex items-center gap-2.5">
@@ -403,6 +398,7 @@ export default function InsightsScreen() {
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{challengeTitle(challengeStatus.challenge, lang)}</p>
+                  <p className="text-[11px] text-muted truncate">{challengeRule(challengeStatus.challenge)}</p>
                   <p className="text-xs text-muted">
                     {challengeStatus.completed
                       ? t('insights.challengeCompleted')
@@ -420,6 +416,56 @@ export default function InsightsScreen() {
               </Button>
             </Card>
           )}
+          <div className="space-y-2">
+            {/* While one challenge runs its card is rendered below this block;
+                the rest of the list stays visible (dimmed) instead of the
+                whole section vanishing the moment you press Start. */}
+            {activeChallenge && (
+              <p className="text-[11px] text-muted uppercase tracking-wide pt-3">{t('insights.challengeOthers')}</p>
+            )}
+            {myChallenges
+              .filter((c) => c.key !== activeChallenge?.key)
+              .map((c) => {
+                const editing = editingChallenge !== 'new' && editingChallenge?.key === c.key
+                if (editing) return <div key={c.key}>{renderChallengeEditor()}</div>
+                return (
+                  <Card key={c.key} className={`!p-3 space-y-2 ${activeChallenge ? 'opacity-60' : ''}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <IconCircle icon={Flag} className="bg-primary/10 text-primary" size={32} iconSize={15} />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{challengeTitle(c, lang)}</p>
+                          {/* The rule, spelled out — so an edit visibly changes
+                              the card, and you can see what actually breaks it. */}
+                          <p className="text-xs text-muted">{challengeRule(c)}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="secondary"
+                        className="!w-auto px-3 shrink-0"
+                        onClick={() => handleStartChallenge(c.key)}
+                        disabled={!!activeChallenge}
+                        type="button"
+                      >
+                        {t('insights.startChallenge')}
+                      </Button>
+                    </div>
+                    {/* py/-my: grows the tap target to ~40px without moving the
+                        link a pixel — as plain text it was only 16px tall. */}
+                    <button type="button" className="self-start text-xs text-primary font-medium py-2.5 -my-2.5 pr-3" onClick={() => openChallengeEditor(c)}>
+                      {t('insights.challengeEdit')}
+                    </button>
+                  </Card>
+                )
+              })}
+
+            {editingChallenge === 'new' ? renderChallengeEditor() : (
+              <Button variant="secondary" onClick={() => openChallengeEditor(null)} type="button">
+                + {t('insights.challengeCreate')}
+              </Button>
+            )}
+          </div>
+
         </div>
 
         <div className="pt-2">
