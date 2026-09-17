@@ -184,11 +184,14 @@ export default function DashboardScreen() {
   }, [chartMonthTx, lang])
 
   // The rank ramp runs red (biggest) to green (smallest), which reads as a
-  // warning — right for spending, wrong for income. Reversing the index keeps
-  // the identical palette while letting the biggest earner come out green.
+  // warning — right for spending, wrong for income. Same palette, reversed, so
+  // the biggest earner comes out green; a lone income source is green too,
+  // where the shared helper would hand back its single-slice red.
   const rankedIncomeData = chartIncomeByCategory.map((c, idx) => ({
     ...c,
-    color: rankColor(chartIncomeByCategory.length - 1 - idx, chartIncomeByCategory.length),
+    color: chartIncomeByCategory.length <= 1
+      ? 'hsl(118, 72%, 52%)'
+      : rankColor(chartIncomeByCategory.length - 1 - idx, chartIncomeByCategory.length),
     pct: chartIncomeTotal > 0 ? (c.value / chartIncomeTotal) * 100 : 0,
   }))
 
