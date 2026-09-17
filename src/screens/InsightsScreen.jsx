@@ -409,7 +409,13 @@ export default function InsightsScreen() {
                 </div>
               </div>
               {!challengeStatus.completed && !challengeStatus.failed && (
-                <ProgressBar pct={(challengeStatus.daysElapsed / challengeStatus.daysTotal) * 100} colorClass="bg-primary" />
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[10px] uppercase tracking-[.12em] text-muted">
+                    <span>{t('insights.challengeProgress', { elapsed: challengeStatus.daysElapsed, total: challengeStatus.daysTotal })}</span>
+                    <span className="text-primary font-num">{Math.round((challengeStatus.daysElapsed / challengeStatus.daysTotal) * 100)}%</span>
+                  </div>
+                  <ProgressBar pct={(challengeStatus.daysElapsed / challengeStatus.daysTotal) * 100} colorClass="bg-primary" />
+                </div>
               )}
               <Button variant="secondary" onClick={handleStopChallenge} type="button">
                 {challengeStatus.completed ? t('insights.challengeClose') : challengeStatus.failed ? t('insights.challengeRestart') : t('insights.challengeStop')}
