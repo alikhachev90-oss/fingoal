@@ -1,8 +1,23 @@
 // Stable IDs preserve previously saved appearance preferences.
 export const BACKGROUNDS = [
-  { id: 'default', label: { ru: 'Графит', en: 'Graphite', es: 'Grafito', fr: 'Graphite' }, css: 'linear-gradient(135deg, #434141, #18191e 65%)', accent: '#e2bd79' },
-  { id: 'nature', label: { ru: 'Изумруд', en: 'Emerald', es: 'Esmeralda', fr: 'Émeraude' }, css: 'linear-gradient(135deg, #176c59, #082e28 65%)', accent: '#76e6bd' },
-  { id: 'dynamic', label: { ru: 'Сапфир', en: 'Sapphire', es: 'Zafiro', fr: 'Saphir' }, css: 'linear-gradient(135deg, #344c9c, #111c49 65%)', accent: '#a5bdff' },
+  {
+    id: 'default',
+    label: { ru: 'Графит', en: 'Graphite', es: 'Grafito', fr: 'Graphite' },
+    css: 'radial-gradient(ellipse at 20% 0%, #40504d, transparent 58%), linear-gradient(145deg, #26302f, #0d1212 72%)',
+    accent: '#d7e6e1',
+  },
+  {
+    id: 'nature',
+    label: { ru: 'Розовый кварц', en: 'Rose Quartz', es: 'Cuarzo rosa', fr: 'Quartz rose' },
+    css: 'radial-gradient(ellipse at 14% 5%, #fff9fb, transparent 47%), radial-gradient(ellipse at 88% 82%, #d89aaa, transparent 63%), linear-gradient(145deg, #f4dce2, #9a5266 82%)',
+    accent: '#f8dfe6',
+  },
+  {
+    id: 'dynamic',
+    label: { ru: 'Аметист', en: 'Amethyst', es: 'Amatista', fr: 'Améthyste' },
+    css: 'radial-gradient(ellipse at 12% 0%, #ffffff, transparent 44%), radial-gradient(ellipse at 85% 80%, #c8a7e5, transparent 62%), linear-gradient(145deg, #f2eafd, #4d286f 84%)',
+    accent: '#ece0ff',
+  },
 ]
 export function getBackground(id) {
   const aliases = { premium: 'default', architecture: 'default', abstract: 'dynamic' }
