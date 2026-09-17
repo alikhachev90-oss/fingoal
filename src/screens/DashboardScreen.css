@@ -47,3 +47,27 @@
 .home-reference nav a > div { height:29px; }
 .home-reference nav a svg { width:17px; height:17px; stroke-width:1.6; }
 .home-reference nav a > span.absolute { display:none; }
+
+
+/* The home screen has its own compact layout, so its light appearance is explicitly
+   reset here rather than inheriting the dark dashboard's gold and blue highlights. */
+html:not(.dark) .app-ambient:has(.home-reference) { background: #f7f9f8; }
+html:not(.dark) .app-ambient:has(.home-reference)::before {
+  background: radial-gradient(ellipse 74% 50% at -8% -8%, #ffffff, transparent 62%), radial-gradient(ellipse 74% 58% at 108% 20%, #d9e8e2aa, transparent 72%), linear-gradient(160deg, #fafcfb, #f0f4f3 62%, #fbfcfc);
+}
+html:not(.dark) .home-greeting > p:first-child,
+html:not(.dark) .home-tagline,
+html:not(.dark) .home-toolbar > span,
+html:not(.dark) .home-caption { color: #687370; }
+html:not(.dark) .home-tool { color: #36413f; border-color: #33423f1f; background: #ffffffa8; }
+html:not(.dark) .home-reference .glass { background: linear-gradient(135deg, #ffffffd6, #fafbfad1); border-color: #263a351c; box-shadow: 0 1px 0 #ffffff inset, 0 14px 30px -25px #283c3530; }
+html:not(.dark) .home-reference .balance-hero { background: radial-gradient(ellipse at 0% 0%, #a8e2cd82, transparent 74%), linear-gradient(135deg, #ffffffed, #eaf4f0d9); border-color: #1d856938; }
+html:not(.dark) .home-reference .balance-hero a { color: #1d8569; }
+html:not(.dark) .home-reference .flow-card .text-savings { color: #1d8569; }
+html:not(.dark) .home-habit-stat > svg { color: #a56c3a; }
+html:not(.dark) .home-checkin { border-left-color: #253b3413; }
+html:not(.dark) .home-checkin > p { color: #4d5855; }
+html:not(.dark) .home-reference .action-primary { background: linear-gradient(135deg, #4ebc96, #1d8569); color: #fff; border-color: #1d856930; box-shadow: 0 1px 0 #ffffff70 inset, 0 10px 22px -16px #1d856980; }
+html:not(.dark) .home-reference .dashboard-content > .grid > .glass:nth-child(2) svg { color: #5c8a7b; }
+html:not(.dark) .home-reference .quote-card { border-color: #253b3417; background: linear-gradient(130deg, #ffffffcc, #f5f8f7b8); }
+html:not(.dark) .home-reference .nav-material { background: linear-gradient(150deg, #ffffffed, #eef4f2e8); border-color: #253b3421; }
