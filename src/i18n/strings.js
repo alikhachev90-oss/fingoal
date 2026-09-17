@@ -189,6 +189,7 @@ const STRINGS = {
   'dashboard.chartTitle': { ru: 'Траты по категориям в этом месяце', en: 'Spending by category this month', es: 'Gastos por categoría este mes', fr: 'Dépenses par catégorie ce mois-ci' },
   'dashboard.chartTapHint': { ru: 'нажмите на сектор', en: 'tap a slice', es: 'toca un sector', fr: 'touchez une part' },
   'dashboard.drilldownTotal': { ru: 'Всего: {amt}', en: 'Total: {amt}', es: 'Total: {amt}', fr: 'Total : {amt}' },
+  'dashboard.noIncomeThisMonth': { ru: 'В этом месяце доходов пока нет.', en: 'No income logged this month yet.', es: 'Aún no hay ingresos este mes.', fr: 'Aucun revenu enregistré ce mois-ci.' },
   'dashboard.drilldownEmpty': { ru: 'Нет трат в этой категории за месяц.', en: 'No spending in this category this month.', es: 'Sin gastos en esta categoría este mes.', fr: 'Aucune dépense dans cette catégorie ce mois-ci.' },
   'dashboard.byCategoryTitle': { ru: 'По категориям', en: 'By category', es: 'Por categoría', fr: 'Par catégorie' },
   'dashboard.chartTab_income': { ru: 'Доход', en: 'Income', es: 'Ingresos', fr: 'Revenus' },
