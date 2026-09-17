@@ -30,7 +30,7 @@ export function getCoachAction({ settings, transactions = [], goals = [], debts 
       tone: 'neutral',
       eyebrow: en ? 'Next step' : 'Следующий шаг',
       title: en ? 'Your money needs a destination' : 'Деньгам нужна точка назначения',
-      text: en ? 'Create one concrete goal with an amount and deadline. FinTrack will turn it into a daily and monthly plan.' : 'Создай одну конкретную цель с суммой и сроком. FinTrack разложит её на понятный дневной и месячный план.',
+      text: en ? 'Create one concrete goal with an amount and deadline. Fintera will turn it into a daily and monthly plan.' : 'Создай одну конкретную цель с суммой и сроком. Fintera разложит её на понятный дневной и месячный план.',
       action: en ? 'Create a goal' : 'Поставить цель',
       to: '/goals',
     }
