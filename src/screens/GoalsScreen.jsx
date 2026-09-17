@@ -25,10 +25,10 @@ function pickLang(obj, lang) {
 
 const emptyForm = { name: '', targetAmount: '', deadline: '', why: '' }
 const GOAL_PRESETS = [
-  { key: 'emergency', icon: ShieldCheck, name: { ru: 'Подушка безопасности', en: 'Emergency fund', es: "Fondo de emergencia", fr: "Fonds d’urgence" }, amount: 5000, months: 6 },
-  { key: 'debt', icon: CreditCard, name: { ru: 'Закрыть дорогой долг', en: 'Pay off high-interest debt', es: "Pagar deudas de alto interés", fr: "Rembourser une dette à taux élevé" }, amount: 3000, months: 6 },
-  { key: 'purchase', icon: Home, name: { ru: 'Большая покупка', en: 'Major purchase', es: "Gran compra", fr: "Achat important" }, amount: 10000, months: 12 },
-  { key: 'invest', icon: TrendingUp, name: { ru: 'Инвестиционный капитал', en: 'Investment capital', es: "Capital de inversión", fr: "Capital d’investissement" }, amount: 10000, months: 12 },
+  { key: 'emergency', icon: ShieldCheck, iconClass: 'bg-primary/10 text-primary', name: { ru: 'Подушка безопасности', en: 'Emergency fund', es: "Fondo de emergencia", fr: "Fonds d’urgence" }, amount: 5000, months: 6 },
+  { key: 'debt', icon: CreditCard, iconClass: 'bg-needs/10 text-needs', name: { ru: 'Закрыть дорогой долг', en: 'Pay off high-interest debt', es: "Pagar deudas de alto interés", fr: "Rembourser une dette à taux élevé" }, amount: 3000, months: 6 },
+  { key: 'purchase', icon: Home, iconClass: 'bg-primary/10 text-primary', name: { ru: 'Большая покупка', en: 'Major purchase', es: "Gran compra", fr: "Achat important" }, amount: 10000, months: 12 },
+  { key: 'invest', icon: TrendingUp, iconClass: 'bg-savings/10 text-savings', name: { ru: 'Инвестиционный капитал', en: 'Investment capital', es: "Capital de inversión", fr: "Capital d’investissement" }, amount: 10000, months: 12 },
 ]
 
 function futureDate(months) {
@@ -209,7 +209,7 @@ export default function GoalsScreen() {
                   }}
                   className="glass rounded-2xl p-3 text-left min-h-[98px] hover:border-primary/35 transition-all active:scale-[.98]"
                 >
-                  <IconCircle icon={preset.icon} className="bg-primary/10 text-primary" size={34} iconSize={15} />
+                  <IconCircle icon={preset.icon} className={preset.iconClass} size={34} iconSize={15} />
                   <p className="text-sm font-semibold mt-3 leading-tight">{pickLang(preset.name, lang)}</p>
                   <p className="text-[11px] text-muted mt-1 font-num">{fmt(preset.amount)} · {preset.months} {t('goals.monthShort')}</p>
                 </button>
