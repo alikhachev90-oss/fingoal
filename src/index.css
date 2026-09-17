@@ -79,54 +79,50 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
 
 
-/* Light appearance is a separate material: warm white canvas, frosted white glass,
-   graphite copy and an emerald accent. */
+
+/* Light Fintera: porcelain, smoke graphite and a single cool emerald accent. */
 html:not(.dark) {
-  --color-bg: 238 244 241;
+  --color-bg: 247 249 248;
   --color-surface: 255 255 255;
-  --color-surface2: 244 249 247;
-  --color-border: 45 72 64;
-  --color-text: 23 38 34;
-  --color-muted: 98 119 111;
-  --color-primary: 28 158 119;
-  --color-primary2: 102 199 164;
+  --color-surface2: 248 249 249;
+  --color-border: 39 48 47;
+  --color-text: 29 36 35;
+  --color-muted: 104 113 112;
+  --color-primary: 29 133 105;
+  --color-primary2: 87 183 154;
   --color-on-primary: 255 255 255;
-  --color-needs: 190 83 76;
-  --color-wants: 171 113 42;
-  --color-savings: 28 158 119;
-  --color-income: 28 158 119;
-  --color-danger: 190 83 76;
+  --color-needs: 180 75 80;
+  --color-wants: 150 106 43;
+  --color-savings: 29 133 105;
+  --color-income: 29 133 105;
+  --color-danger: 180 75 80;
 }
-html:not(.dark) body { background: #eef4f1; }
+html:not(.dark) body { background: #f7f9f8; }
 html:not(.dark) .app-ambient::before {
   background:
-    radial-gradient(ellipse 80% 50% at -8% -4%, rgb(130 222 189 / .26), transparent 58%),
-    radial-gradient(ellipse 74% 54% at 108% 16%, rgb(255 255 255 / .94), transparent 65%),
-    linear-gradient(160deg, #f5faf7 0%, #e9f1ed 54%, #f7faf8 100%);
+    radial-gradient(ellipse 74% 48% at -7% -5%, rgb(255 255 255 / .98), transparent 60%),
+    radial-gradient(ellipse 80% 64% at 105% 12%, rgb(212 228 222 / .28), transparent 67%),
+    linear-gradient(160deg, #fcfdfd 0%, #f2f5f4 52%, #fafbfb 100%);
 }
-html:not(.dark) .app-ambient::after {
-  background: radial-gradient(ellipse at 100% 100%, rgb(28 158 119 / .08), transparent 55%);
-}
+html:not(.dark) .app-ambient::after { background: radial-gradient(ellipse at 100% 100%, rgb(29 133 105 / .045), transparent 55%); }
 html:not(.dark) .glass {
-  background: linear-gradient(135deg, rgb(255 255 255 / .72), rgb(247 252 249 / .46));
-  border-color: rgb(39 69 59 / .13);
-  box-shadow: 0 1px 0 rgb(255 255 255 / .82) inset, 0 18px 38px -30px rgb(32 68 55 / .30);
-  -webkit-backdrop-filter: blur(24px) saturate(115%);
-  backdrop-filter: blur(24px) saturate(115%);
+  background: linear-gradient(135deg, rgb(255 255 255 / .82), rgb(251 252 252 / .56));
+  border-color: rgb(35 45 43 / .12);
+  box-shadow: 0 1px 0 rgb(255 255 255 / .95) inset, 0 18px 38px -30px rgb(31 42 39 / .24);
 }
-html:not(.dark) .bg-surface { background-color: rgb(255 255 255 / .72) !important; }
-html:not(.dark) .bg-surface2 { background-color: rgb(255 255 255 / .48) !important; }
-html:not(.dark) .border-border { border-color: rgb(39 69 59 / .14) !important; }
-html:not(.dark) .divide-border > :not([hidden]) ~ :not([hidden]) { border-color: rgb(39 69 59 / .09) !important; }
+html:not(.dark) .bg-surface { background-color: rgb(255 255 255 / .82) !important; }
+html:not(.dark) .bg-surface2 { background-color: rgb(245 247 247 / .72) !important; }
+html:not(.dark) .border-border { border-color: rgb(35 45 43 / .12) !important; }
+html:not(.dark) .divide-border > :not([hidden]) ~ :not([hidden]) { border-color: rgb(35 45 43 / .08) !important; }
 html:not(.dark) .balance-hero {
-  background: radial-gradient(ellipse at 0% 0%, rgb(77 207 163 / .36), transparent 72%), linear-gradient(135deg, rgb(237 255 247 / .82), rgb(205 241 225 / .54));
-  border-color: rgb(28 158 119 / .28);
-  box-shadow: 0 1px 0 rgb(255 255 255 / .9) inset, 0 18px 48px -32px rgb(28 158 119 / .35);
+  background: radial-gradient(ellipse at 0% 0%, rgb(130 214 184 / .18), transparent 68%), linear-gradient(135deg, rgb(255 255 255 / .92), rgb(239 247 244 / .66));
+  border-color: rgb(29 133 105 / .24);
+  box-shadow: 0 1px 0 rgb(255 255 255 / .96) inset, 0 18px 48px -32px rgb(29 133 105 / .18);
 }
-html:not(.dark) .flow-card, html:not(.dark) .learning-hero { background: linear-gradient(135deg, rgb(255 255 255 / .64), rgb(239 249 244 / .42)); }
+html:not(.dark) .flow-card, html:not(.dark) .learning-hero { background: linear-gradient(135deg, rgb(255 255 255 / .80), rgb(245 249 248 / .58)); }
 html:not(.dark) .nav-material {
-  background: linear-gradient(150deg, rgb(255 255 255 / .84), rgb(238 246 242 / .76));
-  border-color: rgb(39 69 59 / .16);
-  box-shadow: 0 14px 36px -24px rgb(32 68 55 / .35);
+  background: linear-gradient(150deg, rgb(255 255 255 / .90), rgb(242 246 245 / .82));
+  border-color: rgb(35 45 43 / .14);
+  box-shadow: 0 14px 36px -24px rgb(31 42 39 / .22);
 }
 html:not(.dark) input, html:not(.dark) select, html:not(.dark) textarea { color-scheme: light; }
