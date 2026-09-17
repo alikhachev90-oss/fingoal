@@ -424,6 +424,15 @@ export const CHALLENGES = [
   {
     key: 'no_delivery_week',
     title: { ru: 'Неделя без доставки еды', en: 'A week without food delivery' },
+    // `rule` spells out what actually breaks it. The built-ins match on text,
+    // not on a category, so the generic "any discretionary spending" line the
+    // editor shows for category-based challenges would be a lie here.
+    rule: {
+      ru: '{days} дн. без доставки еды и заказов из ресторанов',
+      en: '{days} days with no food delivery or takeout orders',
+      es: '{days} días sin pedidos de comida a domicilio',
+      fr: '{days} jours sans livraison de repas',
+    },
     days: 7,
     match: (t) => /достав|delivery|doordash|uber eats/i.test(`${t.category_key} ${t.comment || ''}`),
   },
@@ -436,6 +445,12 @@ export const CHALLENGES = [
   {
     key: 'no_coffee_week',
     title: { ru: 'Неделя без кофе на вынос', en: 'A week without takeout coffee' },
+    rule: {
+      ru: '{days} дн. без трат: Кофе на вынос',
+      en: '{days} days with no spending on: Coffee to go',
+      es: '{days} días sin gastar en: Café para llevar',
+      fr: '{days} jours sans dépense : Café à emporter',
+    },
     days: 7,
     match: (t) => t.category_key === 'coffee',
   },
