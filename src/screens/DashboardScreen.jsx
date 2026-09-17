@@ -410,7 +410,7 @@ export default function DashboardScreen() {
           </Card>
         )}
 
-        <Link to="/accounts">
+        <Link to="/accounts" className="block">
           <Card className="!p-3.5 flex items-center gap-3 hover:border-primary/50">
             <IconCircle icon={Landmark} className="bg-primary/10 text-primary" size={38} iconSize={17} />
             <div className="flex-1 min-w-0">
