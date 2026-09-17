@@ -169,6 +169,31 @@ export default function DashboardScreen() {
     pct: chartExpenseTotal > 0 ? (c.value / chartExpenseTotal) * 100 : 0,
   }))
 
+  // Same breakdown for the income tab: where the money actually came from.
+  const chartIncomeByCategory = useMemo(() => {
+    const totals = {}
+    for (const tx of chartMonthTx) {
+      if (tx.group !== 'income') continue
+      const cat = findCategory(tx.group, tx.category_key)
+      const label = pickLang(cat?.label, lang) || tx.category_key
+      const id = `${tx.group}:${tx.category_key}`
+      totals[id] = totals[id] || { value: 0, group: tx.group, key: tx.category_key, name: label }
+      totals[id].value += Number(tx.amount || 0)
+    }
+    return Object.values(totals).sort((a, b) => b.value - a.value)
+  }, [chartMonthTx, lang])
+
+  // The rank ramp runs red (biggest) to green (smallest), which reads as a
+  // warning — right for spending, wrong for income. Reversing the index keeps
+  // the identical palette while letting the biggest earner come out green.
+  const rankedIncomeData = chartIncomeByCategory.map((c, idx) => ({
+    ...c,
+    color: rankColor(chartIncomeByCategory.length - 1 - idx, chartIncomeByCategory.length),
+    pct: chartIncomeTotal > 0 ? (c.value / chartIncomeTotal) * 100 : 0,
+  }))
+
+  const activePieData = chartTab === 'income' ? rankedIncomeData : rankedPieData
+
   // Income comes from logged transactions, not from a figure typed at signup.
   const monthlyIncome = deriveMonthlyIncome(transactions)
   const monthlyNeedsBudget = Object.values(settings?.needs_budget || {}).reduce((s, v) => s + (v || 0), 0)
@@ -425,15 +450,13 @@ export default function DashboardScreen() {
             ))}
           </div>
 
-          {chartTab === 'income' ? (
-            <p className="text-xs text-muted text-center py-4">{t('dashboard.incomeTabNote')}</p>
-          ) : rankedPieData.length > 0 ? (
+          {activePieData.length > 0 ? (
             <>
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={rankedPieData}
+                      data={activePieData}
                       dataKey="value"
                       nameKey="name"
                       innerRadius={43}
@@ -455,7 +478,7 @@ export default function DashboardScreen() {
                       }}
                       labelLine={{ stroke: 'rgb(var(--color-border))' }}
                     >
-                      {rankedPieData.map((d) => (
+                      {activePieData.map((d) => (
                         <Cell key={`${d.group}:${d.key}`} fill={d.color} />
                       ))}
                     </Pie>
@@ -468,7 +491,7 @@ export default function DashboardScreen() {
               </div>
 
               <div className="divide-y divide-border">
-                {rankedPieData.map((d) => (
+                {activePieData.map((d) => (
                   <button
                     key={`${d.group}:${d.key}`}
                     type="button"
@@ -488,7 +511,9 @@ export default function DashboardScreen() {
               </div>
             </>
           ) : (
-            <p className="text-xs text-muted text-center py-4">{t('dashboard.drilldownEmpty')}</p>
+            <p className="text-xs text-muted text-center py-4">
+              {chartTab === 'income' ? t('dashboard.noIncomeThisMonth') : t('dashboard.drilldownEmpty')}
+            </p>
           )}
         </Card>
 
