@@ -32,6 +32,31 @@ export default function BottomNav({ persistent = false }) {
 
   useEffect(() => () => clearTimeout(hideTimer.current), [])
 
+  // The handle is a 96x44 invisible tap zone with only a 48x4 grip drawn in
+  // it, parked dead centre at the bottom. Anything the page puts there — the
+  // Save button on the entry screen — used to lose every tap to it: the button
+  // flashed, nothing saved. Rather than move the button (and change the
+  // layout), pass the tap through to whatever real control is underneath.
+  const INTERACTIVE = 'button, a[href], input, select, textarea, [role="button"]'
+
+  function handleTap(e) {
+    const self = e.currentTarget
+    const x = e.clientX
+    const y = e.clientY
+    if (typeof x === 'number' && typeof y === 'number' && (x || y)) {
+      const beneath = document
+        .elementsFromPoint(x, y)
+        .find((el) => el !== self && !self.contains(el) && el.closest(INTERACTIVE))
+      const target = beneath?.closest(INTERACTIVE)
+      if (target && target !== self) {
+        target.click()
+        return
+      }
+    }
+    if (expanded) setExpanded(false)
+    else reveal()
+  }
+
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 pointer-events-none">
       <div className="max-w-app mx-auto relative h-[92px]">
@@ -74,7 +99,7 @@ export default function BottomNav({ persistent = false }) {
           aria-label={t('nav.open')}
           tabIndex={expanded ? -1 : 0}
           aria-expanded={expanded}
-          onClick={() => expanded ? setExpanded(false) : reveal()}
+          onClick={handleTap}
           onTouchStart={(e) => { touchStartY.current = e.touches[0].clientY }}
           onTouchMove={(e) => {
             if (touchStartY.current == null) return
