@@ -126,14 +126,14 @@ export default function OnboardingScreen() {
     // Step 2: map of the system
     <div key="system" className="space-y-5 animate-slide-up">
       <div className="glass rounded-[28px] p-5 border-primary/20 gold-glow">
-        <p className="text-[10px] uppercase tracking-[.18em] text-primary font-bold">FINTRACK SYSTEM</p>
+        <p className="text-[10px] uppercase tracking-[.18em] text-primary font-bold">FINTERA SYSTEM</p>
         <p className="font-display text-[24px] leading-tight mt-2">
           {lang === 'en' ? 'One place for your money, goals and financial growth.' : 'Одно место для денег, целей и финансового роста.'}
         </p>
         <p className="text-sm text-muted leading-relaxed mt-3">
           {lang === 'en'
-            ? 'You do not need to learn the whole app today. Open it, follow the prompts, and FinTrack will guide you step by step.'
-            : 'Не нужно изучать всё приложение сразу. Открывай, следуй подсказкам — FinTrack будет вести тебя шаг за шагом.'}
+            ? 'You do not need to learn the whole app today. Open it, follow the prompts, and Fintera will guide you step by step.'
+            : 'Не нужно изучать всё приложение сразу. Открывай, следуй подсказкам — Fintera будет вести тебя шаг за шагом.'}
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3">

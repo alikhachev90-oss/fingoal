@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Sparkles, Send, TrendingUp, TrendingDown, Info, Flag, Trophy, Radar, X, Calculator, ChevronRight, FileBarChart } from 'lucide-react'
 import TopBar from '../components/TopBar'
@@ -77,6 +77,7 @@ export default function InsightsScreen() {
   const [challengeDefsTick, setChallengeDefsTick] = useState(0)
   const [editingChallenge, setEditingChallenge] = useState(null) // def | 'new' | null
   const [challengeDraft, setChallengeDraft] = useState({ title: '', days: '7', categoryKeys: [] })
+  const challengeEditorRef = useRef(null)
 
   useEffect(() => {
     if (!user) return
@@ -161,6 +162,12 @@ export default function InsightsScreen() {
         ? { title: challengeTitle(def, lang), days: String(def.days), categoryKeys: def.categoryKeys || [] }
         : { title: '', days: '7', categoryKeys: [] },
     )
+    // The editor renders below the whole challenge list, so from the first
+    // card it opened just off the bottom of the screen — tapping "Customise"
+    // looked like nothing happened at all. Bring it into view.
+    requestAnimationFrame(() => {
+      challengeEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
   }
 
   function toggleDraftCategory(key) {
@@ -307,7 +314,9 @@ export default function InsightsScreen() {
                       {t('insights.startChallenge')}
                     </Button>
                   </div>
-                  <button type="button" className="text-xs text-primary font-medium" onClick={() => openChallengeEditor(c)}>
+                  {/* py/-my: grows the tap target to ~40px without moving the
+                      link a pixel — as plain text it was only 16px tall. */}
+                  <button type="button" className="self-start text-xs text-primary font-medium py-2.5 -my-2.5 pr-3" onClick={() => openChallengeEditor(c)}>
                     {t('insights.challengeEdit')}
                   </button>
                 </Card>
@@ -318,7 +327,7 @@ export default function InsightsScreen() {
               </Button>
 
               {editingChallenge && (
-                <Card className="!p-3.5 space-y-3 border border-primary/40">
+                <Card ref={challengeEditorRef} className="!p-3.5 space-y-3 border border-primary/40">
                   <p className="text-sm font-semibold">
                     {editingChallenge === 'new' ? t('insights.challengeCreate') : t('insights.challengeEdit')}
                   </p>

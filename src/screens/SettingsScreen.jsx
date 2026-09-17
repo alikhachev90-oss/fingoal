@@ -13,6 +13,7 @@ import { pushBackendEnabled } from '../lib/pushClient'
 import { BACKGROUNDS } from '../lib/backgrounds'
 import ConfirmDialog from '../components/ConfirmDialog'
 import * as db from '../lib/db'
+import { supabaseEnabled } from '../lib/supabaseClient'
 
 const FEEDBACK_EMAIL = 'a.likhachev90@gmail.com'
 const TOUR_SCREENS = ['dashboard', 'goals', 'insights']
@@ -246,7 +247,9 @@ export default function SettingsScreen() {
 
         <Card className="!p-3.5 space-y-2.5">
           <p className="text-xs font-bold tracking-wide text-muted uppercase">{t('settings.data')}</p>
-          <p className="text-xs text-muted leading-relaxed">{t('settings.dataNote')}</p>
+          {/* Telling a cloud-synced user their finances never leave the browser
+              is simply untrue — say which one it actually is. */}
+          <p className="text-xs text-muted leading-relaxed">{t(supabaseEnabled ? 'settings.dataNoteCloud' : 'settings.dataNote')}</p>
           <Button variant="secondary" onClick={signOut} type="button">
             <span className="inline-flex items-center gap-1.5"><LogOut size={14} /> {t('settings.signOut')}</span>
           </Button>

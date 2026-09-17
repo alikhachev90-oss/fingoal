@@ -351,7 +351,7 @@ export default function DashboardScreen() {
         <Card className="home-habit" data-tour="dash-streak">
           <div className="home-habit-stat">
             <Flame size={23} strokeWidth={1.5} />
-            <div><p className="home-streak-number">{streak} {t('common.days')}</p><p className="home-caption">{t('dashboard.streakLabel')} <InfoTag>{t('dashboard.streakInfo')}</InfoTag></p></div>
+            <div><p className="home-streak-number">{streak} {t(streak === 1 ? 'common.day' : 'common.days')}</p><p className="home-caption">{t('dashboard.streakLabel')} <InfoTag>{t('dashboard.streakInfo')}</InfoTag></p></div>
           </div>
           <div className="home-checkin">
             <p>{t('dashboard.checkinPrompt')}</p>
@@ -368,10 +368,12 @@ export default function DashboardScreen() {
             iconClassName="bg-needs/10 text-needs"
           />
           <StatTile label={t('dashboard.spentNeeds')} value={fmt(spentNeeds)} valueClassName="text-needs" icon={TrendingDown} iconClassName="bg-needs/10 text-needs" />
+          {/* With no income logged yet, free money is just "minus your whole
+              budget" — a red scare number on day one that means nothing. */}
           <StatTile
             label={<span className="inline-flex items-center gap-1">{t('dashboard.freeMoney')} <InfoTag>{t('dashboard.freeMoneyInfo')}</InfoTag></span>}
-            value={fmt(freeMoney)}
-            valueClassName={freeMoney < 0 ? 'text-wants' : 'text-savings'}
+            value={monthlyIncome > 0 ? fmt(freeMoney) : '—'}
+            valueClassName={monthlyIncome > 0 && freeMoney < 0 ? 'text-wants' : 'text-savings'}
             icon={PiggyBank}
             iconClassName="bg-savings/10 text-savings"
           />
