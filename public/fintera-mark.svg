@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="surface" x1="62" y1="44" x2="460" y2="478" gradientUnits="userSpaceOnUse"><stop stop-color="#243331"/><stop offset=".56" stop-color="#101918"/><stop offset="1" stop-color="#090e0e"/></linearGradient>
+    <linearGradient id="emerald" x1="152" y1="116" x2="386" y2="404" gradientUnits="userSpaceOnUse"><stop stop-color="#c0ffe2"/><stop offset=".42" stop-color="#6de4b8"/><stop offset="1" stop-color="#31a77d"/></linearGradient>
+    <filter id="glow" x="76" y="76" width="360" height="360" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="24"/></filter>
+  </defs>
+  <rect width="512" height="512" rx="144" fill="#080d0d"/>
+  <rect x="18" y="18" width="476" height="476" rx="130" fill="url(#surface)" stroke="#c9f8e6" stroke-opacity=".2" stroke-width="4"/>
+  <path d="M152 132h222v62H224v69h124v61H224v99h-72V132Z" fill="#59d9ab" fill-opacity=".28" filter="url(#glow)"/>
+  <path d="M152 132h222v62H224v69h124v61H224v99h-72V132Z" fill="url(#emerald)"/>
+  <path d="M154 132h218" stroke="#f2fff9" stroke-opacity=".68" stroke-width="8" stroke-linecap="round"/>
+</svg>
