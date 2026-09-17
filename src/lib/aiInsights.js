@@ -105,26 +105,71 @@ export function forecastGoal(goal, goalPlan, transactions, windowDays = 30, lang
 }
 
 // ----------------------------------------------------------- subscription/anomaly
-// Flags recurring Wants of near-identical amount seen in >=2 distinct months —
+// Flags recurring charges of near-identical amount seen in >=2 distinct months —
 // the classic "forgotten subscription" signature.
-export function detectRecurring(transactions) {
-  const wants = transactions.filter((t) => t.group === 'wants')
-  const buckets = new Map() // key: category_key|roundedAmount -> {months:Set, total, label}
+//
+// Every kind of spending counts, not just Wants: phone, internet and insurance
+// are the most-forgotten subscriptions of all and people file those under
+// essentials. Income, transfers, savings and card payments are not spending, so
+// they stay out.
+//
+// Amounts are clustered with a tolerance rather than bucketed by whole dollars,
+// because subscriptions creep up ($9.99 → $10.99) and an exact-match bucket
+// would read one subscription as two unrelated charges and find neither.
+const RECURRING_TOLERANCE = 0.12 // 12% around the cluster's typical amount
 
-  for (const t of wants) {
-    const rounded = Math.round(t.amount / 1) // bucket by whole-dollar amount
-    const key = `${t.category_key}|${rounded}`
-    if (!buckets.has(key)) buckets.set(key, { id: key, months: new Set(), amount: t.amount, category_key: t.category_key, count: 0 })
-    const b = buckets.get(key)
-    b.months.add(monthKey(t.date))
-    b.count += 1
+export function detectRecurring(transactions) {
+  const spending = (transactions || []).filter(
+    (t) => t.group !== 'income' && t.group !== 'transfer' && t.group !== 'savings' && !t.is_payment,
+  )
+
+  // category -> list of clusters { amounts[], months:Set, group, category_key }
+  const byCategory = new Map()
+  for (const t of spending) {
+    const amount = Number(t.amount || 0)
+    if (!(amount > 0)) continue
+    const catKey = `${t.group}:${t.category_key}`
+    if (!byCategory.has(catKey)) byCategory.set(catKey, [])
+    const clusters = byCategory.get(catKey)
+    const typical = (c) => c.amounts.reduce((s, v) => s + v, 0) / c.amounts.length
+    const hit = clusters.find((c) => Math.abs(amount - typical(c)) <= typical(c) * RECURRING_TOLERANCE)
+    if (hit) {
+      hit.amounts.push(amount)
+      hit.months.add(monthKey(t.date))
+      hit.lastDate = hit.lastDate && hit.lastDate > t.date ? hit.lastDate : t.date
+      hit.lastAmount = hit.lastDate === t.date ? amount : hit.lastAmount
+    } else {
+      clusters.push({
+        amounts: [amount],
+        months: new Set([monthKey(t.date)]),
+        group: t.group,
+        category_key: t.category_key,
+        lastDate: t.date,
+        lastAmount: amount,
+      })
+    }
   }
 
-  return [...buckets.values()]
-    .filter((b) => b.months.size >= 2)
-    .map((b) => ({ ...b, monthsCount: b.months.size }))
-    .sort((a, b) => b.monthsCount - a.monthsCount)
-    .slice(0, 4)
+  const found = []
+  for (const [catKey, clusters] of byCategory) {
+    for (const c of clusters) {
+      if (c.months.size < 2) continue
+      const typical = c.amounts.reduce((s, v) => s + v, 0) / c.amounts.length
+      found.push({
+        // Stable id so "already cancelled" marks survive new transactions.
+        id: `${catKey}|${Math.round(typical)}`,
+        months: c.months,
+        monthsCount: c.months.size,
+        // Show the most recent charge — that is what they pay today.
+        amount: Math.round((c.lastAmount ?? typical) * 100) / 100,
+        group: c.group,
+        category_key: c.category_key,
+        count: c.amounts.length,
+      })
+    }
+  }
+
+  return found.sort((a, b) => b.monthsCount - a.monthsCount || b.amount - a.amount).slice(0, 6)
 }
 
 // --------------------------------------------------------- subscription radar
@@ -397,7 +442,111 @@ export const CHALLENGES = [
 ]
 
 export function challengeTitle(def, lang = 'ru') {
+  if (typeof def?.title === 'string') return def.title // custom ones carry a plain name
   return def?.title?.[lang] || def?.title?.ru || ''
+}
+
+// ------------------------------------------------- editable / custom challenges
+// The three above are a starting point, not the whole menu: each can have its
+// length and categories adjusted, be hidden, or sit next to ones the person
+// writes themselves. Edits live per user+context alongside the active run.
+function challengeDefsKey(userId, context) {
+  return `fintrack_challenge_defs_${userId}_${context}`
+}
+
+function readChallengeDefs(userId, context) {
+  try {
+    const raw = JSON.parse(localStorage.getItem(challengeDefsKey(userId, context)))
+    return { custom: [], overrides: {}, hidden: [], ...(raw || {}) }
+  } catch {
+    return { custom: [], overrides: {}, hidden: [] }
+  }
+}
+
+function writeChallengeDefs(userId, context, defs) {
+  try {
+    localStorage.setItem(challengeDefsKey(userId, context), JSON.stringify(defs))
+  } catch { /* private mode — the built-ins still work */ }
+  return defs
+}
+
+// A custom/edited challenge stores the categories it forbids; this turns that
+// into the same `match(tx)` predicate the built-ins use.
+function matcherFor(def) {
+  if (typeof def.match === 'function') return def.match
+  const keys = def.categoryKeys || []
+  const group = def.group || null
+  return (t) => {
+    if (keys.length) return keys.includes(t.category_key)
+    if (group) return t.group === group
+    return false
+  }
+}
+
+// Every challenge the person can see: built-ins (with their edits applied),
+// minus the ones they hid, plus their own.
+export function listChallenges(userId, context) {
+  const defs = readChallengeDefs(userId, context)
+  const hidden = new Set(defs.hidden || [])
+  const builtIns = CHALLENGES
+    .filter((c) => !hidden.has(c.key))
+    .map((c) => {
+      const patch = defs.overrides?.[c.key]
+      if (!patch) return { ...c, builtIn: true, match: matcherFor(c) }
+      const merged = { ...c, ...patch, builtIn: true, edited: true }
+      // An edit that named categories replaces the built-in predicate.
+      merged.match = patch.categoryKeys?.length || patch.group ? matcherFor(patch) : matcherFor(c)
+      return merged
+    })
+  const custom = (defs.custom || [])
+    .filter((c) => !hidden.has(c.key))
+    .map((c) => ({ ...c, builtIn: false, match: matcherFor(c) }))
+  return [...builtIns, ...custom]
+}
+
+// Create or update one. A built-in is stored as an override so the original
+// stays available if they reset it later; anything else lands in `custom`.
+export function saveChallengeDef(userId, context, def) {
+  const defs = readChallengeDefs(userId, context)
+  const isBuiltIn = CHALLENGES.some((c) => c.key === def.key)
+  const clean = {
+    key: def.key || `custom_${Date.now().toString(36)}`,
+    title: def.title,
+    days: Math.max(1, Math.min(365, Number(def.days) || 7)),
+    categoryKeys: def.categoryKeys || [],
+    group: def.group || null,
+  }
+  if (isBuiltIn) {
+    defs.overrides = { ...(defs.overrides || {}), [clean.key]: clean }
+  } else {
+    const rest = (defs.custom || []).filter((c) => c.key !== clean.key)
+    defs.custom = [...rest, clean]
+  }
+  defs.hidden = (defs.hidden || []).filter((k) => k !== clean.key)
+  writeChallengeDefs(userId, context, defs)
+  return clean
+}
+
+export function deleteChallengeDef(userId, context, key) {
+  const defs = readChallengeDefs(userId, context)
+  const isBuiltIn = CHALLENGES.some((c) => c.key === key)
+  if (isBuiltIn) {
+    defs.hidden = Array.from(new Set([...(defs.hidden || []), key]))
+    if (defs.overrides) delete defs.overrides[key]
+  } else {
+    defs.custom = (defs.custom || []).filter((c) => c.key !== key)
+  }
+  writeChallengeDefs(userId, context, defs)
+  return defs
+}
+
+// Puts an edited built-in back to how it shipped.
+export function resetChallengeDef(userId, context, key) {
+  const defs = readChallengeDefs(userId, context)
+  if (defs.overrides) delete defs.overrides[key]
+  defs.hidden = (defs.hidden || []).filter((k) => k !== key)
+  writeChallengeDefs(userId, context, defs)
+  return defs
 }
 
 function challengeKey(userId, context) {
@@ -423,9 +572,11 @@ export function clearChallenge(userId, context) {
 }
 
 // Returns { challenge, daysElapsed, daysTotal, failed, completed, violatingTx }
-export function evaluateChallenge(active, transactions) {
+// `available` is the person's own list (built-ins plus their edits and custom
+// ones) — without it a running custom challenge would evaluate to nothing.
+export function evaluateChallenge(active, transactions, available = CHALLENGES) {
   if (!active) return null
-  const def = CHALLENGES.find((c) => c.key === active.key)
+  const def = (available || CHALLENGES).find((c) => c.key === active.key)
   if (!def) return null
   const start = new Date(active.startedAt)
   const now = new Date()
