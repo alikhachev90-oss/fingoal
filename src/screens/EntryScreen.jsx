@@ -66,12 +66,14 @@ export default function EntryScreen() {
     // A default Cash source always exists so the account picker below has
     // something to offer even before the user adds a card/bank account.
     db.listAccounts(user.id, context).then(async (list) => {
-      if (list.length === 0) {
-        const cash = await db.upsertAccount(user.id, context, { name: t('accounts.cash'), type: 'cash' })
-        setAccounts([cash])
-      } else {
-        setAccounts(list)
-      }
+      const resolved = list.length === 0
+        ? [await db.upsertAccount(user.id, context, { name: t('accounts.cash'), type: 'cash' })]
+        : list
+      setAccounts(resolved)
+      // Default to the first account rather than "don't specify": money filed
+      // against no account never reaches any balance, so leaving the picker
+      // empty by default made logged money quietly vanish from the totals.
+      setAccountId((current) => current || resolved[0]?.id || '')
     })
     // "Comment with memory": suggest comments the person has already typed
     // before (e.g. a recurring income source or vendor name), so retyping

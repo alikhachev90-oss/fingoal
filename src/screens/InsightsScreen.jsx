@@ -45,10 +45,12 @@ const CHALLENGE_CATEGORY_CHOICES = [
   { group: 'wants', key: 'subscriptions' },
   { group: 'wants', key: 'clothes' },
   { group: 'wants', key: 'hobby' },
+  { group: 'wants', key: 'sport' },
   { group: 'wants', key: 'gifts' },
   { group: 'wants', key: 'other' },
   { group: 'needs', key: 'groceries' },
   { group: 'needs', key: 'transport' },
+  { group: 'needs', key: 'connectivity' },
 ]
 
 const TONE_STYLE = {

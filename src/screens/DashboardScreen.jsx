@@ -201,7 +201,7 @@ export default function DashboardScreen() {
   const monthlyIncome = deriveMonthlyIncome(transactions)
   const monthlyNeedsBudget = Object.values(settings?.needs_budget || {}).reduce((s, v) => s + (v || 0), 0)
   const spentNeeds = byGroup.needs
-  const freeMoney = monthlyIncome - monthlyNeedsBudget - byGroup.wants
+  const freeMoney = monthlyIncome - monthlyNeedsBudget - byGroup.wants - byGroup.savings
 
   // Real money in/out this month, from actual logged transactions — not the
   // manually-configured budget figures above. "Остаток" is deliberately the
@@ -211,6 +211,11 @@ export default function DashboardScreen() {
   // instead of a separately-derived estimate that can disagree with reality.
   const realIncomeThisMonth = monthTx.filter((tx) => tx.group === 'income').reduce((s, tx) => s + tx.amount, 0)
   const realExpenseThisMonth = byGroup.needs + byGroup.wants
+  // The third figure sits in a row headed "this month" next to income and
+  // expenses, so it has to be this month's arithmetic. It used to be the sum
+  // of account balances, which stayed at $0 while income read $5,000 — money
+  // logged without picking an account simply never reached it.
+  const netThisMonth = realIncomeThisMonth - realExpenseThisMonth - byGroup.savings
   const totalBalance = (accounts || [])
     .filter((a) => a.type !== 'credit')
     .reduce((s, a) => s + computeAccountBalance(a, transactions), 0)
@@ -322,7 +327,7 @@ export default function DashboardScreen() {
             </div>
             <div>
               <p className="text-[10px] text-muted uppercase tracking-wide">{t('dashboard.moneyLeft')}</p>
-              <p className={`text-lg font-bold font-num mt-1 truncate ${totalBalance < 0 ? 'text-wants' : 'text-text'}`}>{fmt(totalBalance)}</p>
+              <p className={`text-lg font-bold font-num mt-1 truncate ${netThisMonth < 0 ? 'text-wants' : 'text-text'}`}>{fmt(netThisMonth)}</p>
             </div>
           </div>
         </Card>

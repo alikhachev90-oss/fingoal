@@ -8,7 +8,7 @@ import * as db from '../lib/db'
 import { getLessonsWithStatus } from '../lib/lessons'
 import { getRecommendedLesson } from '../lib/coach'
 import { useSearchParams } from 'react-router-dom'
-import { TRACKS, isTrackUnlocked } from '../lib/course'
+import { TRACKS, isTrackUnlocked, getCompletedLessons } from '../lib/course'
 import CourseTrack from '../components/CourseTrack'
 
 export default function LessonsScreen() {
@@ -57,8 +57,17 @@ export default function LessonsScreen() {
   }
 
   const lessons = getLessonsWithStatus({ settings, debts, goals, transactions, lang })
-  const unlockedCount = lessons.filter((l) => l.unlocked).length
-  const doneCount = lessons.filter((l) => l.unlocked && completed.includes(l.key)).length
+  // The header used to count only the unlocked stories ("0 of 2 done") while
+  // the course card right below it said "0 of 5 lessons" — two totals for one
+  // screen. Count everything that is actually open to the user.
+  const openTracks = TRACKS.filter((track) => isTrackUnlocked(track, user.id, context))
+  const trackTotal = openTracks.reduce((sum, track) => sum + track.lessons.length, 0)
+  const trackDone = openTracks.reduce(
+    (sum, track) => sum + getCompletedLessons(user.id, context, track.key).length,
+    0,
+  )
+  const unlockedCount = lessons.filter((l) => l.unlocked).length + trackTotal
+  const doneCount = lessons.filter((l) => l.unlocked && completed.includes(l.key)).length + trackDone
   const recommended = getRecommendedLesson(lessons, completed, focusKey)
   const progressPct = unlockedCount > 0 ? Math.round((doneCount / unlockedCount) * 100) : 0
   const orderedLessons = recommended ? [recommended, ...lessons.filter((lesson) => lesson.key !== recommended.key)] : lessons
