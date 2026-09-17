@@ -1,4 +1,5 @@
 import { useRef, useState, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Info } from 'lucide-react'
 
 // A tiny inline "what does this mean" tag — tap the ⓘ, get one plain-language
@@ -11,7 +12,12 @@ import { Info } from 'lucide-react'
 // each tag tracked its own open/closed state independently, so tapping a
 // second ⓘ left the first popup open too and they visually overlapped —
 // `currentCloser` is a tiny module-level singleton so opening one always
-// closes whichever other one was open first.
+// closes whichever other one was open first. (3) `fixed` alone was not
+// enough: the cards use `backdrop-filter`, and a filtered ancestor becomes
+// the containing block for fixed children, so the carefully clamped
+// viewport coordinates were being resolved against the card instead — the
+// popup shot off the right edge of the screen. It renders in a portal on
+// <body> now, where `fixed` means what it says.
 let currentCloser = null
 
 export default function InfoTag({ children }) {
@@ -24,7 +30,13 @@ export default function InfoTag({ children }) {
     const r = el.getBoundingClientRect()
     const width = Math.min(224, window.innerWidth - 16)
     const left = Math.min(Math.max(8, r.left + r.width / 2 - width / 2), window.innerWidth - width - 8)
-    const top = r.bottom + 6
+    // Below the icon by default, but flipped above it when there isn't room —
+    // on a tile near the bottom of the screen the popup ran off the edge.
+    const estimated = 96
+    const below = r.bottom + 6
+    const top = below + estimated > window.innerHeight - 8 && r.top - 6 - estimated > 8
+      ? r.top - 6 - estimated
+      : Math.min(below, Math.max(8, window.innerHeight - estimated - 8))
     return { top, left, width }
   }
 
@@ -71,17 +83,18 @@ export default function InfoTag({ children }) {
       >
         <Info size={11} strokeWidth={2.4} />
       </button>
-      {pos && (
+      {pos && createPortal(
         <>
-          <span className="fixed inset-0 z-40" onClick={close} />
-          <span
+          <div className="fixed inset-0 z-[70]" onClick={close} />
+          <div
             onClick={(e) => e.stopPropagation()}
-            className="fixed z-50 bg-surface border border-border rounded-xl shadow-soft p-3 text-xs text-muted leading-relaxed font-sans normal-case tracking-normal font-normal"
+            className="fixed z-[71] bg-surface border border-border rounded-xl shadow-soft p-3 text-xs text-muted leading-relaxed font-sans normal-case tracking-normal font-normal"
             style={{ top: pos.top, left: pos.left, width: pos.width }}
           >
             {children}
-          </span>
-        </>
+          </div>
+        </>,
+        document.body,
       )}
     </span>
   )
