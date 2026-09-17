@@ -11,8 +11,11 @@ import * as db from '../lib/db'
 import {
   computeInsights,
   answerQuestion,
-  CHALLENGES,
   challengeTitle,
+  listChallenges,
+  saveChallengeDef,
+  deleteChallengeDef,
+  resetChallengeDef,
   getActiveChallenge,
   startChallenge,
   clearChallenge,
@@ -33,6 +36,21 @@ function fmt(n) {
 
 // "warn" reads as a gentle nudge (amber), not an alarm (red) — nothing here
 // is an emergency, it's just something worth a glance.
+// The categories worth building a challenge around — the ones people actually
+// want to go a week without, not the whole tree (rent can't be given up).
+const CHALLENGE_CATEGORY_CHOICES = [
+  { group: 'wants', key: 'cafe' },
+  { group: 'wants', key: 'coffee' },
+  { group: 'wants', key: 'entertainment' },
+  { group: 'wants', key: 'subscriptions' },
+  { group: 'wants', key: 'clothes' },
+  { group: 'wants', key: 'hobby' },
+  { group: 'wants', key: 'gifts' },
+  { group: 'wants', key: 'other' },
+  { group: 'needs', key: 'groceries' },
+  { group: 'needs', key: 'transport' },
+]
+
 const TONE_STYLE = {
   good: { icon: TrendingUp, cls: 'bg-savings/10 text-savings' },
   warn: { icon: TrendingDown, cls: 'bg-wants/10 text-wants' },
@@ -54,6 +72,11 @@ export default function InsightsScreen() {
   const [radarTick, setRadarTick] = useState(0)
   const [radarInfoOpen, setRadarInfoOpen] = useState(false)
   const [tourActive, setTourActive] = useState(false)
+  // Challenge editing: which one is open in the editor, the draft being typed,
+  // and a tick so saving/deleting re-reads the stored list.
+  const [challengeDefsTick, setChallengeDefsTick] = useState(0)
+  const [editingChallenge, setEditingChallenge] = useState(null) // def | 'new' | null
+  const [challengeDraft, setChallengeDraft] = useState({ title: '', days: '7', categoryKeys: [] })
 
   useEffect(() => {
     if (!user) return
@@ -85,7 +108,9 @@ export default function InsightsScreen() {
 
   const cards = computeInsights({ settings, transactions, goals, debts, lang })
   const reportDue = user ? Boolean(pendingMonthReport(user.id, context, transactions) || pendingYearReport(user.id, context, transactions)) : false
-  const challengeStatus = evaluateChallenge(activeChallenge, transactions)
+  void challengeDefsTick // bumping it re-reads the stored challenge list below
+  const myChallenges = user ? listChallenges(user.id, context) : []
+  const challengeStatus = evaluateChallenge(activeChallenge, transactions, myChallenges)
   const radarDue = user ? shouldPromptMonthlyCheck(user.id, context) : false
   const radarDays = user ? daysSinceRadarCheck(user.id, context) : null
 
@@ -127,6 +152,50 @@ export default function InsightsScreen() {
   function handleStopChallenge() {
     clearChallenge(user.id, context)
     setActiveChallenge(null)
+  }
+
+  function openChallengeEditor(def) {
+    setEditingChallenge(def || 'new')
+    setChallengeDraft(
+      def
+        ? { title: challengeTitle(def, lang), days: String(def.days), categoryKeys: def.categoryKeys || [] }
+        : { title: '', days: '7', categoryKeys: [] },
+    )
+  }
+
+  function toggleDraftCategory(key) {
+    setChallengeDraft((d) => ({
+      ...d,
+      categoryKeys: d.categoryKeys.includes(key) ? d.categoryKeys.filter((k) => k !== key) : [...d.categoryKeys, key],
+    }))
+  }
+
+  function saveChallengeDraft() {
+    if (!challengeDraft.title.trim()) return
+    const editing = editingChallenge === 'new' ? null : editingChallenge
+    saveChallengeDef(user.id, context, {
+      key: editing?.key,
+      title: challengeDraft.title.trim(),
+      days: parseInt(challengeDraft.days, 10) || 7,
+      categoryKeys: challengeDraft.categoryKeys,
+      // No categories picked means "any discretionary spending breaks it".
+      group: challengeDraft.categoryKeys.length ? null : 'wants',
+    })
+    setEditingChallenge(null)
+    setChallengeDefsTick((v) => v + 1)
+  }
+
+  function removeChallenge(def) {
+    deleteChallengeDef(user.id, context, def.key)
+    if (activeChallenge?.key === def.key) handleStopChallenge()
+    setEditingChallenge(null)
+    setChallengeDefsTick((v) => v + 1)
+  }
+
+  function restoreChallenge(def) {
+    resetChallengeDef(user.id, context, def.key)
+    setEditingChallenge(null)
+    setChallengeDefsTick((v) => v + 1)
   }
 
   return (
@@ -197,7 +266,7 @@ export default function InsightsScreen() {
                   <div className="flex items-center gap-2.5 min-w-0">
                     <IconCircle icon={Radar} className="bg-wants/10 text-wants" size={32} iconSize={15} />
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{categoryLabel('wants', item.category_key, lang)}</p>
+                      <p className="text-sm font-medium truncate">{categoryLabel(item.group || 'wants', item.category_key, lang)}</p>
                       <p className="text-xs text-muted">{fmt(item.amount)} · {item.monthsCount} {t('radar.monthsSuffix')}</p>
                     </div>
                   </div>
@@ -224,17 +293,92 @@ export default function InsightsScreen() {
           <p className="text-[13px] font-bold tracking-wide text-muted uppercase mb-2">{t('insights.challengeSection')}</p>
           {!activeChallenge && (
             <div className="space-y-2">
-              {CHALLENGES.map((c) => (
-                <Card key={c.key} className="!p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <IconCircle icon={Flag} className="bg-primary/10 text-primary" size={32} iconSize={15} />
-                    <p className="text-sm font-medium truncate">{challengeTitle(c, lang)}</p>
+              {myChallenges.map((c) => (
+                <Card key={c.key} className="!p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <IconCircle icon={Flag} className="bg-primary/10 text-primary" size={32} iconSize={15} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{challengeTitle(c, lang)}</p>
+                        <p className="text-xs text-muted">{t('insights.challengeDays', { days: c.days })}</p>
+                      </div>
+                    </div>
+                    <Button variant="secondary" className="!w-auto px-3 shrink-0" onClick={() => handleStartChallenge(c.key)} type="button">
+                      {t('insights.startChallenge')}
+                    </Button>
                   </div>
-                  <Button variant="secondary" className="!w-auto px-3 shrink-0" onClick={() => handleStartChallenge(c.key)} type="button">
-                    {t('insights.startChallenge')}
-                  </Button>
+                  <button type="button" className="text-xs text-primary font-medium" onClick={() => openChallengeEditor(c)}>
+                    {t('insights.challengeEdit')}
+                  </button>
                 </Card>
               ))}
+
+              <Button variant="secondary" onClick={() => openChallengeEditor(null)} type="button">
+                + {t('insights.challengeCreate')}
+              </Button>
+
+              {editingChallenge && (
+                <Card className="!p-3.5 space-y-3 border border-primary/40">
+                  <p className="text-sm font-semibold">
+                    {editingChallenge === 'new' ? t('insights.challengeCreate') : t('insights.challengeEdit')}
+                  </p>
+                  <label className="block text-sm">
+                    <span className="text-muted text-xs font-medium">{t('insights.challengeName')}</span>
+                    <input
+                      value={challengeDraft.title}
+                      onChange={(e) => setChallengeDraft((d) => ({ ...d, title: e.target.value }))}
+                      placeholder={t('insights.challengeNamePlaceholder')}
+                      className="w-full mt-1 bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
+                    />
+                  </label>
+                  <label className="block text-sm">
+                    <span className="text-muted text-xs font-medium">{t('insights.challengeLength')}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="365"
+                      value={challengeDraft.days}
+                      onChange={(e) => setChallengeDraft((d) => ({ ...d, days: e.target.value }))}
+                      className="w-full mt-1 bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
+                    />
+                  </label>
+                  <div>
+                    <p className="text-muted text-xs font-medium mb-1.5">{t('insights.challengeCategories')}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {CHALLENGE_CATEGORY_CHOICES.map((c) => {
+                        const on = challengeDraft.categoryKeys.includes(c.key)
+                        return (
+                          <button
+                            key={c.key}
+                            type="button"
+                            onClick={() => toggleDraftCategory(c.key)}
+                            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border ${on ? 'bg-primary/15 border-primary text-primary' : 'bg-surface2 border-border text-muted'}`}
+                          >
+                            {categoryLabel(c.group, c.key, lang)}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <p className="text-[11px] text-muted mt-1.5">{t('insights.challengeCategoriesHint')}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" type="button" onClick={() => setEditingChallenge(null)}>{t('common.cancel')}</Button>
+                    <Button type="button" onClick={saveChallengeDraft} disabled={!challengeDraft.title.trim()}>{t('common.save')}</Button>
+                  </div>
+                  {editingChallenge !== 'new' && (
+                    <div className="flex gap-3 pt-1">
+                      <button type="button" className="text-xs text-wants font-medium" onClick={() => removeChallenge(editingChallenge)}>
+                        {t('insights.challengeDelete')}
+                      </button>
+                      {editingChallenge.builtIn && editingChallenge.edited && (
+                        <button type="button" className="text-xs text-muted font-medium" onClick={() => restoreChallenge(editingChallenge)}>
+                          {t('insights.challengeReset')}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </Card>
+              )}
             </div>
           )}
           {activeChallenge && challengeStatus && (
