@@ -1,12 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
   <defs>
-    <linearGradient id="surface" x1="62" y1="44" x2="460" y2="478" gradientUnits="userSpaceOnUse"><stop stop-color="#243331"/><stop offset=".56" stop-color="#101918"/><stop offset="1" stop-color="#090e0e"/></linearGradient>
-    <linearGradient id="emerald" x1="152" y1="116" x2="386" y2="404" gradientUnits="userSpaceOnUse"><stop stop-color="#c0ffe2"/><stop offset=".42" stop-color="#6de4b8"/><stop offset="1" stop-color="#31a77d"/></linearGradient>
-    <filter id="glow" x="76" y="76" width="360" height="360" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="24"/></filter>
+    <linearGradient id="surface" x1="54" y1="42" x2="459" y2="477" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#273836"/><stop offset=".54" stop-color="#111b1a"/><stop offset="1" stop-color="#090f0f"/>
+    </linearGradient>
+    <linearGradient id="mint" x1="147" y1="344" x2="372" y2="154" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#32a97e"/><stop offset=".52" stop-color="#74e9bf"/><stop offset="1" stop-color="#e0fff0"/>
+    </linearGradient>
+    <filter id="glow" x="89" y="91" width="334" height="330" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="25"/></filter>
   </defs>
   <rect width="512" height="512" rx="144" fill="#080d0d"/>
-  <rect x="18" y="18" width="476" height="476" rx="130" fill="url(#surface)" stroke="#c9f8e6" stroke-opacity=".2" stroke-width="4"/>
-  <path d="M152 132h222v62H224v69h124v61H224v99h-72V132Z" fill="#59d9ab" fill-opacity=".28" filter="url(#glow)"/>
-  <path d="M152 132h222v62H224v69h124v61H224v99h-72V132Z" fill="url(#emerald)"/>
-  <path d="M154 132h218" stroke="#f2fff9" stroke-opacity=".68" stroke-width="8" stroke-linecap="round"/>
+  <rect x="18" y="18" width="476" height="476" rx="130" fill="url(#surface)" stroke="#d4fff0" stroke-opacity=".18" stroke-width="4"/>
+  <circle cx="256" cy="256" r="132" stroke="#d5f9eb" stroke-opacity=".12" stroke-width="24"/>
+  <path d="M150 316c38 0 61-22 86-50l52-58c24-27 47-39 75-39" stroke="#61dcb0" stroke-opacity=".30" stroke-width="48" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M150 316c38 0 61-22 86-50l52-58c24-27 47-39 75-39" stroke="url(#mint)" stroke-width="30" stroke-linecap="round"/>
+  <path d="m330 142 42 27-25 43" stroke="#e8fff5" stroke-width="27" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="150" cy="316" r="16" fill="#c8ffe8"/>
 </svg>
