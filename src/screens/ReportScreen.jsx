@@ -134,7 +134,7 @@ export default function ReportScreen() {
           <ArrowLeft size={13} /> {t('nav.insights')}
         </Link>
 
-        <div className="flex bg-surface2 rounded-lg p-1 border border-border">
+        <div className="segmented-control flex bg-surface2 rounded-lg p-1 border border-border">
           {[
             { key: 'month', label: t('reports.tabMonth'), icon: CalendarDays },
             { key: 'year', label: t('reports.tabYear'), icon: CalendarRange },
@@ -143,7 +143,7 @@ export default function ReportScreen() {
               key={key}
               type="button"
               onClick={() => setMode(key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-semibold ${mode === key ? 'bg-surface shadow-softer text-text' : 'text-muted'}`}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-semibold ${mode === key ? 'segment-active text-text' : 'text-muted'}`}
             >
               <Icon size={13} /> {label}
             </button>
