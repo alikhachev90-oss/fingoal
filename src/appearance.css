@@ -8,9 +8,10 @@ body { background: rgb(var(--color-bg)); }
   --color-on-primary: 40 29 12; --ambient-glow: 104 86 61;
 }
 .app-ambient.theme-nature {
-  --tone: 100 224 174; --color-primary: 100 224 174; --color-primary2: 180 250 215;
-  --color-bg: 6 31 27; --color-surface: 16 64 52; --color-surface2: 23 80 65;
-  --color-on-primary: 5 40 26; --ambient-glow: 18 134 95;
+  --tone: 232 161 183; --color-primary: 232 161 183; --color-primary2: 255 216 228;
+  --color-bg: 19 15 20; --color-surface: 43 35 41; --color-surface2: 57 46 54;
+  --color-on-primary: 50 23 34; --ambient-glow: 133 65 86;
+  --color-income: 106 209 173;
 }
 .app-ambient.theme-dynamic {
   --tone: 153 180 255; --color-primary: 153 180 255; --color-primary2: 212 223 255;
