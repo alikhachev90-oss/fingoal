@@ -66,6 +66,35 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .entry-form > label:first-child > span { text-align: left; font-size: 11px; }
 .nav-material { background: linear-gradient(150deg, rgb(42 44 48 / .92), rgb(18 19 22 / .95)); -webkit-backdrop-filter: blur(28px); backdrop-filter: blur(28px); border-color: rgb(255 255 255 / .16); }
 .learning-hero { background: radial-gradient(ellipse at 100% 0%, rgb(var(--color-primary) / .15), transparent 70%), linear-gradient(140deg, rgb(255 255 255 / .07), transparent); }
+.goals-launchpad { background:radial-gradient(ellipse at 100% 0%,rgb(var(--color-primary) / .17),transparent 62%),linear-gradient(145deg,rgb(255 255 255 / .08),rgb(255 255 255 / .025)); }
+.goals-launchpad > .grid > button { background:linear-gradient(145deg,rgb(255 255 255 / .07),rgb(255 255 255 / .02)); border-color:rgb(255 255 255 / .13); min-height:122px; }
+.goals-launchpad > .grid > button:nth-child(2) { background:linear-gradient(145deg,rgb(var(--color-needs) / .13),rgb(255 255 255 / .02)); }
+.goals-launchpad > .grid > button:nth-child(4) { background:linear-gradient(145deg,rgb(var(--color-savings) / .12),rgb(255 255 255 / .02)); }
+.goal-detail-card { background:radial-gradient(ellipse at 100% 0%,rgb(var(--color-primary) / .1),transparent 55%),linear-gradient(145deg,rgb(255 255 255 / .07),rgb(255 255 255 / .02)); }
+
+/* The four core screens share the graphite composition: one warm focal plane,
+   restrained supporting glass and semantic colour only where it says something. */
+.screen-entry .flex-1 > .grid > button { min-height:52px; background:linear-gradient(145deg,rgb(255 255 255 / .065),rgb(255 255 255 / .018)); }
+.screen-entry .flex-1 > .grid > button.border-primary { background:linear-gradient(145deg,rgb(var(--color-primary) / .19),rgb(var(--color-primary) / .06)); box-shadow:0 8px 24px -18px rgb(var(--color-primary) / .65),0 1px 0 rgb(255 255 255 / .1) inset; }
+.screen-entry .flex-1 > .glass:nth-of-type(1) { background:radial-gradient(ellipse at 0% 0%,rgb(var(--color-primary) / .15),transparent 60%),linear-gradient(145deg,rgb(255 255 255 / .075),rgb(255 255 255 / .022)); border-color:rgb(var(--color-primary) / .28); }
+.screen-entry .flex-1 > .glass:nth-of-type(2) { background:linear-gradient(145deg,rgb(255 255 255 / .075),rgb(255 255 255 / .02)); }
+.screen-entry .flex-1 > .glass:nth-of-type(2) input:first-of-type { font-size:30px; font-weight:500; letter-spacing:-.04em; }
+.screen-entry .flex-1 > .glass:nth-of-type(3) { background:radial-gradient(ellipse at 100% 0%,rgb(var(--color-primary) / .11),transparent 54%),linear-gradient(145deg,rgb(255 255 255 / .07),rgb(255 255 255 / .02)); }
+
+.screen-goals .goal-card { border-color:rgb(221 190 127 / .2); box-shadow:0 1px 0 rgb(255 255 255 / .07) inset,0 20px 42px -31px rgb(0 0 0 / .8); }
+.screen-goals .goal-card [role='progressbar'] circle:last-child { stroke:rgb(221 190 127); filter:drop-shadow(0 0 5px rgb(221 190 127 / .45)); }
+.screen-goals .goal-card .bg-surface2 { background:rgb(0 0 0 / .15) !important; }
+
+.screen-lessons .learning-hero { min-height:192px; display:flex; flex-direction:column; justify-content:center; border-color:rgb(221 190 127 / .3); box-shadow:0 1px 0 rgb(255 255 255 / .1) inset,0 24px 50px -34px rgb(178 129 55 / .55); }
+.screen-lessons .learning-hero > div > div:last-child { width:74px; height:74px; border-color:rgb(221 190 127 / .45); background:radial-gradient(circle at 35% 30%,rgb(255 244 211 / .2),rgb(221 190 127 / .09)); }
+.screen-lessons .learning-hero .text-xl { font-size:26px; }
+.screen-lessons .learning-hero .bg-primary { background:linear-gradient(90deg,#c79a55,#f2d99b) !important; box-shadow:0 0 15px rgb(221 190 127 / .45); }
+.screen-lessons .glass:has(> button > div > p.text-\[15px\]) { background:linear-gradient(145deg,rgb(255 255 255 / .075),rgb(255 255 255 / .02)); }
+
+.screen-insights .flex-1 > .glass:first-of-type { background:radial-gradient(ellipse at 0% 0%,rgb(221 190 127 / .16),transparent 58%),linear-gradient(145deg,rgb(255 255 255 / .075),rgb(255 255 255 / .02)); border-color:rgb(221 190 127 / .24); }
+.screen-insights [data-tour='insights-radar'] > .glass { background:linear-gradient(145deg,rgb(255 255 255 / .075),rgb(221 190 127 / .035)); }
+.screen-insights [data-tour='insights-challenge'] > .glass { background:radial-gradient(ellipse at 100% 0%,rgb(var(--color-primary) / .15),transparent 55%),linear-gradient(145deg,rgb(255 255 255 / .075),rgb(255 255 255 / .02)); border-color:rgb(var(--color-primary) / .27); }
+.screen-insights [data-tour='insights-challenge'] .bg-primary { background:linear-gradient(90deg,#c79a55,#f2d99b) !important; box-shadow:0 0 14px rgb(221 190 127 / .35); }
 input, select, textarea { color-scheme: dark; max-width: 100%; }
 input[type='number']::-webkit-outer-spin-button, input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input[type='number'] { -moz-appearance: textfield; }
