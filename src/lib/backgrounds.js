@@ -9,8 +9,8 @@ export const BACKGROUNDS = [
   {
     id: 'nature',
     label: { ru: 'Розовый кварц', en: 'Rose Quartz', es: 'Cuarzo rosa', fr: 'Quartz rose' },
-    css: 'radial-gradient(ellipse at 14% 5%, #fff9fb, transparent 47%), radial-gradient(ellipse at 88% 82%, #d89aaa, transparent 63%), linear-gradient(145deg, #f4dce2, #9a5266 82%)',
-    accent: '#f8dfe6',
+    css: 'radial-gradient(ellipse 70% 42% at 105% -4%, #9c536f55, transparent 72%), radial-gradient(ellipse 56% 38% at -8% 68%, #dca5b522, transparent 74%), linear-gradient(155deg, #251b22, #100d12 70%)',
+    accent: '#e8a1b6',
   },
   {
     id: 'dynamic',
