@@ -188,7 +188,7 @@ export default function GoalsScreen() {
           )}
         </Card>
         {goals.length === 0 && !showForm && (
-          <Card className="!p-4 space-y-3 border-primary/20">
+          <Card className="goals-launchpad !p-4 space-y-3 border-primary/20">
             <div>
               <p className="text-[10px] uppercase tracking-[.16em] text-primary font-bold">{t('goals.quickStart')}</p>
               <p className="font-display text-xl mt-1">{t('goals.direction')}</p>
@@ -227,7 +227,7 @@ export default function GoalsScreen() {
               )
             : null
           return (
-            <Card key={goal.id} className="goal-card space-y-3">
+            <Card key={goal.id} className="goal-card goal-detail-card space-y-3">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-semibold">{goal.name}</p>
