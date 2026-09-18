@@ -20,7 +20,8 @@ body { background: rgb(var(--color-bg)); }
 }
 .app-ambient[class*="theme-"] {
   --color-text: 241 243 247; --color-muted: 171 180 194; --color-border: 167 180 202;
-  --color-savings: 106 209 173; --color-income: 142 181 218;
+  --color-savings: 106 209 173; --color-income: 164 224 157;
+  --color-needs: 213 139 137; --color-danger: 213 139 137;
   color: rgb(var(--color-text)); background: rgb(var(--color-bg));
 }
 html:not(.dark) .theme-default { --color-bg: 244 241 235; --color-surface: 255 253 247; --color-surface2: 233 228 219; --color-primary: 125 86 23; --color-primary2: 160 115 43; --ambient-glow: 204 180 133; }
