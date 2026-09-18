@@ -65,7 +65,7 @@ export function Pill({ children, className = '' }) {
 
 export function IconCircle({ icon: Icon, className = '', size = 40, iconSize = 18 }) {
   return (
-    <div className={`flex items-center justify-center rounded-2xl shrink-0 border border-white/10 ${className}`} style={{ width: size, height: size }}>
+    <div className={`icon-circle flex items-center justify-center rounded-2xl shrink-0 border border-white/10 ${className}`} style={{ width: size, height: size }}>
       <Icon size={iconSize} strokeWidth={2.15} />
     </div>
   )
