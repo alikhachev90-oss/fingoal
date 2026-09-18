@@ -14,9 +14,9 @@ export const BACKGROUNDS = [
   },
   {
     id: 'dynamic',
-    label: { ru: 'Слоновая кость', en: 'Ivory', es: 'Marfil', fr: 'Ivoire' },
-    css: 'radial-gradient(ellipse 72% 44% at -8% -8%, #e7d1a344, transparent 67%), radial-gradient(ellipse 66% 46% at 108% 12%, #f7ead122, transparent 72%), linear-gradient(155deg, #24211b, #100f0d 74%)',
-    accent: '#e7d1a3',
+    label: { ru: 'Жидкая медь', en: 'Liquid Copper', es: 'Cobre líquido', fr: 'Cuivre liquide' },
+    css: 'radial-gradient(ellipse 74% 46% at 108% -6%, #c96f434d, transparent 70%), radial-gradient(ellipse 58% 40% at -8% 66%, #f0a06b20, transparent 74%), linear-gradient(155deg, #251713, #100d0c 74%)',
+    accent: '#df8b58',
   },
 ]
 export function getBackground(id) {
