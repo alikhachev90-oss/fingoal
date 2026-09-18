@@ -122,6 +122,9 @@ export default function AccountsScreen() {
     cancel: { ru: 'Отмена', en: 'Cancel' }[lang] || 'Отмена',
     save: { ru: 'Сохранить', en: 'Save' }[lang] || 'Сохранить',
     balance: { ru: 'Баланс', en: 'Balance' }[lang] || 'Баланс',
+    owed: { ru: 'Долг по карте', en: 'Owed on the card', es: 'Deuda de la tarjeta', fr: 'Dette de la carte' }[lang] || 'Долг по карте',
+    available: { ru: 'Осталось доступно', en: 'Still available', es: 'Disponible', fr: 'Encore disponible' }[lang] || 'Осталось доступно',
+    availableNote: { ru: 'из лимита {limit}', en: 'of your {limit} limit', es: 'de tu límite {limit}', fr: 'sur votre limite de {limit}' }[lang] || 'из лимита {limit}',
     utilization: { ru: 'Загрузка', en: 'Utilization' }[lang] || 'Загрузка',
     dueIn: (n) => ({ ru: `Платёж через ${n} дн.`, en: `Due in ${n} day(s)` }[lang] || `Due in ${n}`),
     overdue: { ru: 'Просрочка!', en: 'Overdue!' }[lang] || 'Overdue',
@@ -155,12 +158,21 @@ export default function AccountsScreen() {
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted">{L.balance}</span>
+              <span className="text-muted">{a.type === 'credit' ? L.owed : L.balance}</span>
               <span className={`font-semibold font-num ${(a.type === 'credit' ? a.balance > 0 : a.balance < 0) ? 'text-wants' : 'text-savings'}`}>{fmt(a.balance)}</span>
             </div>
 
             {a.type === 'credit' && (
               <>
+                {a.credit_limit > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted">
+                      {L.available}
+                      <span className="block text-[11px] opacity-70">{L.availableNote.replace('{limit}', fmt(a.credit_limit))}</span>
+                    </span>
+                    <span className="font-semibold font-num text-savings">{fmt(Math.max(0, a.credit_limit - Math.max(0, a.balance)))}</span>
+                  </div>
+                )}
                 {a.utilization !== null && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted">{L.utilization}</span>
