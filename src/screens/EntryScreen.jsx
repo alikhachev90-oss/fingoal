@@ -9,7 +9,45 @@ import { suggestCategories, CATEGORY_TREE, findCategory, pickLang, subLabel, sub
 import InfoTag from '../components/InfoTag'
 import { computeGoalPlan, daysSavedByAmount, crossedMilestone, deriveMonthlyIncome } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
-import { Wand2 } from 'lucide-react'
+import { Wand2, ChevronDown, Check } from 'lucide-react'
+
+function accountLabel(account, t) {
+  return `${account.name}${account.type === 'credit' ? ` (${t('accounts.credit')})` : ''}`
+}
+
+function AccountPicker({ label, emptyLabel, accounts, value, onChange, t }) {
+  const [open, setOpen] = useState(false)
+  const selected = accounts.find((account) => account.id === value)
+
+  return (
+    <div className="account-picker">
+      <span className="text-muted text-xs font-medium">{label}</span>
+      <button type="button" className="account-picker-trigger" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
+        <span>{selected ? accountLabel(selected, t) : emptyLabel}</span>
+        <ChevronDown size={16} strokeWidth={1.8} />
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center px-3 pb-[max(env(safe-area-inset-bottom),12px)]" role="dialog" aria-modal="true" aria-label={label}>
+          <button type="button" className="absolute inset-0 bg-black/45" aria-label="Close" onClick={() => setOpen(false)} />
+          <div className="account-picker-sheet relative w-full max-w-app">
+            <div className="account-picker-handle" />
+            <p className="account-picker-title">{label}</p>
+            <div className="account-picker-options">
+              <button type="button" className={!value ? 'is-selected' : ''} onClick={() => { onChange(''); setOpen(false) }}>
+                <span>{emptyLabel}</span>{!value && <Check size={18} />}
+              </button>
+              {accounts.map((account) => (
+                <button key={account.id} type="button" className={value === account.id ? 'is-selected' : ''} onClick={() => { onChange(account.id); setOpen(false) }}>
+                  <span>{accountLabel(account, t)}</span>{value === account.id && <Check size={18} />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function EntryScreen() {
   const { user, context, t, lang } = useApp()
@@ -350,55 +388,25 @@ export default function EntryScreen() {
           )}
           {type === 'transfer' ? (
             <>
-              <label className="block text-sm">
-                <span className="text-muted text-xs font-medium">{t('entry.fromAccount')}</span>
-                <select
-                  value={fromAccountId}
-                  onChange={(e) => setFromAccountId(e.target.value)}
-                  className="mt-1 w-full bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
-                >
-                  <option value="">—</option>
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>{a.name}{a.type === 'credit' ? ` (${t('accounts.credit')})` : ''}</option>
-                  ))}
-                </select>
+              <div className="block text-sm">
+                <AccountPicker label={t('entry.fromAccount')} emptyLabel="—" accounts={accounts} value={fromAccountId} onChange={setFromAccountId} t={t} />
                 <button type="button" onClick={() => startCreateAccount('from')} className="mt-1 text-xs text-primary font-medium">+ {t('entry.createAccount')}</button>
-              </label>
+              </div>
               {creatingAccountFor === 'from' && renderNewAccountForm()}
-              <label className="block text-sm">
-                <span className="text-muted text-xs font-medium">{t('entry.toAccount')}</span>
-                <select
-                  value={toAccountId}
-                  onChange={(e) => setToAccountId(e.target.value)}
-                  className="mt-1 w-full bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
-                >
-                  <option value="">—</option>
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>{a.name}{a.type === 'credit' ? ` (${t('accounts.credit')})` : ''}</option>
-                  ))}
-                </select>
+              <div className="block text-sm">
+                <AccountPicker label={t('entry.toAccount')} emptyLabel="—" accounts={accounts} value={toAccountId} onChange={setToAccountId} t={t} />
                 <button type="button" onClick={() => startCreateAccount('to')} className="mt-1 text-xs text-primary font-medium">+ {t('entry.createAccount')}</button>
-              </label>
+              </div>
               {creatingAccountFor === 'to' && renderNewAccountForm()}
               {fromAccountId && toAccountId && fromAccountId === toAccountId && (
                 <p className="text-[11px] text-wants -mt-1">{t('entry.sameAccountError')}</p>
               )}
             </>
           ) : (
-            <label className="block text-sm">
-              <span className="text-muted text-xs font-medium">{t('entry.accountLabel')}</span>
-              <select
-                value={accountId}
-                onChange={(e) => setAccountId(e.target.value)}
-                className="mt-1 w-full bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
-              >
-                <option value="">{t('entry.accountNone')}</option>
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name}{a.type === 'credit' ? ` (${t('accounts.credit')})` : ''}</option>
-                ))}
-              </select>
+            <div className="block text-sm">
+              <AccountPicker label={t('entry.accountLabel')} emptyLabel={t('entry.accountNone')} accounts={accounts} value={accountId} onChange={setAccountId} t={t} />
               <button type="button" onClick={() => startCreateAccount('main')} className="mt-1 text-xs text-primary font-medium">+ {t('entry.createAccount')}</button>
-            </label>
+            </div>
           )}
           {creatingAccountFor === 'main' && renderNewAccountForm()}
           {type === 'income' && (
