@@ -333,7 +333,7 @@ export default function EntryScreen() {
         )}
 
         <Card className="space-y-3">
-          <Input label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="entry-amount-input" />
+          <Input label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
           <Input label={t('entry.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           <Input
             label={t('entry.comment')}
