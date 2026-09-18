@@ -134,18 +134,35 @@ export default function AccountsScreen() {
     delete: { ru: 'Удалить', en: 'Delete' }[lang] || 'Delete',
     highUtil: { ru: 'Загрузка выше 30% — это заметно бьёт по кредитному скорингу.', en: 'Utilization above 30% takes a real bite out of your credit score.' }[lang] || '',
     tipsTitle: { ru: 'Как устроены кредитки — коротко', en: 'How credit cards actually work' }[lang] || '',
+    ownSection: { ru: 'Свои деньги', en: 'Your own money', es: 'Tu dinero', fr: 'Votre argent' }[lang] || 'Свои деньги',
+    ownTotal: { ru: 'всего', en: 'in total', es: 'en total', fr: 'au total' }[lang] || 'всего',
+    creditSection: { ru: 'Кредитные карты', en: 'Credit cards', es: 'Tarjetas de crédito', fr: 'Cartes de crédit' }[lang] || 'Кредитные карты',
+    creditTotal: { ru: 'должен', en: 'owed', es: 'debes', fr: 'dû' }[lang] || 'должен',
+    creditNote: { ru: 'Это заёмные деньги. Трата попадает в расходы в день покупки; платёж по карте — это «Перевод», а не новая трата.', en: "This is borrowed money. A purchase counts as spending on the day you buy; paying the card off is a Transfer, not a new expense.", es: 'Es dinero prestado. La compra cuenta el día que la haces; pagar la tarjeta es una transferencia, no un gasto nuevo.', fr: "C'est de l'argent emprunté. L'achat compte le jour même ; rembourser la carte est un virement, pas une nouvelle dépense." }[lang] || '',
+    noCards: { ru: 'Кредитных карт пока нет.', en: 'No credit cards yet.', es: 'Aún no hay tarjetas de crédito.', fr: 'Aucune carte de crédit pour le moment.' }[lang] || '',
+    addCard: { ru: 'Добавить кредитную карту', en: 'Add a credit card', es: 'Añadir tarjeta de crédito', fr: 'Ajouter une carte de crédit' }[lang] || 'Добавить кредитную карту',
+    addOwn: { ru: 'Добавить счёт или наличные', en: 'Add an account or cash', es: 'Añadir cuenta o efectivo', fr: 'Ajouter un compte ou des espèces' }[lang] || 'Добавить счёт',
   }
 
-  return (
-    <div className="screen-accounts flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
-      <TopBar title={L.title} subtitle={L.subtitle} />
-      <div className="flex-1 px-4 py-4 space-y-3">
-        <Link to="/dashboard" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">
-          <ArrowLeft size={13} /> {t('nav.overview')}
-        </Link>
+  // Opening the form already set to the right kind: people have several
+  // cards, and picking "credit" again on every one is pure friction.
+  function openAddForm(type) {
+    setForm({ ...emptyForm, type })
+    setShowForm(true)
+  }
 
-        {rows.map((a) => (
-          <Card key={a.id} className="!p-3.5 space-y-2.5">
+  // Two piles, because they are two different things: money you have, and
+  // money you owe. Lumping them in one list is what made the numbers feel
+  // like guesswork.
+  const ownRows = rows.filter((a) => a.type !== 'credit')
+  const creditRows = rows.filter((a) => a.type === 'credit')
+  const ownTotalAmount = ownRows.reduce((sum, a) => sum + a.balance, 0)
+  const creditTotalAmount = creditRows.reduce((sum, a) => sum + Math.max(0, a.balance), 0)
+
+  function renderAccountCard(a) {
+    return (
+
+      <Card key={a.id} className="!p-3.5 space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5 min-w-0">
                 <IconCircle icon={a.type === 'credit' ? CreditCard : a.type === 'cash' ? Wallet : Landmark} className="bg-primary/10 text-primary" size={36} iconSize={17} />
@@ -209,8 +226,42 @@ export default function AccountsScreen() {
                 )}
               </>
             )}
-          </Card>
-        ))}
+      </Card>
+    )
+  }
+
+  return (
+    <div className="screen-accounts flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+      <TopBar title={L.title} subtitle={L.subtitle} />
+      <div className="flex-1 px-4 py-4 space-y-3">
+        <Link to="/dashboard" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">
+          <ArrowLeft size={13} /> {t('nav.overview')}
+        </Link>
+
+        <div className="flex items-baseline justify-between pt-1">
+          <p className="text-[13px] font-bold tracking-wide text-muted uppercase">{L.ownSection}</p>
+          <p className="text-sm font-semibold font-num text-savings">{fmt(ownTotalAmount)} <span className="text-[11px] font-normal text-muted">{L.ownTotal}</span></p>
+        </div>
+        {ownRows.map(renderAccountCard)}
+        {!showForm && (
+          <Button variant="secondary" icon={Plus} onClick={() => openAddForm('debit')} type="button">{L.addOwn}</Button>
+        )}
+
+        <div className="flex items-baseline justify-between pt-3">
+          <p className="text-[13px] font-bold tracking-wide text-muted uppercase">{L.creditSection}</p>
+          {creditRows.length > 0 && (
+            <p className={`text-sm font-semibold font-num ${creditTotalAmount > 0 ? 'text-wants' : 'text-savings'}`}>{fmt(creditTotalAmount)} <span className="text-[11px] font-normal text-muted">{L.creditTotal}</span></p>
+          )}
+        </div>
+        <p className="text-[11px] text-muted leading-relaxed -mt-1">{L.creditNote}</p>
+        {creditRows.length === 0 ? (
+          <p className="text-xs text-muted">{L.noCards}</p>
+        ) : (
+          creditRows.map(renderAccountCard)
+        )}
+        {!showForm && (
+          <Button variant="secondary" icon={Plus} onClick={() => openAddForm('credit')} type="button">{L.addCard}</Button>
+        )}
 
         {showForm ? (
           <Card>
@@ -244,7 +295,7 @@ export default function AccountsScreen() {
             </form>
           </Card>
         ) : (
-          <Button icon={Plus} onClick={() => setShowForm(true)} type="button">{L.add}</Button>
+          null
         )}
 
         <div className="pt-2">
