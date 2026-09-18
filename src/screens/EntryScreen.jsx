@@ -289,7 +289,7 @@ export default function EntryScreen() {
     <div className="screen-entry flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('entry.title')} />
       <div className="flex-1 px-4 py-4 space-y-4">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="entry-type-tabs grid grid-cols-3 gap-2">
           {[
             { key: 'income', label: t('entry.typeIncome') },
             { key: 'expense', label: t('entry.typeExpense') },
@@ -300,7 +300,7 @@ export default function EntryScreen() {
               type="button"
               onClick={() => changeType(tab.key)}
               className={`text-sm font-semibold py-2.5 rounded-xl border transition-all ${
-                type === tab.key ? 'border-primary text-primary bg-primary/10' : 'border-border text-muted bg-surface2'
+                type === tab.key ? 'entry-mode-active text-primary' : 'text-muted'
               }`}
             >
               {tab.label}
