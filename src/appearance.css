@@ -25,7 +25,7 @@ body { background: rgb(var(--color-bg)); }
 }
 html:not(.dark) .theme-default { --color-bg: 244 241 235; --color-surface: 255 253 247; --color-surface2: 233 228 219; --color-primary: 125 86 23; --color-primary2: 160 115 43; --ambient-glow: 204 180 133; }
 html:not(.dark) .theme-nature { --color-bg: 226 243 235; --color-surface: 249 255 251; --color-surface2: 209 234 222; --color-primary: 9 111 76; --color-primary2: 22 135 92; --ambient-glow: 113 203 165; }
-html:not(.dark) .theme-dynamic { --color-bg: 232 238 255; --color-surface: 250 252 255; --color-surface2: 214 225 251; --color-primary: 50 79 165; --color-primary2: 73 104 190; --ambient-glow: 141 163 226; }
+html:not(.dark) .theme-dynamic { --color-bg: 247 241 232; --color-surface: 255 253 248; --color-surface2: 239 231 218; --color-primary: 156 113 54; --color-primary2: 208 170 103; --ambient-glow: 210 187 145; }
 html:not(.dark) .app-ambient[class*="theme-"] {
   --color-text: 30 34 42; --color-muted: 91 101 116; --color-border: 96 111 133;
   --color-on-primary: 255 255 255; --color-savings: 13 119 80; --color-income: 50 96 161;
