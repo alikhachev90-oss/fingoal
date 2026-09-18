@@ -130,3 +130,21 @@ html:not(.dark) .home-reference .nav-material { background: linear-gradient(150d
 .app-ambient.theme-dynamic .home-reference .goal-hero-card [role='progressbar'] circle:last-child { stroke:rgb(222 202 167); }
 .app-ambient.theme-dynamic .home-reference .quote-card { border-color:rgb(246 225 184 / .18); background:linear-gradient(130deg,rgb(231 209 163 / .1),rgb(255 255 255 / .02)); }
 .app-ambient.theme-dynamic .home-reference .nav-material { background:linear-gradient(150deg,rgb(55 51 43 / .95),rgb(20 18 16 / .98)); border-color:rgb(255 238 207 / .17); }
+
+/* Liquid Copper: a dark metallic body with broad, warm reflected light. */
+.app-ambient.theme-dynamic:has(.home-reference) { background:#130e0c; }
+.app-ambient.theme-dynamic:has(.home-reference)::before { background:radial-gradient(ellipse 78% 48% at 108% -6%,rgb(218 119 72 / .23),transparent 70%),radial-gradient(ellipse 54% 38% at -6% 66%,rgb(247 177 113 / .07),transparent 74%),linear-gradient(155deg,#2b1813,#100d0c 74%); }
+.app-ambient.theme-dynamic:has(.home-reference)::after { background:radial-gradient(ellipse 62% 16% at 72% 100%,rgb(247 177 113 / .08),transparent 76%); }
+.app-ambient.theme-dynamic .home-reference .glass { background:linear-gradient(145deg,rgb(255 226 209 / .09),rgb(255 188 145 / .022)); border-color:rgb(255 204 173 / .16); box-shadow:0 1px 0 rgb(255 255 255 / .09) inset,0 20px 40px -28px rgb(0 0 0 / .84); }
+.app-ambient.theme-dynamic .home-reference .balance-hero { background:radial-gradient(ellipse at 0% 0%,rgb(218 119 72 / .29),transparent 77%),linear-gradient(130deg,rgb(87 44 29 / .64),rgb(31 19 16 / .58)); border-color:rgb(247 177 113 / .42); box-shadow:0 1px 0 rgb(255 230 212 / .15) inset,0 24px 55px -34px rgb(185 74 31 / .62); }
+.app-ambient.theme-dynamic .home-reference .balance-hero::after { width:285px; height:74px; right:-105px; bottom:-4px; border-radius:50%; border-color:rgb(255 195 157 / .35); box-shadow:0 -13px 0 -12px rgb(255 214 184 / .2),0 0 0 18px rgb(247 177 113 / .03),0 0 58px rgb(218 119 72 / .2); transform:rotate(-15deg); }
+.app-ambient.theme-dynamic .home-reference .balance-hero > div:first-child > div { color:rgb(247 177 113); background:rgb(218 119 72 / .13); }
+.app-ambient.theme-dynamic .home-reference .action-primary { background:linear-gradient(135deg,#f7b171,#c86438); color:#32170f; border-color:rgb(255 219 192 / .3); box-shadow:0 1px 0 rgb(255 255 255 / .33) inset,0 11px 28px -17px rgb(200 88 45 / .72); }
+.app-ambient.theme-dynamic .home-reference .dashboard-content > .grid > .glass:first-child { background:linear-gradient(145deg,rgb(218 119 72 / .2),rgb(255 255 255 / .03) 72%); }
+.app-ambient.theme-dynamic .home-reference .bills-card { background:linear-gradient(145deg,rgb(255 226 209 / .1),rgb(218 119 72 / .07)); border-color:rgb(247 177 113 / .24); }
+.app-ambient.theme-dynamic .home-reference .accounts-link { background:linear-gradient(135deg,rgb(218 119 72 / .18),rgb(255 255 255 / .03)); border-color:rgb(247 177 113 / .3); }
+.app-ambient.theme-dynamic .home-reference .chart-card { background:radial-gradient(ellipse at 100% 0%,rgb(218 119 72 / .21),transparent 54%),linear-gradient(145deg,rgb(255 226 209 / .08),rgb(255 255 255 / .02)); }
+.app-ambient.theme-dynamic .home-reference .goal-hero-card { background:radial-gradient(ellipse at 100% 0%,rgb(218 119 72 / .19),transparent 55%),linear-gradient(145deg,rgb(255 226 209 / .075),rgb(255 255 255 / .02)); border-color:rgb(247 177 113 / .27); }
+.app-ambient.theme-dynamic .home-reference .goal-hero-card [role='progressbar'] circle:last-child { stroke:rgb(218 119 72); }
+.app-ambient.theme-dynamic .home-reference .quote-card { border-color:rgb(247 177 113 / .2); background:linear-gradient(130deg,rgb(218 119 72 / .13),rgb(255 255 255 / .02)); }
+.app-ambient.theme-dynamic .home-reference .nav-material { background:linear-gradient(150deg,rgb(62 34 27 / .95),rgb(21 15 13 / .98)); border-color:rgb(255 204 173 / .18); }
