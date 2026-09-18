@@ -32,32 +32,13 @@ export default function BottomNav({ persistent = false }) {
 
   useEffect(() => () => clearTimeout(hideTimer.current), [])
 
-  // The handle is a 96x44 invisible tap zone with only a 48x4 grip drawn in
-  // it, parked dead centre at the bottom. Anything the page puts there — the
-  // Save button on the entry screen — used to lose every tap to it: the button
-  // flashed, nothing saved. Rather than move the button (and change the
-  // layout), pass the tap through to whatever real control is underneath.
-  const INTERACTIVE = 'button, a[href], input, select, textarea, [role="button"]'
-
-  function handleTap(e) {
-    const self = e.currentTarget
-    const x = e.clientX
-    const y = e.clientY
-    if (typeof x === 'number' && typeof y === 'number' && (x || y)) {
-      const beneath = document
-        .elementsFromPoint(x, y)
-        .find((el) => el !== self && !self.contains(el) && el.closest(INTERACTIVE))
-      const target = beneath?.closest(INTERACTIVE)
-      if (target && target !== self) {
-        target.click()
-        return
-      }
-    }
-    if (expanded) setExpanded(false)
-    else reveal()
-  }
-
   return (
+    <>
+      {/* Real layout space the same height as the bar, so the last control on
+          a screen can never come to rest under the invisible pull handle —
+          that is what made the Save button and the theme buttons swallow or
+          steal each other's taps. */}
+      <div aria-hidden="true" className="h-[92px] shrink-0" />
     <div className="fixed inset-x-0 bottom-0 z-30 pointer-events-none">
       <div className="max-w-app mx-auto relative h-[92px]">
         <nav
@@ -99,7 +80,7 @@ export default function BottomNav({ persistent = false }) {
           aria-label={t('nav.open')}
           tabIndex={expanded ? -1 : 0}
           aria-expanded={expanded}
-          onClick={handleTap}
+          onClick={() => (expanded ? setExpanded(false) : reveal())}
           onTouchStart={(e) => { touchStartY.current = e.touches[0].clientY }}
           onTouchMove={(e) => {
             if (touchStartY.current == null) return
@@ -124,5 +105,6 @@ export default function BottomNav({ persistent = false }) {
         </button>}
       </div>
     </div>
+    </>
   )
 }
