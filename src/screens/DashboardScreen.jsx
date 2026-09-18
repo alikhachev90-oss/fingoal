@@ -446,13 +446,13 @@ export default function DashboardScreen() {
             </button>
           </div>
 
-          <div className="flex bg-surface2 rounded-lg p-1 border border-border">
+          <div className="segmented-control flex bg-surface2 rounded-lg p-1 border border-border">
             {['income', 'expenses'].map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setChartTab(tab)}
-                className={`flex-1 flex flex-col items-center py-1.5 rounded-md text-xs font-semibold transition-all ${chartTab === tab ? 'bg-surface shadow-softer text-text' : 'text-muted'}`}
+                className={`flex-1 flex flex-col items-center py-1.5 rounded-md text-xs font-semibold transition-all ${chartTab === tab ? 'segment-active text-text' : 'text-muted'}`}
               >
                 <span>{t(`dashboard.chartTab_${tab}`)}</span>
                 <span className="font-num text-[13px] mt-0.5">{fmt(tab === 'income' ? chartIncomeTotal : chartExpenseTotal)}</span>
