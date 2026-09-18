@@ -389,7 +389,7 @@ export default function DashboardScreen() {
         </div>
 
         {(
-          <Card className="space-y-3" data-tour="dash-bills">
+          <Card className="bills-card space-y-3" data-tour="dash-bills">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold">{t('bills.title')}</p>
               <button type="button" className="text-xs text-primary py-3" onClick={() => setEditingBills(true)}>{t('bills.edit')}</button>
@@ -418,7 +418,7 @@ export default function DashboardScreen() {
         )}
 
         <Link to="/accounts" className="block">
-          <Card className="!p-3.5 flex items-center gap-3 hover:border-primary/50">
+          <Card className="accounts-link !p-3.5 flex items-center gap-3 hover:border-primary/50">
             <IconCircle icon={Landmark} className="bg-primary/10 text-primary" size={38} iconSize={17} />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm">{t('accounts.entryTitle')}</p>
@@ -428,7 +428,7 @@ export default function DashboardScreen() {
           </Card>
         </Link>
 
-        <Card data-tour="dash-chart" className="!p-3.5 space-y-3">
+        <Card data-tour="dash-chart" className="chart-card !p-4 space-y-4">
           <div className="flex items-center justify-between">
             <button type="button" onClick={() => setMonthOffset((o) => o - 1)} className="text-muted p-1">
               <ChevronLeft size={17} />
@@ -554,7 +554,7 @@ export default function DashboardScreen() {
           </Card>
         )}
 
-        <Card>
+        <Card className="goal-hero-card">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold">{t('dashboard.mainGoalTitle')}</p>
             <Link to="/goals" className="text-xs text-primary font-semibold flex items-center gap-0.5">
