@@ -462,7 +462,7 @@ export default function DashboardScreen() {
 
           {activePieData.length > 0 ? (
             <>
-              <div className="h-56">
+              <div className="chart-orbit h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -498,6 +498,10 @@ export default function DashboardScreen() {
                     />
                   </PieChart>
                 </ResponsiveContainer>
+                <div className="chart-orbit-core" aria-hidden="true">
+                  <span>{chartTab === 'income' ? t('dashboard.chartTab_income') : t('dashboard.chartTab_expenses')}</span>
+                  <strong className={chartTab === 'income' ? 'text-income' : 'text-needs'}>{fmt(chartTab === 'income' ? chartIncomeTotal : chartExpenseTotal)}</strong>
+                </div>
               </div>
 
               <div className="divide-y divide-border">
