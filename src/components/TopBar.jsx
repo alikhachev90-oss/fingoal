@@ -36,9 +36,9 @@ export default function TopBar({ title, subtitle, onHelp }) {
             <IconButton icon={Settings} onClick={() => navigate('/settings')} aria-label={t('topbar.settings')} />
           </div>
         </div>
-        <div className="mt-5 flex rounded-2xl p-1 bg-white/[.025] border border-white/[.07]">
+        <div className="context-switch segmented-control mt-5 flex rounded-2xl p-1 bg-white/[.025] border border-white/[.07]">
           {[{ key: 'personal', label: t('topbar.personal'), icon: User }, { key: 'business', label: t('topbar.business'), icon: Briefcase }].map(({ key, label, icon: Icon }) => (
-            <button key={key} onClick={() => key !== context && toggleContext()} className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-semibold transition-all ${context === key ? 'bg-white/[.07] text-primary shadow-[0_1px_0_rgb(255_255_255/.09)_inset]' : 'text-muted hover:text-text'}`}>
+            <button key={key} onClick={() => key !== context && toggleContext()} className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-semibold transition-all ${context === key ? 'segment-active text-primary' : 'text-muted hover:text-text'}`}>
               <Icon size={14} strokeWidth={2.3} /> {label}
             </button>
           ))}
