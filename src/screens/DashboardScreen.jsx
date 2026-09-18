@@ -333,7 +333,7 @@ export default function DashboardScreen() {
         </Card>
 
         {coachAction && transactions.length >= 3 && (
-          <Card className={`coach-card !p-4 overflow-hidden ${coachAction.tone === 'warn' ? '!border-wants/25' : coachAction.tone === 'good' ? '!border-savings/25' : '!border-primary/25'}`}>
+          <Card className={`coach-card next-step-card !p-5 overflow-hidden ${coachAction.tone === 'warn' ? '!border-wants/25' : coachAction.tone === 'good' ? '!border-savings/25' : '!border-primary/25'}`}>
             <div className="flex items-start gap-3">
               <IconCircle
                 icon={Sparkles}
@@ -342,9 +342,9 @@ export default function DashboardScreen() {
                 className={coachAction.tone === 'warn' ? 'bg-wants/10 text-wants' : coachAction.tone === 'good' ? 'bg-savings/10 text-savings' : 'bg-primary/10 text-primary'}
               />
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] uppercase tracking-[.16em] text-muted font-bold">{coachAction.eyebrow}</p>
-                <p className="font-display text-[19px] leading-tight mt-1">{coachAction.title}</p>
-                <p className="text-[13px] text-muted leading-relaxed mt-2">{coachAction.text}</p>
+                <p className="text-[10px] uppercase tracking-[.11em] text-muted font-semibold">{coachAction.eyebrow}</p>
+                <p className="next-step-title mt-1.5">{coachAction.title}</p>
+                <p className="next-step-copy text-muted mt-2">{coachAction.text}</p>
                 <Link to={coachAction.to} className="inline-flex items-center gap-1.5 text-sm text-primary font-semibold mt-3">
                   {coachAction.action} <ArrowRight size={14} />
                 </Link>
