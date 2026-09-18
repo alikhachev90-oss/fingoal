@@ -31,9 +31,9 @@ function fmt(n) {
 // palette tied to needs/wants/savings — this is what the requested chart
 // style actually needs: color encodes "how big a share", not which group.
 function rankColor(idx, total) {
-  if (total <= 1) return 'hsl(4, 75%, 58%)'
-  const hue = Math.round((idx / (total - 1)) * 118)
-  return `hsl(${hue}, 72%, 52%)`
+  if (total <= 1) return 'hsl(5, 50%, 61%)'
+  const hue = Math.round(5 + (idx / (total - 1)) * 125)
+  return `hsl(${hue}, 50%, 61%)`
 }
 
 const MONTH_FMT = { en: 'en-US', es: 'es-ES', fr: 'fr-FR', ru: 'ru-RU' }
@@ -190,7 +190,7 @@ export default function DashboardScreen() {
   const rankedIncomeData = chartIncomeByCategory.map((c, idx) => ({
     ...c,
     color: chartIncomeByCategory.length <= 1
-      ? 'hsl(118, 72%, 52%)'
+      ? 'hsl(118, 46%, 65%)'
       : rankColor(chartIncomeByCategory.length - 1 - idx, chartIncomeByCategory.length),
     pct: chartIncomeTotal > 0 ? (c.value / chartIncomeTotal) * 100 : 0,
   }))
@@ -469,24 +469,14 @@ export default function DashboardScreen() {
                       data={activePieData}
                       dataKey="value"
                       nameKey="name"
-                      innerRadius={43}
-                      outerRadius={68}
-                      strokeWidth={2}
+                      innerRadius={54}
+                      outerRadius={67}
+                      strokeWidth={1.25}
                       stroke="rgb(var(--color-surface))"
                       onClick={(d) => setDrilldown({ group: d.group, key: d.key, name: d.name, total: d.value })}
                       style={{ cursor: 'pointer' }}
-                      label={({ cx, cy, midAngle, outerRadius, name, pct }) => {
-                        const RADIAN = Math.PI / 180
-                        const r = outerRadius + 28
-                        const x = cx + r * Math.cos(-midAngle * RADIAN)
-                        const y = cy + r * Math.sin(-midAngle * RADIAN)
-                        return (
-                          <text x={x} y={y} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="fill-text text-[10.5px] font-semibold">
-                            {name} {pct.toFixed(1)}%
-                          </text>
-                        )
-                      }}
-                      labelLine={{ stroke: 'rgb(var(--color-border))' }}
+                      label={false}
+                      labelLine={false}
                     >
                       {activePieData.map((d) => (
                         <Cell key={`${d.group}:${d.key}`} fill={d.color} />
