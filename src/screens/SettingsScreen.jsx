@@ -63,13 +63,15 @@ export default function SettingsScreen() {
     try {
       if (pushOn) {
         await disablePushNotifications()
-        setPushOn(false)
       } else {
         const result = await enablePushNotifications()
-        if (result.ok) setPushOn(true)
-        else setPushError(result.reason)
+        if (!result.ok) setPushError(result.reason)
       }
     } finally {
+      // Read the real state back instead of assuming the call did what we
+      // asked: that mismatch is why the switch could sit on "off" while the
+      // subscription was actually live, and only correct itself on restart.
+      setPushOn(await isPushEnabled())
       setPushBusy(false)
     }
   }
@@ -217,6 +219,7 @@ export default function SettingsScreen() {
               </Button>
               {pushError === 'denied' && <p className="text-xs text-wants">{t('settings.pushDenied')}</p>}
               {pushError === 'save_failed' && <p className="text-xs text-wants">{t('settings.pushSaveFailed')}</p>}
+              {pushError === 'failed' && <p className="text-xs text-wants">{t('settings.pushFailed')}</p>}
             </>
           ) : (
             <>
