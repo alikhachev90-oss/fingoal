@@ -74,8 +74,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* The four core screens share the graphite composition: one warm focal plane,
    restrained supporting glass and semantic colour only where it says something. */
-.screen-entry .flex-1 > .grid > button { min-height:52px; background:linear-gradient(145deg,rgb(255 255 255 / .065),rgb(255 255 255 / .018)); }
-.screen-entry .flex-1 > .grid > button.border-primary { background:linear-gradient(145deg,rgb(var(--color-primary) / .19),rgb(var(--color-primary) / .06)); box-shadow:0 8px 24px -18px rgb(var(--color-primary) / .65),0 1px 0 rgb(255 255 255 / .1) inset; }
+.screen-entry .entry-type-tabs { padding:4px; border:1px solid rgb(255 255 255 / .09); border-radius:16px; background:rgb(255 255 255 / .018); }
+.screen-entry .entry-type-tabs > button { min-height:52px; background:linear-gradient(145deg,rgb(255 255 255 / .065),rgb(255 255 255 / .018)); border-color:rgb(255 255 255 / .1); box-shadow:inset 0 1px 0 rgb(255 255 255 / .1),0 8px 18px -18px rgb(0 0 0 / .85); }
+.screen-entry .entry-type-tabs > button.entry-mode-active { background:linear-gradient(145deg,rgb(255 255 255 / .115),rgb(255 255 255 / .035)); border-color:rgb(var(--color-primary) / .38); box-shadow:inset 0 1px 0 rgb(255 255 255 / .18),inset 0 -8px 15px rgb(0 0 0 / .09),0 10px 22px -18px rgb(var(--color-primary) / .7); }
 .screen-entry .flex-1 > .glass:nth-of-type(1) { background:radial-gradient(ellipse at 0% 0%,rgb(var(--color-primary) / .15),transparent 60%),linear-gradient(145deg,rgb(255 255 255 / .075),rgb(255 255 255 / .022)); border-color:rgb(var(--color-primary) / .28); }
 .screen-entry .flex-1 > .glass:nth-of-type(2) { background:linear-gradient(145deg,rgb(255 255 255 / .075),rgb(255 255 255 / .02)); }
 .screen-entry .flex-1 > .glass:nth-of-type(3) { background:radial-gradient(ellipse at 100% 0%,rgb(var(--color-primary) / .11),transparent 54%),linear-gradient(145deg,rgb(255 255 255 / .07),rgb(255 255 255 / .02)); }
