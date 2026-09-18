@@ -63,15 +63,13 @@ export default function SettingsScreen() {
     try {
       if (pushOn) {
         await disablePushNotifications()
+        setPushOn(false)
       } else {
         const result = await enablePushNotifications()
-        if (!result.ok) setPushError(result.reason)
+        if (result.ok) setPushOn(true)
+        else setPushError(result.reason)
       }
     } finally {
-      // Read the real state back instead of assuming the call did what we
-      // asked: that mismatch is why the switch could sit on "off" while the
-      // subscription was actually live, and only correct itself on restart.
-      setPushOn(await isPushEnabled())
       setPushBusy(false)
     }
   }
@@ -147,7 +145,7 @@ export default function SettingsScreen() {
           <p className="text-xs font-bold tracking-wide text-muted uppercase">{t('settings.appearance')}</p>
           <div>
             <p className="text-xs text-muted mb-1.5">{t('settings.theme')}</p>
-            <div className="flex bg-surface2 rounded-lg p-1 border border-border">
+            <div className="segmented-control flex bg-surface2 rounded-lg p-1 border border-border">
               {[
                 { key: 'system', label: t('settings.themeSystem'), icon: MonitorSmartphone },
                 { key: 'light', label: t('settings.themeLight'), icon: Sun },
@@ -158,7 +156,7 @@ export default function SettingsScreen() {
                   type="button"
                   onClick={() => setTheme(key)}
                   aria-pressed={theme === key}
-                  className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-xs font-semibold ${theme === key ? 'bg-primary text-onprimary' : 'text-muted'}`}
+                  className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-xs font-semibold ${theme === key ? 'segment-active text-primary' : 'text-muted'}`}
                 >
                   <Icon size={13} /> {label}
                 </button>
@@ -219,7 +217,6 @@ export default function SettingsScreen() {
               </Button>
               {pushError === 'denied' && <p className="text-xs text-wants">{t('settings.pushDenied')}</p>}
               {pushError === 'save_failed' && <p className="text-xs text-wants">{t('settings.pushSaveFailed')}</p>}
-              {pushError === 'failed' && <p className="text-xs text-wants">{t('settings.pushFailed')}</p>}
             </>
           ) : (
             <>
