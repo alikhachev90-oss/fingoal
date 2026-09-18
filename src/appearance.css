@@ -14,9 +14,9 @@ body { background: rgb(var(--color-bg)); }
   --color-income: 106 209 173;
 }
 .app-ambient.theme-dynamic {
-  --tone: 222 202 167; --color-primary: 222 202 167; --color-primary2: 246 234 214;
-  --color-bg: 18 17 15; --color-surface: 39 36 32; --color-surface2: 52 47 39;
-  --color-on-primary: 53 42 27; --ambient-glow: 136 119 88;
+  --tone: 218 119 72; --color-primary: 218 119 72; --color-primary2: 247 177 113;
+  --color-bg: 19 14 12; --color-surface: 45 30 25; --color-surface2: 60 40 32;
+  --color-on-primary: 50 23 15; --ambient-glow: 146 71 43;
 }
 .app-ambient[class*="theme-"] {
   --color-text: 241 243 247; --color-muted: 171 180 194; --color-border: 167 180 202;
