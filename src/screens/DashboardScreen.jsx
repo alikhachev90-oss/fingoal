@@ -365,14 +365,14 @@ export default function DashboardScreen() {
         </Card>
 
         <div className="grid grid-cols-2 gap-3">
-          <StatTile label={t('dashboard.income')} value={fmt(monthlyIncome)} icon={Wallet} iconClassName="bg-primary/10 text-primary" />
+          <StatTile label={t('dashboard.income')} value={fmt(monthlyIncome)} valueClassName="text-income" icon={Wallet} iconClassName="metric-orb-income" />
           <StatTile
             label={<span className="inline-flex items-center gap-1">{t('dashboard.needsBudget')} <InfoTag>{t('dashboard.needsBudgetInfo')}</InfoTag></span>}
             value={fmt(monthlyNeedsBudget)}
             icon={ShieldCheck}
-            iconClassName="bg-needs/10 text-needs"
+            iconClassName="metric-orb-expense"
           />
-          <StatTile label={t('dashboard.spentNeeds')} value={fmt(spentNeeds)} valueClassName="text-needs" icon={TrendingDown} iconClassName="bg-needs/10 text-needs" />
+          <StatTile label={t('dashboard.spentNeeds')} value={fmt(spentNeeds)} valueClassName="text-needs" icon={TrendingDown} iconClassName="metric-orb-expense" />
           {/* With no income logged yet, free money is just "minus your whole
               budget" — a red scare number on day one that means nothing. */}
           <StatTile
@@ -380,7 +380,7 @@ export default function DashboardScreen() {
             value={monthlyIncome > 0 ? fmt(freeMoney) : '—'}
             valueClassName={monthlyIncome > 0 && freeMoney < 0 ? 'text-wants' : 'text-savings'}
             icon={PiggyBank}
-            iconClassName="bg-savings/10 text-savings"
+            iconClassName="metric-orb-income"
           />
         </div>
 
