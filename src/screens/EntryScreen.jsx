@@ -286,7 +286,7 @@ export default function EntryScreen() {
   }
 
   return (
-    <div className="flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+    <div className="screen-entry flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('entry.title')} />
       <div className="flex-1 px-4 py-4 space-y-4">
         <div className="grid grid-cols-3 gap-2">
