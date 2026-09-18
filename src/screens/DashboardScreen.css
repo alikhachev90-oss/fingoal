@@ -183,3 +183,33 @@ html:not(.dark) .home-reference .nav-material { background: linear-gradient(150d
   border-color:rgb(231 159 156 / .3);
   box-shadow:inset 0 1px 0 rgb(255 241 238 / .22), inset 0 -8px 14px rgb(91 38 39 / .18), 0 10px 20px -15px rgb(177 83 81 / .72);
 }
+
+/* The expense/income ring uses the same laminated glass as the icon system.
+   A small center lens makes the total immediately legible without turning the chart into a flat graphic. */
+.home-reference .chart-orbit { position:relative; }
+.home-reference .chart-orbit .recharts-pie-sector { filter:drop-shadow(0 8px 10px rgb(0 0 0 / .34)); }
+.home-reference .chart-orbit .recharts-sector path { stroke:rgb(255 255 255 / .16); stroke-width:1.5px; }
+.home-reference .chart-orbit-core {
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:82px;
+  height:82px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+  text-align:center;
+  pointer-events:none;
+  background:radial-gradient(circle at 34% 22%, rgb(255 255 255 / .2), transparent 38%), linear-gradient(145deg, rgb(255 255 255 / .12), rgb(0 0 0 / .15));
+  border:1px solid rgb(255 255 255 / .18);
+  box-shadow:inset 0 1px 0 rgb(255 255 255 / .27), inset 0 -9px 16px rgb(0 0 0 / .18), 0 10px 22px -15px rgb(0 0 0 / .9);
+}
+.home-reference .chart-orbit-core::after { content:''; position:absolute; top:8px; left:16px; width:46px; height:13px; border-radius:50%; background:rgb(255 255 255 / .16); filter:blur(3px); }
+.home-reference .chart-orbit-core span,
+.home-reference .chart-orbit-core strong { position:relative; z-index:1; }
+.home-reference .chart-orbit-core span { color:rgb(var(--color-muted)); font-size:9px; text-transform:uppercase; letter-spacing:.08em; }
+.home-reference .chart-orbit-core strong { font-size:15px; line-height:1; font-variant-numeric:tabular-nums; }
