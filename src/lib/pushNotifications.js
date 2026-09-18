@@ -24,37 +24,61 @@ export async function enablePushNotifications() {
   if (!pushBackendEnabled || !VAPID_PUBLIC_KEY) return { ok: false, reason: 'not_configured' }
   if (!pushSupported()) return { ok: false, reason: 'unsupported' }
 
-  const permission = await Notification.requestPermission()
-  if (permission !== 'granted') return { ok: false, reason: 'denied' }
+  // Everything below is wrapped: without this, any rejection (the push
+  // service refusing a re-subscribe right after an unsubscribe, a flaky
+  // network) escaped to the caller, the toggle silently stayed off, and the
+  // switch only looked right again after the app was restarted.
+  try {
+    const permission = await Notification.requestPermission()
+    if (permission !== 'granted') return { ok: false, reason: 'denied' }
 
-  const reg = await navigator.serviceWorker.register('/sw.js')
-  await navigator.serviceWorker.ready
+    const reg = await navigator.serviceWorker.register('/sw.js')
+    await navigator.serviceWorker.ready
 
-  let sub = await reg.pushManager.getSubscription()
-  if (!sub) {
-    sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-    })
+    let sub = await reg.pushManager.getSubscription()
+    if (!sub) {
+      // Subscribing immediately after an unsubscribe is the case that fails:
+      // the browser's push service needs a moment to release the old one.
+      // One retry turns "tapped it, nothing happened" into it just working.
+      try {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        })
+      } catch {
+        await new Promise((r) => setTimeout(r, 800))
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        })
+      }
+    }
+
+    const json = sub.toJSON()
+    const { error } = await pushSupabase
+      .from('push_subscriptions')
+      .upsert({ endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth }, { onConflict: 'endpoint' })
+    if (error) return { ok: false, reason: 'save_failed', error }
+
+    return { ok: true }
+  } catch (error) {
+    return { ok: false, reason: 'failed', error }
   }
-
-  const json = sub.toJSON()
-  const { error } = await pushSupabase
-    .from('push_subscriptions')
-    .upsert({ endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth }, { onConflict: 'endpoint' })
-  if (error) return { ok: false, reason: 'save_failed', error }
-
-  return { ok: true }
 }
 
 export async function disablePushNotifications() {
   if (!('serviceWorker' in navigator)) return
+  try {
   const reg = await navigator.serviceWorker.getRegistration('/sw.js')
   const sub = await reg?.pushManager.getSubscription()
   if (sub) {
     const endpoint = sub.endpoint
     await sub.unsubscribe()
     if (pushBackendEnabled) await pushSupabase.from('push_subscriptions').delete().eq('endpoint', endpoint)
+  }
+  } catch {
+    // Already gone, or the row could not be removed — either way the switch
+    // must not get stuck because of it.
   }
 }
 
