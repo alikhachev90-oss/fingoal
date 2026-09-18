@@ -122,9 +122,6 @@ export default function AccountsScreen() {
     cancel: { ru: 'Отмена', en: 'Cancel' }[lang] || 'Отмена',
     save: { ru: 'Сохранить', en: 'Save' }[lang] || 'Сохранить',
     balance: { ru: 'Баланс', en: 'Balance' }[lang] || 'Баланс',
-    owed: { ru: 'Долг по карте', en: 'Owed on the card', es: 'Deuda de la tarjeta', fr: 'Dette de la carte' }[lang] || 'Долг по карте',
-    available: { ru: 'Осталось доступно', en: 'Still available', es: 'Disponible', fr: 'Encore disponible' }[lang] || 'Осталось доступно',
-    availableNote: { ru: 'из лимита {limit}', en: 'of your {limit} limit', es: 'de tu límite {limit}', fr: 'sur votre limite de {limit}' }[lang] || 'из лимита {limit}',
     utilization: { ru: 'Загрузка', en: 'Utilization' }[lang] || 'Загрузка',
     dueIn: (n) => ({ ru: `Платёж через ${n} дн.`, en: `Due in ${n} day(s)` }[lang] || `Due in ${n}`),
     overdue: { ru: 'Просрочка!', en: 'Overdue!' }[lang] || 'Overdue',
@@ -134,35 +131,18 @@ export default function AccountsScreen() {
     delete: { ru: 'Удалить', en: 'Delete' }[lang] || 'Delete',
     highUtil: { ru: 'Загрузка выше 30% — это заметно бьёт по кредитному скорингу.', en: 'Utilization above 30% takes a real bite out of your credit score.' }[lang] || '',
     tipsTitle: { ru: 'Как устроены кредитки — коротко', en: 'How credit cards actually work' }[lang] || '',
-    ownSection: { ru: 'Свои деньги', en: 'Your own money', es: 'Tu dinero', fr: 'Votre argent' }[lang] || 'Свои деньги',
-    ownTotal: { ru: 'всего', en: 'in total', es: 'en total', fr: 'au total' }[lang] || 'всего',
-    creditSection: { ru: 'Кредитные карты', en: 'Credit cards', es: 'Tarjetas de crédito', fr: 'Cartes de crédit' }[lang] || 'Кредитные карты',
-    creditTotal: { ru: 'должен', en: 'owed', es: 'debes', fr: 'dû' }[lang] || 'должен',
-    creditNote: { ru: 'Это заёмные деньги. Трата попадает в расходы в день покупки; платёж по карте — это «Перевод», а не новая трата.', en: "This is borrowed money. A purchase counts as spending on the day you buy; paying the card off is a Transfer, not a new expense.", es: 'Es dinero prestado. La compra cuenta el día que la haces; pagar la tarjeta es una transferencia, no un gasto nuevo.', fr: "C'est de l'argent emprunté. L'achat compte le jour même ; rembourser la carte est un virement, pas une nouvelle dépense." }[lang] || '',
-    noCards: { ru: 'Кредитных карт пока нет.', en: 'No credit cards yet.', es: 'Aún no hay tarjetas de crédito.', fr: 'Aucune carte de crédit pour le moment.' }[lang] || '',
-    addCard: { ru: 'Добавить кредитную карту', en: 'Add a credit card', es: 'Añadir tarjeta de crédito', fr: 'Ajouter une carte de crédit' }[lang] || 'Добавить кредитную карту',
-    addOwn: { ru: 'Добавить счёт или наличные', en: 'Add an account or cash', es: 'Añadir cuenta o efectivo', fr: 'Ajouter un compte ou des espèces' }[lang] || 'Добавить счёт',
   }
 
-  // Opening the form already set to the right kind: people have several
-  // cards, and picking "credit" again on every one is pure friction.
-  function openAddForm(type) {
-    setForm({ ...emptyForm, type })
-    setShowForm(true)
-  }
+  return (
+    <div className="screen-accounts flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+      <TopBar title={L.title} subtitle={L.subtitle} />
+      <div className="flex-1 px-4 py-4 space-y-3">
+        <Link to="/dashboard" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">
+          <ArrowLeft size={13} /> {t('nav.overview')}
+        </Link>
 
-  // Two piles, because they are two different things: money you have, and
-  // money you owe. Lumping them in one list is what made the numbers feel
-  // like guesswork.
-  const ownRows = rows.filter((a) => a.type !== 'credit')
-  const creditRows = rows.filter((a) => a.type === 'credit')
-  const ownTotalAmount = ownRows.reduce((sum, a) => sum + a.balance, 0)
-  const creditTotalAmount = creditRows.reduce((sum, a) => sum + Math.max(0, a.balance), 0)
-
-  function renderAccountCard(a) {
-    return (
-
-      <Card key={a.id} className="!p-3.5 space-y-2.5">
+        {rows.map((a) => (
+          <Card key={a.id} className="!p-3.5 space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5 min-w-0">
                 <IconCircle icon={a.type === 'credit' ? CreditCard : a.type === 'cash' ? Wallet : Landmark} className="bg-primary/10 text-primary" size={36} iconSize={17} />
@@ -175,21 +155,12 @@ export default function AccountsScreen() {
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted">{a.type === 'credit' ? L.owed : L.balance}</span>
+              <span className="text-muted">{L.balance}</span>
               <span className={`font-semibold font-num ${(a.type === 'credit' ? a.balance > 0 : a.balance < 0) ? 'text-wants' : 'text-savings'}`}>{fmt(a.balance)}</span>
             </div>
 
             {a.type === 'credit' && (
               <>
-                {a.credit_limit > 0 && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted">
-                      {L.available}
-                      <span className="block text-[11px] opacity-70">{L.availableNote.replace('{limit}', fmt(a.credit_limit))}</span>
-                    </span>
-                    <span className="font-semibold font-num text-savings">{fmt(Math.max(0, a.credit_limit - Math.max(0, a.balance)))}</span>
-                  </div>
-                )}
                 {a.utilization !== null && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted">{L.utilization}</span>
@@ -226,53 +197,19 @@ export default function AccountsScreen() {
                 )}
               </>
             )}
-      </Card>
-    )
-  }
-
-  return (
-    <div className="screen-accounts flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
-      <TopBar title={L.title} subtitle={L.subtitle} />
-      <div className="flex-1 px-4 py-4 space-y-3">
-        <Link to="/dashboard" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">
-          <ArrowLeft size={13} /> {t('nav.overview')}
-        </Link>
-
-        <div className="flex items-baseline justify-between pt-1">
-          <p className="text-[13px] font-bold tracking-wide text-muted uppercase">{L.ownSection}</p>
-          <p className="text-sm font-semibold font-num text-savings">{fmt(ownTotalAmount)} <span className="text-[11px] font-normal text-muted">{L.ownTotal}</span></p>
-        </div>
-        {ownRows.map(renderAccountCard)}
-        {!showForm && (
-          <Button variant="secondary" icon={Plus} onClick={() => openAddForm('debit')} type="button">{L.addOwn}</Button>
-        )}
-
-        <div className="flex items-baseline justify-between pt-3">
-          <p className="text-[13px] font-bold tracking-wide text-muted uppercase">{L.creditSection}</p>
-          {creditRows.length > 0 && (
-            <p className={`text-sm font-semibold font-num ${creditTotalAmount > 0 ? 'text-wants' : 'text-savings'}`}>{fmt(creditTotalAmount)} <span className="text-[11px] font-normal text-muted">{L.creditTotal}</span></p>
-          )}
-        </div>
-        <p className="text-[11px] text-muted leading-relaxed -mt-1">{L.creditNote}</p>
-        {creditRows.length === 0 ? (
-          <p className="text-xs text-muted">{L.noCards}</p>
-        ) : (
-          creditRows.map(renderAccountCard)
-        )}
-        {!showForm && (
-          <Button variant="secondary" icon={Plus} onClick={() => openAddForm('credit')} type="button">{L.addCard}</Button>
-        )}
+          </Card>
+        ))}
 
         {showForm ? (
           <Card>
             <form onSubmit={createAccount} className="space-y-3">
-              <div className="flex bg-surface2 rounded-xl p-1 border border-border">
+              <div className="segmented-control flex bg-surface2 rounded-xl p-1 border border-border">
                 {['cash', 'debit', 'credit'].map((tp) => (
                   <button
                     key={tp}
                     type="button"
                     onClick={() => setForm((f) => ({ ...f, type: tp }))}
-                    className={`flex-1 py-2 rounded-lg text-sm font-semibold ${form.type === tp ? 'bg-surface shadow-softer text-text' : 'text-muted'}`}
+                    className={`flex-1 py-2 rounded-lg text-sm font-semibold ${form.type === tp ? 'segment-active text-text' : 'text-muted'}`}
                   >
                     {tp === 'cash' ? L.cash : tp === 'debit' ? L.debit : L.credit}
                   </button>
@@ -295,7 +232,7 @@ export default function AccountsScreen() {
             </form>
           </Card>
         ) : (
-          null
+          <Button icon={Plus} onClick={() => setShowForm(true)} type="button">{L.add}</Button>
         )}
 
         <div className="pt-2">
