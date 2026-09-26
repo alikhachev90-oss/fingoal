@@ -49,6 +49,9 @@ export default function DashboardScreen() {
   const [streak, setStreak] = useState(0)
   const [checkedInToday, setCheckedInToday] = useState(false)
   const [checkinSkipped, setCheckinSkipped] = useState(false)
+  const [checkinAsking, setCheckinAsking] = useState(false)
+  const [checkinAmount, setCheckinAmount] = useState('')
+  const [checkinBusy, setCheckinBusy] = useState(false)
   const [habitTip, setHabitTip] = useState(null)
   const [tourActive, setTourActive] = useState(false)
   const [monthOffset, setMonthOffset] = useState(0)
@@ -82,8 +85,47 @@ export default function DashboardScreen() {
     })
   }
 
+  // "Yes, I did" used to just tick the streak without ever asking how much —
+  // so the number the person actually saved never reached the goal. Now it
+  // asks, files the amount as a savings transaction, and moves the goal.
   async function handleCheckIn() {
+    if (!checkinAmount) {
+      setCheckinAsking(true)
+      return
+    }
+    const amount = parseFloat(String(checkinAmount).replace(',', '.'))
+    if (!Number.isFinite(amount) || amount <= 0) return
+    setCheckinBusy(true)
+    try {
+      await db.addTransaction(user.id, context, {
+        amount,
+        date: new Date().toISOString().slice(0, 10),
+        comment: t('dashboard.checkinComment'),
+        group: 'savings',
+        category_key: topGoal ? 'emergency' : 'emergency',
+        sub: null,
+        account_id: null,
+      })
+      if (topGoal) await db.addToGoalSavings(user.id, topGoal.id, amount)
+      await db.checkInToday(user.id, context)
+      const txs = await db.listTransactions(user.id, context).catch(() => null)
+      if (txs) setTransactions(txs)
+      const gs = await db.listGoals(user.id, context).catch(() => null)
+      if (gs) setGoals(gs)
+      setCheckinAsking(false)
+      setCheckinAmount('')
+      refreshCheckins()
+    } finally {
+      setCheckinBusy(false)
+    }
+  }
+
+  // Marks the day without recording an amount — for someone who put money
+  // aside outside the app and just wants the streak to stay honest.
+  async function handleCheckInNoAmount() {
     await db.checkInToday(user.id, context)
+    setCheckinAsking(false)
+    setCheckinAmount('')
     refreshCheckins()
   }
 
@@ -360,7 +402,36 @@ export default function DashboardScreen() {
           </div>
           <div className="home-checkin">
             <p>{t('dashboard.checkinPrompt')}</p>
-            {checkedInToday ? <p className="text-savings">{t('dashboard.checkedIn')}</p> : checkinSkipped ? <p className="text-muted">{t('dashboard.checkinLater')}</p> : <div className="flex gap-1.5"><Button type="button" onClick={handleCheckIn}>{t('dashboard.checkinYes')}</Button><Button type="button" variant="secondary" onClick={() => setCheckinSkipped(true)}>{t('dashboard.checkinNo')}</Button></div>}
+            {checkedInToday ? (
+              <p className="text-savings">{t('dashboard.checkedIn')}</p>
+            ) : checkinAsking ? (
+              <div className="space-y-1.5">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="any"
+                  autoFocus
+                  value={checkinAmount}
+                  onChange={(e) => setCheckinAmount(e.target.value)}
+                  placeholder={t('dashboard.checkinAmountPlaceholder')}
+                  className="w-full bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
+                />
+                <div className="flex gap-1.5">
+                  <Button type="button" disabled={checkinBusy || !(parseFloat(checkinAmount) > 0)} onClick={handleCheckIn}>
+                    {checkinBusy ? t('common.saving') : t('common.save')}
+                  </Button>
+                  <Button type="button" variant="secondary" onClick={handleCheckInNoAmount}>{t('dashboard.checkinSkipAmount')}</Button>
+                </div>
+              </div>
+            ) : checkinSkipped ? (
+              <p className="text-muted">{t('dashboard.checkinLater')}</p>
+            ) : (
+              <div className="flex gap-1.5">
+                <Button type="button" onClick={handleCheckIn}>{t('dashboard.checkinYes')}</Button>
+                <Button type="button" variant="secondary" onClick={() => setCheckinSkipped(true)}>{t('dashboard.checkinNo')}</Button>
+              </div>
+            )}
           </div>
         </Card>
 

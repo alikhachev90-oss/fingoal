@@ -59,6 +59,7 @@ export default function GoalsScreen() {
   const [contributingGoalId, setContributingGoalId] = useState(null)
   const [contributionAmount, setContributionAmount] = useState('')
   const [deletingGoal, setDeletingGoal] = useState(null)
+  const [editingGoalId, setEditingGoalId] = useState(null)
   const suggestedGoalId = searchParams.get('goal')
 
   useEffect(() => {
@@ -87,15 +88,19 @@ export default function GoalsScreen() {
     setSaving(true)
     setSaveError('')
     try {
+      // With an id this updates the goal in place; without one it creates.
+      const existing = editingGoalId ? goals.find((g) => g.id === editingGoalId) : null
       await db.upsertGoal(user.id, context, {
+        ...(existing || {}),
         name: form.name,
         target_amount: parseFloat(form.targetAmount),
         deadline: form.deadline,
         why: form.why || null,
-        priority: goals.length,
+        priority: existing ? existing.priority : goals.length,
       })
       setForm(emptyForm)
       setShowForm(false)
+      setEditingGoalId(null)
       refresh()
     } catch {
       // Never fail silently: a dead "Create" button with no explanation is the
@@ -140,6 +145,24 @@ export default function GoalsScreen() {
     event.preventDefault()
     const saved = await addSavings(goal, suggestedAmount)
     if (saved) setSearchParams({})
+  }
+
+  function startEditGoal(goal) {
+    setEditingGoalId(goal.id)
+    setForm({
+      name: goal.name,
+      targetAmount: String(goal.target_amount ?? ''),
+      deadline: goal.deadline ? String(goal.deadline).slice(0, 10) : '',
+      why: goal.why || '',
+    })
+    setSaveError('')
+    setShowForm(true)
+  }
+
+  function closeGoalForm() {
+    setShowForm(false)
+    setEditingGoalId(null)
+    setForm(emptyForm)
   }
 
   async function removeGoal(id) {
@@ -233,7 +256,12 @@ export default function GoalsScreen() {
                   <p className="font-semibold">{goal.name}</p>
                   <p className="text-xs text-muted">{t('goals.until', { date: new Date(goal.deadline).toLocaleDateString('en-US') })}</p>
                 </div>
-                <button onClick={() => setDeletingGoal(goal)} className="text-xs text-muted">✕</button>
+                <div className="flex items-center gap-3 shrink-0">
+                  <button type="button" onClick={() => startEditGoal(goal)} className="text-xs text-primary font-medium py-2 -my-2">
+                    {t('goals.edit')}
+                  </button>
+                  <button type="button" onClick={() => setDeletingGoal(goal)} className="text-xs text-muted py-2 -my-2">✕</button>
+                </div>
               </div>
 
               {goal.why && <p className="text-xs text-muted italic bg-surface2 rounded-lg px-2.5 py-2">« {goal.why} »</p>}
@@ -302,7 +330,7 @@ export default function GoalsScreen() {
         {showForm ? (
           <Card>
             <form onSubmit={createGoal} className="space-y-3">
-              <h2 className="font-semibold">{t('goals.createGoal')}</h2>
+              <h2 className="font-semibold">{editingGoalId ? t('goals.editGoal') : t('goals.createGoal')}</h2>
               <div>
                 <Input label={<span className="inline-flex items-center gap-1">{t('goals.name')} <InfoTag>{t('goals.nameHint')}</InfoTag></span>} required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder={t('goals.namePlaceholder')} />
               </div>
@@ -324,8 +352,8 @@ export default function GoalsScreen() {
               </div>
               {saveError && <p className="text-xs text-wants">{saveError}</p>}
               <div className="flex gap-2">
-                <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>{t('goals.cancel')}</Button>
-                <Button type="submit" disabled={saving}>{saving ? t('goals.saving') : t('goals.submitCreate')}</Button>
+                <Button variant="secondary" type="button" onClick={closeGoalForm}>{t('goals.cancel')}</Button>
+                <Button type="submit" disabled={saving}>{saving ? t('goals.saving') : editingGoalId ? t('common.save') : t('goals.submitCreate')}</Button>
               </div>
             </form>
           </Card>
