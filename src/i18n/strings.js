@@ -16,6 +16,9 @@ const STRINGS = {
   'home.welcome': { ru: 'Привет,', en: 'Hi,', es: 'Hola,', fr: 'Bonjour,' },
   'home.tagline': { ru: 'Деньги под контролем — шаг за шагом', en: 'Your money, under control — step by step', es: 'Tu dinero bajo control, paso a paso', fr: 'Votre argent sous contrôle, pas à pas' },
   'home.tour': { ru: 'Короткая экскурсия по приложению', en: 'Quick tour of the app', es: 'Recorrido rápido por la app', fr: "Visite rapide de l'application" },
+  'dashboard.checkinAmountPlaceholder': { ru: 'Сколько отложил сегодня, $', en: 'How much did you set aside today, $', es: '¿Cuánto apartaste hoy, $', fr: 'Combien avez-vous mis de côté aujourd’hui, $' },
+  'dashboard.checkinSkipAmount': { ru: 'Просто отметить', en: 'Just mark it', es: 'Solo marcar', fr: 'Juste marquer' },
+  'dashboard.checkinComment': { ru: 'Отложил на цель', en: 'Set aside toward the goal', es: 'Apartado para la meta', fr: 'Mis de côté pour l’objectif' },
   'dashboard.checkinLater': { ru: 'Хорошо, спросим завтра', en: "Okay, we'll ask tomorrow", es: 'Vale, preguntamos mañana', fr: 'D’accord, on redemande demain' },
   'bills.edit': { ru: 'Изменить', en: 'Edit', es: 'Editar', fr: 'Modifier' },
   'bills.empty': { ru: 'Обязательные платежи пока не заданы', en: 'No essential payments yet', es: 'Aún no hay pagos esenciales', fr: 'Aucune dépense essentielle pour le moment' },
@@ -208,6 +211,8 @@ const STRINGS = {
 
   'goals.title': { ru: 'Цели', en: 'Goals', es: 'Metas', fr: 'Objectifs' },
   'goals.newGoal': { ru: '+ Новая цель', en: '+ New goal', es: '+ Nueva meta', fr: '+ Nouvel objectif' },
+  'goals.edit': { ru: 'Изменить', en: 'Edit', es: 'Editar', fr: 'Modifier' },
+  'goals.editGoal': { ru: 'Изменить цель', en: 'Edit goal', es: 'Editar meta', fr: 'Modifier l’objectif' },
   'goals.createGoal': { ru: 'Новая цель', en: 'New goal', es: 'Nueva meta', fr: 'Nouvel objectif' },
   'goals.name': { ru: 'Название', en: 'Name', es: 'Nombre', fr: 'Nom' },
   'goals.targetAmount': { ru: 'Сумма цели, $', en: 'Target amount, $', es: 'Monto objetivo, $', fr: 'Montant cible, $' },
