@@ -55,10 +55,16 @@ export async function enablePushNotifications() {
     }
 
     const json = sub.toJSON()
+    // A plain insert, deliberately not an upsert: "insert or update" makes
+    // Postgres read the table first to find the conflicting row, and reading
+    // this table would mean letting every signed-in person see everyone
+    // else's push keys. A duplicate endpoint just means this device is
+    // already subscribed, which is exactly the state we wanted.
     const { error } = await pushSupabase
       .from('push_subscriptions')
-      .upsert({ endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth }, { onConflict: 'endpoint' })
-    if (error) return { ok: false, reason: 'save_failed', error }
+      .insert({ endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth })
+    const alreadyStored = error && (error.code === '23505' || /duplicate key/i.test(error.message || ''))
+    if (error && !alreadyStored) return { ok: false, reason: 'save_failed', error }
 
     return { ok: true }
   } catch (error) {
