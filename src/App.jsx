@@ -19,6 +19,7 @@ import ConnectBankScreen from './screens/ConnectBankScreen'
 import AccountsScreen from './screens/AccountsScreen'
 import SettingsScreen from './screens/SettingsScreen'
 import FeedbackButton from './components/FeedbackButton'
+import SwipeNavigator from './components/SwipeNavigator'
 
 class ScreenErrorBoundary extends Component {
   state = { failed: false }
@@ -104,6 +105,7 @@ function RequireAuth({ children }) {
 function Shell() {
   return (
     <>
+    <SwipeNavigator />
     <ReminderWatcher />
     <GoalReminderWatcher />
     <FeedbackButton />
