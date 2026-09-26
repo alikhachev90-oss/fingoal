@@ -1,4 +1,4 @@
-import { Component, useEffect } from 'react'
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AppProvider, useApp } from './context/AppContext'
 import { getBackground } from './lib/backgrounds'
@@ -19,30 +19,8 @@ import ConnectBankScreen from './screens/ConnectBankScreen'
 import AccountsScreen from './screens/AccountsScreen'
 import SettingsScreen from './screens/SettingsScreen'
 import FeedbackButton from './components/FeedbackButton'
-import SwipeNavigator from './components/SwipeNavigator'
-
-class ScreenErrorBoundary extends Component {
-  state = { failed: false }
-
-  static getDerivedStateFromError() {
-    return { failed: true }
-  }
-
-  render() {
-    if (this.state.failed) {
-      return (
-        <div className="min-h-[100svh] flex items-center justify-center p-5">
-          <div className="glass rounded-[28px] p-6 text-center max-w-sm">
-            <p className="text-lg font-semibold">Не удалось открыть экран</p>
-            <p className="text-sm text-muted mt-2">Вернись на Главную и попробуй ещё раз.</p>
-            <button type="button" onClick={() => { window.location.href = '/dashboard' }} className="mt-5 px-5 py-3 rounded-2xl bg-primary text-onprimary font-semibold">На Главную</button>
-          </div>
-        </div>
-      )
-    }
-    return this.props.children
-  }
-}
+import ScreenErrorBoundary from './components/ScreenErrorBoundary'
+import TabPager from './components/TabPager'
 
 // Polls for due bill reminders while the app is open, and fires a browser
 // Notification for any that come due. No backend push — see lib/reminders.js.
@@ -105,18 +83,15 @@ function RequireAuth({ children }) {
 function Shell() {
   return (
     <>
-    <SwipeNavigator />
     <ReminderWatcher />
     <GoalReminderWatcher />
     <FeedbackButton />
     <Routes>
       <Route path="/auth" element={<AuthScreen />} />
       <Route path="/onboarding" element={<RequireAuth><OnboardingScreen /></RequireAuth>} />
-      <Route path="/entry" element={<RequireAuth><ScreenErrorBoundary><EntryScreen /></ScreenErrorBoundary></RequireAuth>} />
-      <Route path="/dashboard" element={<RequireAuth><DashboardScreen /></RequireAuth>} />
-      <Route path="/goals" element={<RequireAuth><GoalsScreen /></RequireAuth>} />
-      <Route path="/lessons" element={<RequireAuth><LessonsScreen /></RequireAuth>} />
-      <Route path="/insights" element={<RequireAuth><InsightsScreen /></RequireAuth>} />
+      {['/dashboard', '/entry', '/goals', '/insights', '/lessons'].map((path) => (
+        <Route key={path} path={path} element={<RequireAuth><TabPager /></RequireAuth>} />
+      ))}
       <Route path="/taxes" element={<RequireAuth><TaxEstimateScreen /></RequireAuth>} />
       <Route path="/reports" element={<RequireAuth><ReportScreen /></RequireAuth>} />
       <Route path="/bank" element={<RequireAuth><ConnectBankScreen /></RequireAuth>} />
