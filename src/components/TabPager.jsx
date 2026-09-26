@@ -25,7 +25,16 @@ export const usePaneActive = () => useContext(PaneActiveContext)
 const COMMIT_RATIO = 0.3
 const COMMIT_VELOCITY = 0.35 // px per ms
 const DIRECTION_LOCK = 8 // px before we decide horizontal vs vertical
-const GLIDE = 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)'
+
+// Android's own motion curves, so a page settles the way every other app on
+// the phone does. "Emphasized decelerate" starts fast and spends most of its
+// time easing into place — that long, visible slowdown at the end is the part
+// that reads as smooth; a short symmetric ease reads as a snap.
+const DECELERATE = 'cubic-bezier(0.05, 0.7, 0.1, 1)'
+const SETTLE_MAX = 400 // a full screen of travel, in ms
+const SETTLE_MIN = 250 // never so quick that the landing can't be seen
+// Springing back is a smaller move and gets the standard curve.
+const GLIDE = `transform 300ms ${DECELERATE}`
 
 // Only things that genuinely need a sideways drag of their own keep the
 // gesture. Charts and text fields deliberately do NOT opt out — they cover
@@ -33,6 +42,17 @@ const GLIDE = 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)'
 // feels broken. Tapping into a field still works; only a sideways drag that
 // starts on one turns the page.
 const OPT_OUT = '[contenteditable], [data-no-swipe], input[type="range"]'
+
+// The tabs form a ring: swipe past the last one and the first comes round
+// again, so there is never a dead edge you have to swipe all the way back
+// from. `wrap` is the shortest signed distance from the current tab.
+const step = (i) => (i + TABS.length) % TABS.length
+function wrap(rel) {
+  const n = TABS.length
+  let r = ((rel % n) + n) % n
+  if (r > n / 2) r -= n
+  return r
+}
 
 export default function TabPager() {
   const location = useLocation()
@@ -52,7 +72,7 @@ export default function TabPager() {
   const [mounted, setMounted] = useState(() => new Set([index]))
   function keepAlive(...indices) {
     setMounted((prev) => {
-      const wanted = indices.filter((i) => i >= 0 && i < TABS.length && !prev.has(i))
+      const wanted = indices.filter((i) => !prev.has(i))
       if (!wanted.length) return prev
       const next = new Set(prev)
       wanted.forEach((i) => next.add(i))
@@ -78,7 +98,7 @@ export default function TabPager() {
   useLayoutEffect(() => {
     animating.current = false
     place(0)
-    keepAlive(index - 1, index + 1)
+    keepAlive(step(index - 1), step(index + 1))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index])
 
@@ -127,9 +147,9 @@ export default function TabPager() {
       d.lastTime = now
 
       const width = node.clientWidth || window.innerWidth
-      let next = d.base + dx
-      // Rubber band at the two ends: there is nothing to pull in from there.
-      if ((index === 0 && next > 0) || (index === TABS.length - 1 && next < 0)) next *= 0.22
+      // No rubber band: every direction has a page to pull in, because the
+      // last tab's neighbour is the first one.
+      const next = d.base + dx
       place(Math.max(-width, Math.min(width, next)))
     }
 
@@ -141,11 +161,11 @@ export default function TabPager() {
       const width = node.clientWidth || window.innerWidth
       const travelled = offsetRef.current
       const dir = travelled < 0 ? 1 : -1
-      const target = index + dir
+      const target = step(index + dir)
       const far = Math.abs(travelled) > width * COMMIT_RATIO
       // A flick only counts when it is still moving the way the page went.
       const fast = Math.abs(d.velocity) > COMMIT_VELOCITY && Math.sign(d.velocity) === -dir
-      const canGo = travelled !== 0 && (far || fast) && target >= 0 && target < TABS.length
+      const canGo = travelled !== 0 && (far || fast)
 
       if (!canGo) {
         place(0, GLIDE)
@@ -159,8 +179,9 @@ export default function TabPager() {
       const el = trackRef.current
       const landing = dir === 1 ? -width : width
       const remaining = Math.abs(landing - travelled)
-      // Shorter throws finish sooner, so a nearly-complete drag doesn't hang.
-      const ms = Math.max(140, Math.min(320, Math.round((remaining / width) * 340)))
+      // Scaled to what is left to travel, but never below the floor: cutting
+      // the tail off is exactly what made it feel abrupt.
+      const ms = Math.max(SETTLE_MIN, Math.min(SETTLE_MAX, Math.round((remaining / width) * SETTLE_MAX)))
       let done = false
       const arrive = () => {
         if (done) return
@@ -171,7 +192,7 @@ export default function TabPager() {
       }
       animating.current = true
       el?.addEventListener('transitionend', arrive)
-      place(landing, `transform ${ms}ms cubic-bezier(0.25, 0.9, 0.3, 1)`)
+      place(landing, `transform ${ms}ms ${DECELERATE}`)
       // If the transition never fires — backgrounded tab, reduced motion —
       // the page still has to change.
       setTimeout(arrive, ms + 90)
@@ -199,14 +220,15 @@ export default function TabPager() {
         {TABS.map((tab, i) => {
           if (!mounted.has(i)) return null
           const active = i === index
-          const near = Math.abs(i - index) <= 1
+          const rel = wrap(i - index)
+          const near = Math.abs(rel) <= 1
           const Component = tab.Component
           return (
             <div
               key={tab.path}
               className="absolute inset-y-0 w-full overflow-y-auto overscroll-y-contain pb-[92px]"
               style={{
-                left: `${(i - index) * 100}%`,
+                left: `${rel * 100}%`,
                 // Kept in the tree but out of the way: no paint cost, no
                 // stray taps, and the scroll position is remembered.
                 visibility: near ? 'visible' : 'hidden',
