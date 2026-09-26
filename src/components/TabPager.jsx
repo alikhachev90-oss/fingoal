@@ -21,14 +21,18 @@ const PaneActiveContext = createContext(true)
 export const usePaneActive = () => useContext(PaneActiveContext)
 
 // Past this share of the screen, or this fast a flick, the page changes;
-// below both it springs back. Deliberately past a third of the screen — a
-// shorter throw turned a glance sideways into an accidental page turn.
-const COMMIT_RATIO = 0.42
-const COMMIT_VELOCITY = 0.55 // px per ms
+// below both it springs back.
+const COMMIT_RATIO = 0.3
+const COMMIT_VELOCITY = 0.35 // px per ms
 const DIRECTION_LOCK = 8 // px before we decide horizontal vs vertical
-const GLIDE = 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)'
+const GLIDE = 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)'
 
-const OPT_OUT = 'input, textarea, select, [contenteditable], [data-no-swipe], .recharts-wrapper'
+// Only things that genuinely need a sideways drag of their own keep the
+// gesture. Charts and text fields deliberately do NOT opt out — they cover
+// most of the screen, and a page you can only turn by grabbing its outer edge
+// feels broken. Tapping into a field still works; only a sideways drag that
+// starts on one turns the page.
+const OPT_OUT = '[contenteditable], [data-no-swipe], input[type="range"]'
 
 export default function TabPager() {
   const location = useLocation()
@@ -39,27 +43,42 @@ export default function TabPager() {
   const trackRef = useRef(null)
   const drag = useRef(null)
   const offsetRef = useRef(0)
-  // Neighbours cost a full screen's worth of data loading each, so they are
-  // mounted for the length of a gesture and dropped again afterwards.
-  const [live, setLive] = useState(false)
+
+  // Which screens are alive. A screen is mounted the first time it is needed
+  // and then kept — it is what stops the page you just swiped to from
+  // flashing its "Загрузка" state, because it was already loaded behind the
+  // one you were looking at.
+  const [mounted, setMounted] = useState(() => new Set([index]))
+  function keepAlive(...indices) {
+    setMounted((prev) => {
+      const wanted = indices.filter((i) => i >= 0 && i < TABS.length && !prev.has(i))
+      if (!wanted.length) return prev
+      const next = new Set(prev)
+      wanted.forEach((i) => next.add(i))
+      return next
+    })
+  }
 
   // Every pixel of the drag is written straight to the element. Routing this
-  // through React state re-rendered three mounted screens per frame, which is
+  // through React state re-rendered the mounted screens every frame, which is
   // what made the movement stutter instead of tracking the finger.
   function place(x, transition) {
     const el = trackRef.current
     if (!el) return
     offsetRef.current = x
     el.style.transition = transition || 'none'
-    el.style.transform = `translate3d(${x}px, 0, 0)`
+    // At rest the transform is cleared entirely: an element with a transform
+    // becomes the containing block for any `position: fixed` dialog inside it.
+    el.style.transform = x === 0 && !transition ? '' : `translate3d(${x}px, 0, 0)`
   }
 
-  // The new pane arrives already centred, so the track has to be back at zero
-  // before the browser paints — a layout effect, not a normal one.
+  // The panes are laid out from the current index, so the track has to be back
+  // at zero before the browser paints — a layout effect, not a normal one.
   useLayoutEffect(() => {
-    place(0, 'none')
-    setLive(false)
-  }, [location.pathname])
+    place(0)
+    keepAlive(index - 1, index + 1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index])
 
   useEffect(() => {
     const node = frameRef.current
@@ -79,9 +98,6 @@ export default function TabPager() {
         lastTime: Date.now(),
         velocity: 0,
       }
-      // Bring the neighbours in at the very start of the gesture rather than
-      // partway through it: mounting a screen mid-drag is a visible hitch.
-      setLive(true)
     }
 
     function onTouchMove(e) {
@@ -94,7 +110,6 @@ export default function TabPager() {
       if (d.axis === null) {
         if (Math.abs(dx) < DIRECTION_LOCK && Math.abs(dy) < DIRECTION_LOCK) return
         d.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
-        if (d.axis === 'y') setLive(false)
       }
       if (d.axis !== 'x') return
       if (e.cancelable) e.preventDefault()
@@ -116,40 +131,26 @@ export default function TabPager() {
     function finish() {
       const d = drag.current
       drag.current = null
-      if (!d || d.axis !== 'x') {
-        setLive(false)
-        return
-      }
+      if (!d || d.axis !== 'x') return
+
       const width = node.clientWidth || window.innerWidth
       const travelled = offsetRef.current
       const dir = travelled < 0 ? 1 : -1
       const target = index + dir
       const far = Math.abs(travelled) > width * COMMIT_RATIO
-      const fast = Math.abs(d.velocity) > COMMIT_VELOCITY
+      // A flick only counts when it is still moving the way the page went.
+      const fast = Math.abs(d.velocity) > COMMIT_VELOCITY && Math.sign(d.velocity) === -dir
       const canGo = travelled !== 0 && (far || fast) && target >= 0 && target < TABS.length
 
       if (!canGo) {
         place(0, GLIDE)
-        setTimeout(() => setLive(false), 320)
         return
       }
 
-      // Finish the movement the finger started, then swap the route under it
-      // once the outgoing pane is fully off to the side.
-      const el = trackRef.current
-      const landing = dir === 1 ? -width : width
-      let done = false
-      const commit = () => {
-        if (done) return
-        done = true
-        el?.removeEventListener('transitionend', commit)
-        navigate(TABS[target].path)
-      }
-      el?.addEventListener('transitionend', commit)
-      place(landing, GLIDE)
-      // Belt and braces: if the transition never fires (backgrounded tab,
-      // reduced motion) the page still has to change.
-      setTimeout(commit, 360)
+      // Both screens are already on screen and already loaded, so the route
+      // can change immediately — the layout effect re-centres the track on the
+      // new index in the same paint, with nothing to re-fetch or re-mount.
+      navigate(TABS[target].path)
     }
 
     node.addEventListener('touchstart', onTouchStart, { passive: true })
@@ -164,35 +165,40 @@ export default function TabPager() {
     }
   }, [index, navigate])
 
-  const Current = TABS[index].Component
-  const Prev = index > 0 ? TABS[index - 1].Component : null
-  const Next = index < TABS.length - 1 ? TABS[index + 1].Component : null
-
-  function pane(Component, style) {
-    if (!Component) return null
-    return (
-      <div className="absolute inset-y-0 w-full overflow-y-auto pb-[92px]" style={style} aria-hidden="true">
-        <PaneActiveContext.Provider value={false}>
-          <ScreenErrorBoundary>
-            <Component />
-          </ScreenErrorBoundary>
-        </PaneActiveContext.Provider>
-      </div>
-    )
-  }
-
   return (
-    <div ref={frameRef} className="relative overflow-hidden min-h-[100svh]" style={{ touchAction: 'pan-y' }}>
-      <div ref={trackRef} className="relative min-h-[100svh]" style={{ willChange: 'transform' }}>
-        {live && pane(Prev, { left: '-100%' })}
-        <div className="w-full pb-[92px]">
-          <PaneActiveContext.Provider value={true}>
-            <ScreenErrorBoundary>
-              <Current />
-            </ScreenErrorBoundary>
-          </PaneActiveContext.Provider>
-        </div>
-        {live && pane(Next, { left: '100%' })}
+    <div
+      ref={frameRef}
+      className="relative overflow-hidden h-[100svh]"
+      style={{ touchAction: 'pan-y' }}
+    >
+      <div ref={trackRef} className="absolute inset-0">
+        {TABS.map((tab, i) => {
+          if (!mounted.has(i)) return null
+          const active = i === index
+          const near = Math.abs(i - index) <= 1
+          const Component = tab.Component
+          return (
+            <div
+              key={tab.path}
+              className="absolute inset-y-0 w-full overflow-y-auto overscroll-y-contain pb-[92px]"
+              style={{
+                left: `${(i - index) * 100}%`,
+                // Kept in the tree but out of the way: no paint cost, no
+                // stray taps, and the scroll position is remembered.
+                visibility: near ? 'visible' : 'hidden',
+                pointerEvents: active ? 'auto' : 'none',
+              }}
+              aria-hidden={!active}
+              inert={active ? undefined : true}
+            >
+              <PaneActiveContext.Provider value={active}>
+                <ScreenErrorBoundary>
+                  <Component />
+                </ScreenErrorBoundary>
+              </PaneActiveContext.Provider>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
