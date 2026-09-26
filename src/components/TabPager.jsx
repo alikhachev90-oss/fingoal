@@ -88,6 +88,9 @@ export default function TabPager() {
     if (!el) return
     offsetRef.current = x
     el.style.transition = transition || 'none'
+    // Make the browser take in the new transition before the new transform
+    // lands, so it has something to animate from rather than snapping.
+    if (transition) void el.offsetHeight
     // At rest the transform is cleared entirely: an element with a transform
     // becomes the containing block for any `position: fixed` dialog inside it.
     el.style.transform = x === 0 && !transition ? '' : `translate3d(${x}px, 0, 0)`
@@ -186,12 +189,19 @@ export default function TabPager() {
       const arrive = () => {
         if (done) return
         done = true
-        el?.removeEventListener('transitionend', arrive)
+        el?.removeEventListener('transitionend', onEnd)
         animating.current = false
         navigate(TABS[target].path)
       }
+      // transitionend bubbles, so every button and bar inside the screen that
+      // finishes its own little transition would otherwise report the page as
+      // arrived — and the route would swap while the track was still moving,
+      // which is exactly what made it jump the moment the finger came off.
+      const onEnd = (e) => {
+        if (e.target === el && e.propertyName === 'transform') arrive()
+      }
       animating.current = true
-      el?.addEventListener('transitionend', arrive)
+      el?.addEventListener('transitionend', onEnd)
       place(landing, `transform ${ms}ms ${DECELERATE}`)
       // If the transition never fires — backgrounded tab, reduced motion —
       // the page still has to change.
