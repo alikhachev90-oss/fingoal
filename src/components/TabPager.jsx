@@ -31,10 +31,10 @@ const DIRECTION_LOCK = 8 // px before we decide horizontal vs vertical
 // time easing into place — that long, visible slowdown at the end is the part
 // that reads as smooth; a short symmetric ease reads as a snap.
 const DECELERATE = 'cubic-bezier(0.05, 0.7, 0.1, 1)'
-const SETTLE_MAX = 400 // a full screen of travel, in ms
-const SETTLE_MIN = 250 // never so quick that the landing can't be seen
+const SETTLE_MAX = 480 // a full screen of travel, in ms
+const SETTLE_MIN = 320 // never so quick that the landing can't be seen
 // Springing back is a smaller move and gets the standard curve.
-const GLIDE = `transform 300ms ${DECELERATE}`
+const GLIDE = `transform 340ms ${DECELERATE}`
 
 // Only things that genuinely need a sideways drag of their own keep the
 // gesture. Charts and text fields deliberately do NOT opt out — they cover
@@ -101,7 +101,14 @@ export default function TabPager() {
   useLayoutEffect(() => {
     animating.current = false
     place(0)
-    keepAlive(step(index - 1), step(index + 1))
+    // Mounting the tab that just came into reach is real work — a whole screen
+    // of layout and data. Doing it in the same frame the page lands in is felt
+    // as a jolt right at the end of the movement, so it waits until the
+    // browser is idle again.
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200))
+    const cancel = window.cancelIdleCallback || clearTimeout
+    const handle = idle(() => keepAlive(step(index - 1), step(index + 1)), { timeout: 600 })
+    return () => cancel(handle)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index])
 
