@@ -43,6 +43,7 @@ export default function TabPager() {
   const trackRef = useRef(null)
   const drag = useRef(null)
   const offsetRef = useRef(0)
+  const animating = useRef(false)
 
   // Which screens are alive. A screen is mounted the first time it is needed
   // and then kept — it is what stops the page you just swiped to from
@@ -75,6 +76,7 @@ export default function TabPager() {
   // The panes are laid out from the current index, so the track has to be back
   // at zero before the browser paints — a layout effect, not a normal one.
   useLayoutEffect(() => {
+    animating.current = false
     place(0)
     keepAlive(index - 1, index + 1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -86,6 +88,9 @@ export default function TabPager() {
 
     function onTouchStart(e) {
       if (e.touches.length !== 1) return
+      // Let the page finish arriving before another gesture starts, otherwise
+      // the second drag fights the glide and lands somewhere in between.
+      if (animating.current) return
       if (e.target?.closest?.(OPT_OUT)) return
       if (document.querySelector('[role="dialog"]')) return
       const t = e.touches[0]
@@ -147,10 +152,29 @@ export default function TabPager() {
         return
       }
 
-      // Both screens are already on screen and already loaded, so the route
-      // can change immediately — the layout effect re-centres the track on the
-      // new index in the same paint, with nothing to re-fetch or re-mount.
-      navigate(TABS[target].path)
+      // Carry the movement the rest of the way instead of teleporting: let go
+      // half way and the page coasts to the edge, the way a phone does. The
+      // route changes only once it has arrived, and because both screens were
+      // already mounted there is nothing to re-fetch when it does.
+      const el = trackRef.current
+      const landing = dir === 1 ? -width : width
+      const remaining = Math.abs(landing - travelled)
+      // Shorter throws finish sooner, so a nearly-complete drag doesn't hang.
+      const ms = Math.max(140, Math.min(320, Math.round((remaining / width) * 340)))
+      let done = false
+      const arrive = () => {
+        if (done) return
+        done = true
+        el?.removeEventListener('transitionend', arrive)
+        animating.current = false
+        navigate(TABS[target].path)
+      }
+      animating.current = true
+      el?.addEventListener('transitionend', arrive)
+      place(landing, `transform ${ms}ms cubic-bezier(0.25, 0.9, 0.3, 1)`)
+      // If the transition never fires — backgrounded tab, reduced motion —
+      // the page still has to change.
+      setTimeout(arrive, ms + 90)
     }
 
     node.addEventListener('touchstart', onTouchStart, { passive: true })
