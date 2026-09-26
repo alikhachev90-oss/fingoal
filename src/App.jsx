@@ -21,6 +21,7 @@ import SettingsScreen from './screens/SettingsScreen'
 import FeedbackButton from './components/FeedbackButton'
 import ScreenErrorBoundary from './components/ScreenErrorBoundary'
 import TabPager from './components/TabPager'
+import BottomNav from './components/BottomNav'
 
 // Polls for due bill reminders while the app is open, and fires a browser
 // Notification for any that come due. No backend push — see lib/reminders.js.
@@ -99,6 +100,9 @@ function Shell() {
       <Route path="/settings" element={<RequireAuth><SettingsScreen /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
+    {/* One bar for the whole app: it outlives route changes, so it can
+        glide away when you go deeper and glide back when you return. */}
+    <BottomNav />
     </>
   )
 }
