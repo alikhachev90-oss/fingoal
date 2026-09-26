@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { LayoutGrid, PlusCircle, Target, GraduationCap, Sparkles } from 'lucide-react'
 import { useApp } from '../context/AppContext'
+import { usePaneActive } from './TabPager'
 
 const items = [
   { to: '/dashboard', icon: LayoutGrid, key: 'nav.overview' },
@@ -15,6 +16,10 @@ const AUTO_HIDE_MS = 15000
 
 export default function BottomNav({ persistent = false }) {
   const { t } = useApp()
+  // While a swipe is in flight two screens are mounted at once; only the one
+  // being looked at draws the bar, otherwise the copies stack and the top one
+  // swallows every tap.
+  const paneActive = usePaneActive()
   const [expanded, setExpanded] = useState(persistent)
   const hideTimer = useRef(null)
   const touchStartY = useRef(null)
@@ -31,6 +36,8 @@ export default function BottomNav({ persistent = false }) {
   }
 
   useEffect(() => () => clearTimeout(hideTimer.current), [])
+
+  if (!paneActive) return <div aria-hidden="true" className="h-[92px] shrink-0" />
 
   return (
     <>
