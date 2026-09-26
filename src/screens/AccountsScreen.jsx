@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, CreditCard, Landmark, Wallet, Plus, Lightbulb, AlertTriangle } from 'lucide-react'
+import { CreditCard, Landmark, Wallet, Plus, Lightbulb, AlertTriangle } from 'lucide-react'
 import TopBar from '../components/TopBar'
-import BottomNav from '../components/BottomNav'
 import { Card, Button, Input, IconCircle } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
@@ -237,9 +235,6 @@ export default function AccountsScreen() {
     <div className="screen-accounts flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={L.title} subtitle={L.subtitle} />
       <div className="flex-1 px-4 py-4 space-y-3">
-        <Link to="/dashboard" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">
-          <ArrowLeft size={13} /> {t('nav.overview')}
-        </Link>
 
         <div className="pt-1">
           <div className="flex items-baseline justify-between">
@@ -331,7 +326,6 @@ export default function AccountsScreen() {
           onCancel={() => setDeletingAccount(null)}
         />
       )}
-      <BottomNav />
     </div>
   )
 }

@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Link } from 'react-router-dom'
 import { usePlaidLink } from 'react-plaid-link'
-import { ArrowLeft, Landmark, Lock, Copy, RefreshCw, Check } from 'lucide-react'
+import { Landmark, Lock, Copy, RefreshCw, Check } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import { Card, Button, Input } from '../components/UI'
 import { useApp } from '../context/AppContext'
@@ -76,9 +75,6 @@ export default function ConnectBankScreen() {
     <div className="screen-connectbank flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title="Привязать банк (бета)" subtitle="Только для владельца — скрыто от остальных" />
       <div className="flex-1 px-4 py-4 space-y-3">
-        <Link to="/insights" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">
-          <ArrowLeft size={13} /> Инсайты
-        </Link>
 
         <Card className="!p-4 space-y-3">
           <div className="flex items-center gap-2.5">

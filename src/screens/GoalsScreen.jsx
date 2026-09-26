@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import TopBar from '../components/TopBar'
-import BottomNav from '../components/BottomNav'
 import { Button, Input, Card, Pill, IconCircle } from '../components/UI'
 import BatteryProgress from '../components/BatteryProgress'
 import GoalReminderButton from '../components/GoalReminderButton'
@@ -369,7 +368,6 @@ export default function GoalsScreen() {
           onCancel={() => setDeletingGoal(null)}
         />
       )}
-      <BottomNav />
     </div>
   )
 }

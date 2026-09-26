@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { GraduationCap, Lock, Check, Clock, Sparkles } from 'lucide-react'
 import TopBar from '../components/TopBar'
-import BottomNav from '../components/BottomNav'
 import { Card, Button, IconCircle, EmptyState } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
@@ -172,7 +171,6 @@ export default function LessonsScreen() {
           )
         })}
       </div>
-      <BottomNav />
     </div>
   )
 }

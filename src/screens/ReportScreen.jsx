@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, PiggyBank, Trophy, CalendarDays, CalendarRange, Download } from 'lucide-react'
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, PiggyBank, Trophy, CalendarDays, CalendarRange, Download } from 'lucide-react'
 import TopBar from '../components/TopBar'
-import BottomNav from '../components/BottomNav'
 import { Card, IconCircle, ProgressBar, EmptyState } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
@@ -130,9 +128,6 @@ export default function ReportScreen() {
     <div className="screen-report flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('reports.title')} subtitle={t('reports.subtitle')} />
       <div className="flex-1 px-4 py-4 space-y-3">
-        <Link to="/insights" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">
-          <ArrowLeft size={13} /> {t('nav.insights')}
-        </Link>
 
         <div className="segmented-control flex bg-surface2 rounded-lg p-1 border border-border">
           {[
@@ -280,7 +275,6 @@ export default function ReportScreen() {
           </>
         )}
       </div>
-      <BottomNav />
     </div>
   )
 }

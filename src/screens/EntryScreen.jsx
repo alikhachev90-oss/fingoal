@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TopBar from '../components/TopBar'
-import BottomNav from '../components/BottomNav'
 import { Button, Input, Card } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
@@ -555,7 +554,6 @@ export default function EntryScreen() {
                 : t('entry.saveBtnExpense')}
         </Button>
       </div>
-      <BottomNav />
     </div>
   )
 }

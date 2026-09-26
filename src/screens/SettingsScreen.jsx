@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Sun, Moon, MonitorSmartphone, Bell, RotateCcw, Trash2, LogOut, Mail, Info } from 'lucide-react'
+import { Sun, Moon, MonitorSmartphone, Bell, RotateCcw, Trash2, LogOut, Mail, Info } from 'lucide-react'
 import TopBar from '../components/TopBar'
-import BottomNav from '../components/BottomNav'
 import { Card, Button, Input } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import { LANGUAGES } from '../i18n/strings'
@@ -111,9 +109,6 @@ export default function SettingsScreen() {
     <div className="screen-settings flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('settings.title')} />
       <div className="flex-1 px-4 py-4 space-y-3">
-        <Link to="/dashboard" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">
-          <ArrowLeft size={13} /> {t('nav.overview')}
-        </Link>
 
         <Card className="!p-3.5 space-y-3">
           <p className="text-xs font-bold tracking-wide text-muted uppercase">{t('settings.profile')}</p>
@@ -274,7 +269,6 @@ export default function SettingsScreen() {
           <p className="text-xs text-muted leading-relaxed">{t('settings.aboutBody')}</p>
         </Card>
       </div>
-      <BottomNav />
     </div>
   )
 }

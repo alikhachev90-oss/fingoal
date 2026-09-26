@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Sparkles, Send, TrendingUp, TrendingDown, Info, Flag, Trophy, Radar, X, Calculator, ChevronRight, FileBarChart, Check } from 'lucide-react'
 import TopBar from '../components/TopBar'
-import BottomNav from '../components/BottomNav'
 import TourGuide from '../components/TourGuide'
 import { Card, Button, IconCircle, EmptyState, ProgressBar } from '../components/UI'
 import { useApp } from '../context/AppContext'
@@ -578,7 +577,6 @@ export default function InsightsScreen() {
           </Card>
         </div>
       </div>
-      <BottomNav />
     </div>
   )
 }

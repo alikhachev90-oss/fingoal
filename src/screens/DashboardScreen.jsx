@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Settings, Landmark, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
-import BottomNav from '../components/BottomNav'
 import DailyQuoteCard from '../components/DailyQuoteCard'
 import BatteryProgress from '../components/BatteryProgress'
 import InfoTag from '../components/InfoTag'
@@ -654,7 +653,6 @@ export default function DashboardScreen() {
           )}
         </Card>
       </div>
-      <BottomNav />
       {editingBills && <EssentialPaymentsEditor key={user.id + ':' + context} settings={settings} onSaved={setSettings} onClose={() => setEditingBills(false)} />}
     </div>
   )

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Calculator, AlertTriangle, Sparkles } from 'lucide-react'
+import { Calculator, AlertTriangle, Sparkles } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import { Card, Button, Input } from '../components/UI'
 import { deriveMonthlyIncome } from '../lib/finance'
@@ -45,9 +44,6 @@ export default function TaxEstimateScreen() {
     <div className="screen-taxestimate flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('tax.title')} subtitle={t('tax.subtitle')} />
       <div className="flex-1 px-4 py-4 space-y-3">
-        <Link to="/insights" className="text-xs text-primary font-semibold flex items-center gap-1 mb-1">
-          <ArrowLeft size={13} /> {t('insights.title')}
-        </Link>
 
         {!acked ? (
           <Card className="!p-4 space-y-3">
