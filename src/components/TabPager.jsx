@@ -61,6 +61,12 @@ export default function TabPager() {
   const offsetRef = useRef(0)
   const animating = useRef(false)
   const raf = useRef(0)
+  // Where a committed settle is heading, so a new touch can catch it mid-way.
+  const heading = useRef(null)
+  // Offset to keep across a tab change, when a touch caught the page in flight.
+  const carry = useRef(0)
+  const indexRef = useRef(index)
+  indexRef.current = index
 
   // Which screens are alive. A screen is mounted the first time it is needed
   // and then kept — it is what stops the page you just swiped to from
@@ -123,8 +129,10 @@ export default function TabPager() {
   // at zero before the browser paints — a layout effect, not a normal one.
   useLayoutEffect(() => {
     animating.current = false
+    heading.current = null
     cancelAnimationFrame(raf.current)
-    place(0)
+    place(carry.current)
+    carry.current = 0
     // Mounting the tab that just came into reach is real work — a whole screen
     // of layout and data. Doing it in the same frame the page lands in is felt
     // as a jolt right at the end of the movement, so it waits until the
@@ -142,11 +150,28 @@ export default function TabPager() {
 
     function onTouchStart(e) {
       if (e.touches.length !== 1) return
-      // Let the page finish arriving before another gesture starts, otherwise
-      // the second drag fights the settle and lands somewhere in between.
-      if (animating.current) return
       if (e.target?.closest?.(OPT_OUT)) return
       if (document.querySelector('[role="dialog"]')) return
+      const i = indexRef.current
+      // A touch while the page is still arriving grabs it where it is, like a
+      // native pager, instead of being ignored until the settle's long tail
+      // runs out — that wait is what made a quick second swipe feel dead.
+      if (animating.current) {
+        cancelAnimationFrame(raf.current)
+        animating.current = false
+        const h = heading.current
+        heading.current = null
+        if (h) {
+          // It was already on its way to the next tab: land there now and
+          // keep the page exactly where the finger caught it.
+          carry.current = offsetRef.current - h.landing
+          offsetRef.current = carry.current
+          keepAlive(step(h.target - 1), step(h.target + 1))
+          navigate(TABS[h.target].path)
+        }
+      } else {
+        keepAlive(step(i - 1), step(i + 1))
+      }
       const t = e.touches[0]
       drag.current = {
         x: t.clientX,
@@ -196,12 +221,24 @@ export default function TabPager() {
     function finish() {
       const d = drag.current
       drag.current = null
-      if (!d || d.axis !== 'x') return
+      if (!d) return
+      if (d.axis !== 'x') {
+        // A tap or a vertical scroll that caught the page mid-way still has
+        // to finish putting it back.
+        if (offsetRef.current !== 0) {
+          animating.current = true
+          settle(offsetRef.current, 0, 0, () => {
+            animating.current = false
+            place(0)
+          })
+        }
+        return
+      }
 
       const width = node.clientWidth || window.innerWidth
       const travelled = offsetRef.current
       const dir = travelled < 0 ? 1 : -1
-      const target = step(index + dir)
+      const target = step(indexRef.current + dir)
       const far = Math.abs(travelled) > width * COMMIT_RATIO
       // A flick only counts when it is still moving the way the page went.
       const fast = Math.abs(d.velocity) > COMMIT_VELOCITY && Math.sign(d.velocity) === -dir
@@ -224,8 +261,10 @@ export default function TabPager() {
       // never overshoots, and a hard flick lands sooner than a slow drag.
       const landing = dir === 1 ? -width : width
       animating.current = true
+      heading.current = { target, landing }
       settle(travelled, landing, d.velocity * 1000, () => {
         animating.current = false
+        heading.current = null
         navigate(TABS[target].path)
       })
     }
