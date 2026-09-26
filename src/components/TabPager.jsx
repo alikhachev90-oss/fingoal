@@ -281,6 +281,18 @@ export default function TabPager() {
     }
   }, [index, navigate])
 
+  // A second tap on the current tab in the bottom bar glides its page back to
+  // the top. The browser's own smooth scroll is used so it moves the same way
+  // a finger-flung scroll does, and a touch stops it naturally.
+  useEffect(() => {
+    function onReselect(e) {
+      const pane = frameRef.current?.querySelector(`[data-pane="${e.detail}"]`)
+      if (pane && pane.scrollTop > 0) pane.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    window.addEventListener('tab-reselect', onReselect)
+    return () => window.removeEventListener('tab-reselect', onReselect)
+  }, [])
+
   return (
     <div
       ref={frameRef}
@@ -297,6 +309,7 @@ export default function TabPager() {
           return (
             <div
               key={tab.path}
+              data-pane={tab.path}
               className="absolute inset-y-0 w-full overflow-y-auto overscroll-y-contain pb-[92px]"
               style={{
                 left: `${rel * 100}%`,

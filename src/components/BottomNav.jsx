@@ -42,6 +42,13 @@ export default function BottomNav() {
                 <NavLink
                   key={item.to}
                   to={item.to}
+                  onClick={(e) => {
+                    // Tapping the tab you are already on takes that page back
+                    // to its top, the way a phone's own tab bars do.
+                    if (location.pathname !== item.to) return
+                    e.preventDefault()
+                    window.dispatchEvent(new CustomEvent('tab-reselect', { detail: item.to }))
+                  }}
                   className={({ isActive }) => `relative flex-1 flex flex-col items-center gap-1 px-1 py-1.5 rounded-2xl text-[10px] font-semibold transition-all duration-200 ${isActive ? 'text-primary' : 'text-muted hover:text-text'}`}
                 >
                   {({ isActive }) => (
