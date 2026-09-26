@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { LayoutGrid, PlusCircle, Target, GraduationCap, Sparkles } from 'lucide-react'
 import { useApp } from '../context/AppContext'
-import { usePaneActive } from './TabPager'
 
 const items = [
   { to: '/dashboard', icon: LayoutGrid, key: 'nav.overview' },
@@ -12,49 +10,30 @@ const items = [
   { to: '/lessons', icon: GraduationCap, key: 'nav.lessons' },
 ]
 
-const AUTO_HIDE_MS = 15000
+const TAB_PATHS = items.map((i) => i.to)
 
-export default function BottomNav({ persistent = false }) {
+// Mounted once, above the router, so it survives every route change and can
+// glide out and back in. It used to be rendered by each screen and hidden on a
+// 15-second timer behind an invisible pull handle — that handle sat dead
+// centre and quietly ate taps meant for whatever was underneath it.
+export default function BottomNav() {
   const { t } = useApp()
-  // While a swipe is in flight two screens are mounted at once; only the one
-  // being looked at draws the bar, otherwise the copies stack and the top one
-  // swallows every tap.
-  const paneActive = usePaneActive()
-  const [expanded, setExpanded] = useState(persistent)
-  const hideTimer = useRef(null)
-  const touchStartY = useRef(null)
-
-  function scheduleHide() {
-    if (persistent) return
-    clearTimeout(hideTimer.current)
-    hideTimer.current = setTimeout(() => setExpanded(false), AUTO_HIDE_MS)
-  }
-
-  function reveal() {
-    setExpanded(true)
-    scheduleHide()
-  }
-
-  useEffect(() => () => clearTimeout(hideTimer.current), [])
-
-  if (!paneActive) return <div aria-hidden="true" className="h-[92px] shrink-0" />
+  const location = useLocation()
+  // Visible on the five main tabs; anywhere deeper the person is inside one
+  // task and gets the whole screen. Leaving that screen is the phone's own
+  // back gesture, not another button we draw.
+  const visible = TAB_PATHS.includes(location.pathname)
 
   return (
-    <>
-      {/* Real layout space the same height as the bar, so the last control on
-          a screen can never come to rest under the invisible pull handle —
-          that is what made the Save button and the theme buttons swallow or
-          steal each other's taps. */}
-      <div aria-hidden="true" className="h-[92px] shrink-0" />
     <div className="fixed inset-x-0 bottom-0 z-30 pointer-events-none">
       <div className="max-w-app mx-auto relative h-[92px]">
         <nav
-          aria-hidden={!expanded}
-          inert={expanded ? undefined : true}
-          onPointerDown={scheduleHide}
-          onFocus={scheduleHide}
-          className={`absolute z-40 inset-x-3 bottom-[max(env(safe-area-inset-bottom),10px)] pointer-events-auto transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
-            expanded ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-[115%] opacity-0 scale-[.97] pointer-events-none'
+          aria-hidden={!visible}
+          inert={visible ? undefined : true}
+          className={`absolute z-40 inset-x-3 bottom-[max(env(safe-area-inset-bottom),10px)] transition-all duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+            visible
+              ? 'translate-y-0 opacity-100 scale-100 pointer-events-auto'
+              : 'translate-y-[140%] opacity-0 scale-[.97] pointer-events-none'
           }`}
         >
           <div className="glass nav-material rounded-[30px] px-2 py-2 shadow-[0_30px_70px_-28px_rgb(0_0_0/.95)] border-white/[.18]">
@@ -63,7 +42,6 @@ export default function BottomNav({ persistent = false }) {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  onClick={() => { if (!persistent) setExpanded(false) }}
                   className={({ isActive }) => `relative flex-1 flex flex-col items-center gap-1 px-1 py-1.5 rounded-2xl text-[10px] font-semibold transition-all duration-200 ${isActive ? 'text-primary' : 'text-muted hover:text-text'}`}
                 >
                   {({ isActive }) => (
@@ -81,37 +59,7 @@ export default function BottomNav({ persistent = false }) {
             </div>
           </div>
         </nav>
-
-        {!persistent && <button
-          type="button"
-          aria-label={t('nav.open')}
-          tabIndex={expanded ? -1 : 0}
-          aria-expanded={expanded}
-          onClick={() => (expanded ? setExpanded(false) : reveal())}
-          onTouchStart={(e) => { touchStartY.current = e.touches[0].clientY }}
-          onTouchMove={(e) => {
-            if (touchStartY.current == null) return
-            const dy = touchStartY.current - e.touches[0].clientY
-            if (dy > 14) {
-              reveal()
-              touchStartY.current = null
-            }
-          }}
-          onTouchEnd={() => { touchStartY.current = null }}
-          // Inline, because `pointer-events-auto` and `pointer-events-none` both
-          // sit in the class list and the utility that wins is decided by CSS
-          // order, not by the ternary — so the invisible handle kept swallowing
-          // taps while the nav was open. It sits dead centre, which is exactly
-          // where the middle tab (Цели) is: that one tab looked broken.
-          style={{ pointerEvents: expanded ? 'none' : 'auto' }}
-          className={`pointer-events-auto absolute z-50 left-1/2 -translate-x-1/2 bottom-[calc(max(env(safe-area-inset-bottom),2px)+8px)] w-24 h-11 flex items-center justify-center rounded-full transition-all duration-[600ms] motion-reduce:transition-none ${
-            expanded ? 'opacity-0 translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'
-          }`}
-        >
-          <span className="block w-12 h-1 rounded-full bg-muted shadow-[0_1px_0_rgb(255_255_255/.20)_inset,0_0_16px_rgb(255_255_255/.08)]" />
-        </button>}
       </div>
     </div>
-    </>
   )
 }

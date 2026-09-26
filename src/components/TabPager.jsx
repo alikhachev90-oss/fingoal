@@ -170,7 +170,7 @@ export default function TabPager() {
   function pane(Component, active, style) {
     if (!Component) return null
     return (
-      <div className="absolute inset-y-0 w-full overflow-y-auto" style={style} aria-hidden={!active}>
+      <div className="absolute inset-y-0 w-full overflow-y-auto pb-[92px]" style={style} aria-hidden={!active}>
         <PaneActiveContext.Provider value={active}>
           <ScreenErrorBoundary>
             <Component />
@@ -196,7 +196,7 @@ export default function TabPager() {
         onTransitionCancel={() => setAnimating(false)}
       >
         {showNeighbours && pane(Prev, false, { left: '-100%' })}
-        <div className="w-full">
+        <div className="w-full pb-[92px]">
           <PaneActiveContext.Provider value={true}>
             <ScreenErrorBoundary>
               <Current />
