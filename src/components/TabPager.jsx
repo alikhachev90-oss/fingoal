@@ -26,15 +26,11 @@ const COMMIT_RATIO = 0.3
 const COMMIT_VELOCITY = 0.35 // px per ms
 const DIRECTION_LOCK = 8 // px before we decide horizontal vs vertical
 
-// Android's own motion curves, so a page settles the way every other app on
-// the phone does. "Emphasized decelerate" starts fast and spends most of its
-// time easing into place — that long, visible slowdown at the end is the part
-// that reads as smooth; a short symmetric ease reads as a snap.
-const DECELERATE = 'cubic-bezier(0.05, 0.7, 0.1, 1)'
-const SETTLE_MAX = 480 // a full screen of travel, in ms
-const SETTLE_MIN = 320 // never so quick that the landing can't be seen
-// Springing back is a smaller move and gets the standard curve.
-const GLIDE = `transform 340ms ${DECELERATE}`
+// How stiff the settle is, in radians per second. Critically damped, so it
+// eases in and stops dead without ever overshooting; lower is looser and
+// slower. Around 13 gives a full screen roughly a third of a second, with a
+// long soft tail — the part that reads as smooth.
+const OMEGA = 13
 
 // Only things that genuinely need a sideways drag of their own keep the
 // gesture. Charts and text fields deliberately do NOT opt out — they cover
@@ -64,6 +60,7 @@ export default function TabPager() {
   const drag = useRef(null)
   const offsetRef = useRef(0)
   const animating = useRef(false)
+  const raf = useRef(0)
 
   // Which screens are alive. A screen is mounted the first time it is needed
   // and then kept — it is what stops the page you just swiped to from
@@ -78,6 +75,32 @@ export default function TabPager() {
       wanted.forEach((i) => next.add(i))
       return next
     })
+  }
+
+  // Runs the settle by hand instead of handing it to CSS, because only this
+  // way can it start at the speed the finger was already moving. x(t) is a
+  // critically damped spring: no overshoot, and the harder the throw the
+  // sooner it arrives.
+  function settle(from, to, velocity, onDone) {
+    cancelAnimationFrame(raf.current)
+    const a = from - to
+    const b = velocity + OMEGA * a
+    const start = performance.now()
+    const tick = (now) => {
+      const t = (now - start) / 1000
+      const decay = Math.exp(-OMEGA * t)
+      const x = to + (a + b * t) * decay
+      const speed = Math.abs(b * decay - OMEGA * (a + b * t) * decay)
+      // Close enough to be indistinguishable, and no longer moving.
+      if (Math.abs(x - to) < 0.5 && speed < 12) {
+        place(to)
+        onDone()
+        return
+      }
+      place(x)
+      raf.current = requestAnimationFrame(tick)
+    }
+    raf.current = requestAnimationFrame(tick)
   }
 
   // Every pixel of the drag is written straight to the element. Routing this
@@ -100,6 +123,7 @@ export default function TabPager() {
   // at zero before the browser paints — a layout effect, not a normal one.
   useLayoutEffect(() => {
     animating.current = false
+    cancelAnimationFrame(raf.current)
     place(0)
     // Mounting the tab that just came into reach is real work — a whole screen
     // of layout and data. Doing it in the same frame the page lands in is felt
@@ -119,7 +143,7 @@ export default function TabPager() {
     function onTouchStart(e) {
       if (e.touches.length !== 1) return
       // Let the page finish arriving before another gesture starts, otherwise
-      // the second drag fights the glide and lands somewhere in between.
+      // the second drag fights the settle and lands somewhere in between.
       if (animating.current) return
       if (e.target?.closest?.(OPT_OUT)) return
       if (document.querySelector('[role="dialog"]')) return
@@ -151,10 +175,16 @@ export default function TabPager() {
 
       const now = Date.now()
       const dt = now - d.lastTime
-      // Smoothed, so one jittery frame can't read as a flick.
-      if (dt > 0) d.velocity = d.velocity * 0.7 + ((t.clientX - d.last) / dt) * 0.3
-      d.last = t.clientX
-      d.lastTime = now
+      if (dt > 0) {
+        // Hold the finger still for a moment and the throw is spent, however
+        // fast it was getting here.
+        if (dt > 90) d.velocity = 0
+        // Lightly smoothed, so one jittery frame can't read as a flick, but
+        // not so heavily that the reading lags behind the finger.
+        else d.velocity = d.velocity * 0.6 + ((t.clientX - d.last) / dt) * 0.4
+        d.last = t.clientX
+        d.lastTime = now
+      }
 
       const width = node.clientWidth || window.innerWidth
       // No rubber band: every direction has a page to pull in, because the
@@ -178,41 +208,26 @@ export default function TabPager() {
       const canGo = travelled !== 0 && (far || fast)
 
       if (!canGo) {
-        place(0, GLIDE)
+        animating.current = true
+        settle(travelled, 0, d.velocity * 1000, () => {
+          animating.current = false
+          place(0)
+        })
         return
       }
 
-      // Carry the movement the rest of the way instead of teleporting: let go
-      // half way and the page coasts to the edge, the way a phone does. The
-      // route changes only once it has arrived, and because both screens were
-      // already mounted there is nothing to re-fetch when it does.
-      const el = trackRef.current
+      // Carry the movement on from exactly the speed the finger let go at.
+      // A CSS transition always starts from a standstill, so however long it
+      // was given, the first instant after release was a stop followed by a
+      // fresh push — which is what has been read as a hop at the end. This is
+      // the same critically damped spring a phone uses: it inherits the throw,
+      // never overshoots, and a hard flick lands sooner than a slow drag.
       const landing = dir === 1 ? -width : width
-      const remaining = Math.abs(landing - travelled)
-      // Scaled to what is left to travel, but never below the floor: cutting
-      // the tail off is exactly what made it feel abrupt.
-      const ms = Math.max(SETTLE_MIN, Math.min(SETTLE_MAX, Math.round((remaining / width) * SETTLE_MAX)))
-      let done = false
-      const arrive = () => {
-        if (done) return
-        done = true
-        el?.removeEventListener('transitionend', onEnd)
+      animating.current = true
+      settle(travelled, landing, d.velocity * 1000, () => {
         animating.current = false
         navigate(TABS[target].path)
-      }
-      // transitionend bubbles, so every button and bar inside the screen that
-      // finishes its own little transition would otherwise report the page as
-      // arrived — and the route would swap while the track was still moving,
-      // which is exactly what made it jump the moment the finger came off.
-      const onEnd = (e) => {
-        if (e.target === el && e.propertyName === 'transform') arrive()
-      }
-      animating.current = true
-      el?.addEventListener('transitionend', onEnd)
-      place(landing, `transform ${ms}ms ${DECELERATE}`)
-      // If the transition never fires — backgrounded tab, reduced motion —
-      // the page still has to change.
-      setTimeout(arrive, ms + 90)
+      })
     }
 
     node.addEventListener('touchstart', onTouchStart, { passive: true })
