@@ -4,17 +4,18 @@ import TopBar from '../components/TopBar'
 import { Button, Input, Card } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { suggestCategories, CATEGORY_TREE, findCategory, pickLang, subLabel, subHint } from '../lib/categories'
+import { suggestCategories, categoryTree, findCategory, pickLang, subLabel, subHint, customKey } from '../lib/categories'
+import { addCustomCategory, addCustomSub, removeCustomCategory, removeCustomSub } from '../lib/customCategories'
 import InfoTag from '../components/InfoTag'
 import { computeGoalPlan, daysSavedByAmount, crossedMilestone, deriveMonthlyIncome } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
-import { Wand2, ChevronDown, Check } from 'lucide-react'
+import { Wand2, ChevronDown, Check, Plus, X } from 'lucide-react'
 
 function accountLabel(account, t) {
   return `${account.name}${account.type === 'credit' ? ` (${t('accounts.credit')})` : ''}`
 }
 
-function AccountPicker({ label, sheetTitle, emptyLabel, accounts, value, onChange, t }) {
+function AccountPicker({ label, sheetTitle, emptyLabel, accounts, value, onChange, onCreate, t }) {
   const [open, setOpen] = useState(false)
   const selected = accounts.find((account) => account.id === value)
 
@@ -40,6 +41,11 @@ function AccountPicker({ label, sheetTitle, emptyLabel, accounts, value, onChang
                   <span>{accountLabel(account, t)}</span>{value === account.id && <Check size={18} />}
                 </button>
               ))}
+              {onCreate && (
+                <button type="button" className="!text-primary" onClick={() => { setOpen(false); onCreate() }}>
+                  <span>+ {t('entry.addCardOrAccount')}</span><Plus size={18} />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -83,6 +89,11 @@ export default function EntryScreen() {
   // check, part a transfer): each row is {accountId, amount}. null = a single
   // account, the usual case.
   const [split, setSplit] = useState(null)
+  // Bumped after adding/removing your own category so the grid redraws.
+  const [catsVersion, setCatsVersion] = useState(0)
+  const [newCatFor, setNewCatFor] = useState(null) // group getting a new category
+  const [newSubFor, setNewSubFor] = useState(false) // pendingCat getting a new sub
+  const [newCatName, setNewCatName] = useState('')
 
   function changeType(next) {
     setType(next)
@@ -160,8 +171,9 @@ export default function EntryScreen() {
   // the income group, expense tab shows everything that spends cash (needs,
   // wants, savings all reduce the account balance the same way).
   const visibleGroups = useMemo(
-    () => Object.entries(CATEGORY_TREE).filter(([group]) => (type === 'income' ? group === 'income' : group !== 'income')),
-    [type],
+    () => Object.entries(categoryTree()).filter(([group]) => (type === 'income' ? group === 'income' : group !== 'income')),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [type, catsVersion],
   )
 
   useEffect(() => {
@@ -244,6 +256,47 @@ export default function EntryScreen() {
   // Step 1: pick the top-level category. If it has sub-categories, wait for
   // step 2 instead of finalizing right away — this is the "what actually
   // belongs under Housing/Transport?" clarity the manual picker was missing.
+  async function createCategory(group) {
+    const name = await addCustomCategory(user, group, newCatName)
+    setNewCatFor(null)
+    setNewCatName('')
+    if (!name) return
+    setCatsVersion((v) => v + 1)
+    finalizeManual(group, customKey(name), null)
+  }
+
+  async function createSub() {
+    if (!pendingCat) return
+    const name = await addCustomSub(user, pendingCat.group, pendingCat.key, newCatName)
+    setNewSubFor(false)
+    setNewCatName('')
+    if (!name) return
+    setCatsVersion((v) => v + 1)
+    finalizeManual(pendingCat.group, pendingCat.key, customKey(name))
+  }
+
+  async function deleteCategory(group, key) {
+    await removeCustomCategory(user, group, findCategory(group, key)?.label || '')
+    setSelected(null)
+    setQuery('')
+    setCatsVersion((v) => v + 1)
+  }
+
+  async function deleteSub(group, key, sub) {
+    await removeCustomSub(user, group, key, sub.label)
+    setCatsVersion((v) => v + 1)
+  }
+
+  // Opens the sub-category step for the chosen category, so a sub of your own
+  // can be added even to a category that had none.
+  function addSubTo(group, key) {
+    setSelected(null)
+    setPendingCat({ group, key })
+    setQuery(pickLang(findCategory(group, key)?.label, lang))
+    setNewSubFor(true)
+    setNewCatName('')
+  }
+
   function pickManualCategory(group, key) {
     const cat = findCategory(group, key)
     if (cat.subs && cat.subs.length > 0) {
@@ -367,6 +420,27 @@ export default function EntryScreen() {
     }
   }
 
+  // Money comes in TO an account and goes out FROM one.
+  const accountTitle = type === 'expense' ? t('entry.accountLabelFrom') : t('entry.accountLabel')
+
+  function renderNewCategoryInput(onSubmit, placeholder) {
+    return (
+      <div className="flex gap-1.5 mt-2">
+        <input
+          autoFocus
+          value={newCatName}
+          onChange={(e) => setNewCatName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
+          placeholder={placeholder}
+          maxLength={40}
+          className="flex-1 min-w-0 bg-surface border border-border rounded-lg px-3 py-2 text-[15px] outline-none focus:border-primary"
+        />
+        <Button type="button" className="!w-auto px-3 text-xs" onClick={onSubmit} disabled={!newCatName.trim()}>{t('entry.addCategoryBtn')}</Button>
+        <button type="button" className="px-1.5 text-muted" onClick={() => { setNewCatFor(null); setNewSubFor(false); setNewCatName('') }} aria-label={t('common.cancel')}><X size={16} /></button>
+      </div>
+    )
+  }
+
   function renderNewAccountForm() {
     return (
       <div className="bg-surface2 border border-primary/60 rounded-xl p-3 space-y-2">
@@ -464,12 +538,12 @@ export default function EntryScreen() {
           {type === 'transfer' ? (
             <>
               <div className="block text-sm">
-                <AccountPicker label={t('entry.fromAccount')} emptyLabel="—" accounts={accounts} value={fromAccountId} onChange={setFromAccountId} t={t} />
+                <AccountPicker label={t('entry.fromAccount')} emptyLabel="—" accounts={accounts} value={fromAccountId} onChange={setFromAccountId} onCreate={() => startCreateAccount('from')} t={t} />
                 <button type="button" onClick={() => startCreateAccount('from')} className="mt-1 text-xs text-primary font-medium">+ {t('entry.createAccount')}</button>
               </div>
               {creatingAccountFor === 'from' && renderNewAccountForm()}
               <div className="block text-sm">
-                <AccountPicker label={t('entry.toAccount')} emptyLabel="—" accounts={accounts} value={toAccountId} onChange={setToAccountId} t={t} />
+                <AccountPicker label={t('entry.toAccount')} emptyLabel="—" accounts={accounts} value={toAccountId} onChange={setToAccountId} onCreate={() => startCreateAccount('to')} t={t} />
                 <button type="button" onClick={() => startCreateAccount('to')} className="mt-1 text-xs text-primary font-medium">+ {t('entry.createAccount')}</button>
               </div>
               {creatingAccountFor === 'to' && renderNewAccountForm()}
@@ -487,7 +561,7 @@ export default function EntryScreen() {
                 <div key={i}>
                   <div className="flex items-end gap-2">
                     <div className="flex-1 min-w-0 text-sm">
-                      <AccountPicker sheetTitle={t('entry.accountLabel')} emptyLabel="—" accounts={accounts} value={row.accountId} onChange={(id) => updateSplit(i, { accountId: id })} t={t} />
+                      <AccountPicker sheetTitle={accountTitle} emptyLabel="—" accounts={accounts} value={row.accountId} onChange={(id) => updateSplit(i, { accountId: id })} onCreate={() => startCreateAccount('split')} t={t} />
                     </div>
                     <input
                       type="number"
@@ -523,7 +597,7 @@ export default function EntryScreen() {
             </div>
           ) : (
             <div className="block text-sm">
-              <AccountPicker label={t('entry.accountLabel')} emptyLabel={t('entry.accountNone')} accounts={accounts} value={accountId} onChange={setAccountId} t={t} />
+              <AccountPicker label={accountTitle} emptyLabel={t('entry.accountNone')} accounts={accounts} value={accountId} onChange={setAccountId} onCreate={() => startCreateAccount('main')} t={t} />
               <div className="mt-1 flex items-center justify-between">
                 <button type="button" onClick={() => startCreateAccount('main')} className="text-xs text-primary font-medium">+ {t('entry.createAccount')}</button>
                 <button type="button" onClick={startSplit} className="text-xs text-primary font-medium">{t('entry.splitOn')}</button>
@@ -564,6 +638,14 @@ export default function EntryScreen() {
                 <button className="text-xs text-primary" onClick={() => { setSelected(null) }} type="button">{t('entry.change')}</button>
               </div>
               {selected.explanation && <p className="text-xs text-muted mt-1">🤖 {selected.explanation}</p>}
+              <div className="flex items-center gap-4 mt-2">
+                {!selected.sub && (
+                  <button type="button" className="text-xs text-primary font-medium" onClick={() => addSubTo(selected.group, selected.key)}>+ {t('entry.addSub')}</button>
+                )}
+                {findCategory(selected.group, selected.key)?.custom && !selected.sub && (
+                  <button type="button" className="text-xs text-muted" onClick={() => deleteCategory(selected.group, selected.key)}>{t('entry.deleteCategory')}</button>
+                )}
+              </div>
             </div>
           )}
 
@@ -571,7 +653,7 @@ export default function EntryScreen() {
             <div className="bg-surface2 border border-primary rounded-xl p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">{pickLang(findCategory(pendingCat.group, pendingCat.key).label, lang)}</span>
-                <button className="text-xs text-primary" onClick={() => setPendingCat(null)} type="button">{t('entry.change')}</button>
+                <button className="text-xs text-primary" onClick={() => { setPendingCat(null); setNewSubFor(false) }} type="button">{t('entry.change')}</button>
               </div>
               <p className="text-xs text-muted">{t('entry.pickSub')}</p>
               <div className="space-y-1.5">
@@ -586,8 +668,25 @@ export default function EntryScreen() {
                   >
                     <span className="text-sm font-medium">{pickLang(s.label, lang)}</span>
                     {s.hint && <InfoTag>{pickLang(s.hint, lang)}</InfoTag>}
+                    {s.custom && (
+                      <button
+                        type="button"
+                        className="ml-auto text-muted p-0.5"
+                        aria-label={t('common.delete')}
+                        onClick={(e) => { e.stopPropagation(); deleteSub(pendingCat.group, pendingCat.key, s) }}
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
                   </div>
                 ))}
+                {newSubFor
+                  ? renderNewCategoryInput(createSub, t('entry.newSubPlaceholder'))
+                  : (
+                    <button type="button" onClick={() => { setNewSubFor(true); setNewCatName('') }} className="w-full text-left text-xs text-primary font-medium px-2.5 py-1.5">
+                      + {t('entry.addSub')}
+                    </button>
+                  )}
                 <button
                   type="button"
                   onClick={() => finalizeManual(pendingCat.group, pendingCat.key, null)}
@@ -627,7 +726,17 @@ export default function EntryScreen() {
                         </button>
                       )
                     })}
+                    {newCatFor !== group && (
+                      <button
+                        type="button"
+                        onClick={() => { setNewCatFor(group); setNewSubFor(false); setNewCatName('') }}
+                        className="text-xs px-2.5 py-1.5 rounded-lg border border-dashed border-primary/60 text-primary"
+                      >
+                        + {t('entry.ownCategory')}
+                      </button>
+                    )}
                   </div>
+                  {newCatFor === group && renderNewCategoryInput(() => createCategory(group), t('entry.newCategoryPlaceholder'))}
                 </div>
               ))}
             </div>

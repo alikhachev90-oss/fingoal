@@ -127,6 +127,20 @@ export async function updateProfile(userId, { name } = {}) {
   return updated
 }
 
+// Small per-person preferences that should follow them to every device (e.g.
+// their own categories) ride in the auth user's metadata — no table needed.
+export async function saveUserMeta(userId, patch) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.auth.updateUser({ data: patch })
+    if (error) throw error
+    return data.user
+  }
+  const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null')
+  const updated = { ...session, user_metadata: { ...(session?.user_metadata || {}), ...patch } }
+  localStorage.setItem(SESSION_KEY, JSON.stringify(updated))
+  return updated
+}
+
 // ------------------------------------------------------------------ settings
 // settings: { monthlyIncome, needsBudget: {housing,transport,groceries,health}, hasDebts, onboarded }
 export async function getSettings(userId, context) {

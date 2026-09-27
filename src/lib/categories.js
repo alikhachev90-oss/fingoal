@@ -127,8 +127,44 @@ export function pickLang(field, lang = 'ru') {
   return field
 }
 
+// --------------------------------------------------------- your own categories
+// Categories and sub-categories a person adds themselves ("Табак" under
+// Необязательное, "Чаевые" under Доход). The key is the label itself behind a
+// `u_` prefix, so a stored transaction still reads correctly on a device that
+// hasn't loaded the list yet — the name travels inside the key.
+// Shape: { cats: { wants: ['Табак'] }, subs: { 'needs:transport': ['Мойка'] } }
+let custom = { cats: {}, subs: {} }
+
+export const CUSTOM_PREFIX = 'u_'
+export const customKey = (label) => CUSTOM_PREFIX + label.trim()
+export const isCustomKey = (key) => typeof key === 'string' && key.startsWith(CUSTOM_PREFIX)
+
+export function setCustomCategories(data) {
+  custom = { cats: { ...(data?.cats || {}) }, subs: { ...(data?.subs || {}) }, at: data?.at || 0 }
+}
+export function getCustomCategories() {
+  return custom
+}
+
+function customSubs(group, key) {
+  return (custom.subs[`${group}:${key}`] || []).map((label) => ({ key: customKey(label), label, hint: null, custom: true }))
+}
+
+// The built-in tree with the person's own additions folded in.
+export function categoryTree() {
+  const out = {}
+  for (const [group, cats] of Object.entries(CATEGORY_TREE)) {
+    const own = (custom.cats[group] || []).map((label) => ({ key: customKey(label), label, subs: [], custom: true }))
+    out[group] = [...cats, ...own].map((c) => ({ ...c, subs: [...(c.subs || []), ...customSubs(group, c.key)] }))
+  }
+  return out
+}
+
 export function findCategory(group, key) {
-  return CATEGORY_TREE[group]?.find((c) => c.key === key)
+  const builtIn = CATEGORY_TREE[group]?.find((c) => c.key === key)
+  if (builtIn) return { ...builtIn, subs: [...(builtIn.subs || []), ...customSubs(group, key)] }
+  if (isCustomKey(key)) return { key, label: key.slice(CUSTOM_PREFIX.length), subs: customSubs(group, key), custom: true }
+  return undefined
 }
 
 export function categoryLabel(group, key, lang = 'ru') {
@@ -145,7 +181,8 @@ export function findSub(group, key, subKey) {
 export function subLabel(group, key, subKey, lang = 'ru') {
   if (!subKey) return null
   const s = findSub(group, key, subKey)
-  return s ? pickLang(s.label, lang) : subKey
+  if (s) return pickLang(s.label, lang)
+  return isCustomKey(subKey) ? subKey.slice(CUSTOM_PREFIX.length) : subKey
 }
 
 export function subHint(group, key, subKey, lang = 'ru') {
@@ -155,8 +192,9 @@ export function subHint(group, key, subKey, lang = 'ru') {
 
 export function flatCategories(lang = 'ru') {
   const out = []
-  for (const group of Object.keys(CATEGORY_TREE)) {
-    for (const c of CATEGORY_TREE[group]) {
+  const tree = categoryTree()
+  for (const group of Object.keys(tree)) {
+    for (const c of tree[group]) {
       out.push({ group, key: c.key, label: pickLang(c.label, lang), subs: c.subs })
     }
   }

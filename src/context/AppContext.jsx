@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import * as db from '../lib/db'
 import { translate } from '../i18n/strings'
 import { getBackground } from '../lib/backgrounds'
+import { loadCustomCategories } from '../lib/customCategories'
 
 const AppContext = createContext(null)
 
@@ -17,6 +18,14 @@ export function AppProvider({ children }) {
   const [theme, setTheme] = useState(() => localStorage.getItem('fintrack_theme') || 'system')
   const [lang, setLang] = useState(() => localStorage.getItem('fintrack_lang') || detectDefaultLang())
   const [background, setBackground] = useState(() => getBackground(localStorage.getItem('fintrack_background')).id)
+
+  // The person's own categories have to be in place before any screen draws
+  // a label, so they're loaded right here in render when the user changes.
+  const [loadedFor, setLoadedFor] = useState(undefined)
+  if (user !== undefined && loadedFor !== user) {
+    loadCustomCategories(user)
+    setLoadedFor(user)
+  }
 
   useEffect(() => {
     db.getSession().then(setUser)
