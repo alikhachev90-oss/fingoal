@@ -1,9 +1,8 @@
 name: Push reminders tick
 
-# Vercel's free plan only runs its own cron once a day, which is far too
-# coarse for "remind me at 18:30". This pokes the endpoint every 5 minutes;
-# the endpoint itself decides what is due and never sends anything twice.
-# The first two steps double as a health check of the live site.
+# Backup for the every-minute Supabase job (supabase/cron.sql) and a health
+# check of the live site. GitHub runs schedules loosely, so this alone is not
+# enough for on-time reminders; the tick never sends anything twice.
 on:
   schedule:
     - cron: '*/5 * * * *'
