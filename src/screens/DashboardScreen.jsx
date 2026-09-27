@@ -261,6 +261,20 @@ export default function DashboardScreen() {
     .filter((a) => a.type !== 'credit')
     .reduce((s, a) => s + computeAccountBalance(a, transactions), 0)
 
+  // Where the money actually sits, pile by pile — the same balances /accounts
+  // shows, so a glance here answers "how much cash do I have on me".
+  const moneyPiles = (() => {
+    const piles = { cash: 0, debit: 0, credit: 0 }
+    const has = { cash: false, debit: false, credit: false }
+    for (const a of accounts || []) {
+      const kind = a.type === 'cash' || a.type === 'credit' ? a.type : 'debit'
+      const b = computeAccountBalance(a, transactions)
+      piles[kind] += kind === 'credit' ? Math.max(0, b) : b
+      has[kind] = true
+    }
+    return ['cash', 'debit', 'credit'].filter((k) => has[k]).map((k) => ({ kind: k, amount: piles[k] }))
+  })()
+
   const safeToday = computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, byGroup.wants)
 
   const billsFromNeeds = Object.entries(settings?.needs_budget || {})
@@ -492,7 +506,20 @@ export default function DashboardScreen() {
             <IconCircle icon={Landmark} className="bg-primary/10 text-primary" size={38} iconSize={17} />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm">{t('accounts.entryTitle')}</p>
-              <p className="text-xs text-muted mt-0.5">{t('accounts.entrySubtitle')}</p>
+              {moneyPiles.length > 0 ? (
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                  {moneyPiles.map((p) => (
+                    <span key={p.kind} className="text-xs text-muted">
+                      {t(`accounts.pile.${p.kind}`)}{' '}
+                      <span className={`font-num font-semibold ${p.kind === 'credit' ? (p.amount > 0 ? 'text-wants' : 'text-text') : p.amount < 0 ? 'text-wants' : 'text-text'}`}>
+                        {p.kind === 'credit' && p.amount > 0 ? '−' : ''}{fmt(p.amount)}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted mt-0.5">{t('accounts.entrySubtitle')}</p>
+              )}
             </div>
             <ArrowRight size={16} className="text-muted shrink-0" />
           </Card>

@@ -14,23 +14,23 @@ function accountLabel(account, t) {
   return `${account.name}${account.type === 'credit' ? ` (${t('accounts.credit')})` : ''}`
 }
 
-function AccountPicker({ label, emptyLabel, accounts, value, onChange, t }) {
+function AccountPicker({ label, sheetTitle, emptyLabel, accounts, value, onChange, t }) {
   const [open, setOpen] = useState(false)
   const selected = accounts.find((account) => account.id === value)
 
   return (
     <div className="account-picker">
-      <span className="text-muted text-xs font-medium">{label}</span>
+      {label && <span className="text-muted text-xs font-medium">{label}</span>}
       <button type="button" className="account-picker-trigger" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
         <span>{selected ? accountLabel(selected, t) : emptyLabel}</span>
         <ChevronDown size={16} strokeWidth={1.8} />
       </button>
       {open && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center px-3 pb-[max(env(safe-area-inset-bottom),12px)]" role="dialog" aria-modal="true" aria-label={label}>
+        <div className="fixed inset-0 z-[60] flex items-end justify-center px-3 pb-[max(env(safe-area-inset-bottom),12px)]" role="dialog" aria-modal="true" aria-label={sheetTitle || label}>
           <button type="button" className="absolute inset-0 bg-black/45" aria-label="Close" onClick={() => setOpen(false)} />
           <div className="account-picker-sheet relative w-full max-w-app">
             <div className="account-picker-handle" />
-            <p className="account-picker-title">{label}</p>
+            <p className="account-picker-title">{sheetTitle || label}</p>
             <div className="account-picker-options">
               <button type="button" className={!value ? 'is-selected' : ''} onClick={() => { onChange(''); setOpen(false) }}>
                 <span>{emptyLabel}</span>{!value && <Check size={18} />}
@@ -79,6 +79,10 @@ export default function EntryScreen() {
   const [newAccName, setNewAccName] = useState('')
   const [newAccType, setNewAccType] = useState('cash')
   const [creatingAccount, setCreatingAccount] = useState(false)
+  // One payout that landed in several places at once (part cash, part a
+  // check, part a transfer): each row is {accountId, amount}. null = a single
+  // account, the usual case.
+  const [split, setSplit] = useState(null)
 
   function changeType(next) {
     setType(next)
@@ -86,6 +90,70 @@ export default function EntryScreen() {
     setPendingCat(null)
     setQuery('')
     setSaved(false)
+    if (next === 'transfer') setSplit(null)
+  }
+
+  const total = parseFloat(amount) || 0
+  const splitSum = split ? split.reduce((s, row) => s + (parseFloat(row.amount) || 0), 0) : 0
+  const splitLeft = Math.round((total - splitSum) * 100) / 100
+  const splitReady = !split || (
+    split.length > 0 &&
+    split.every((row) => row.accountId && (parseFloat(row.amount) || 0) > 0) &&
+    Math.abs(splitLeft) < 0.005
+  )
+
+  function startSplit() {
+    // The first part starts as everything on the account already picked; the
+    // second takes whatever is left, so typing the first number is enough.
+    const other = accounts.find((a) => a.id !== accountId)
+    setSplit([
+      { accountId, amount: amount || '' },
+      { accountId: other?.id || '', amount: '' },
+    ])
+  }
+
+  // The last part is always "whatever is left", so only the others need typing.
+  function fillRest(rows, sum) {
+    if (!(sum > 0)) return rows
+    const others = rows.slice(0, -1).reduce((s, row) => s + (parseFloat(row.amount) || 0), 0)
+    const rest = Math.round((sum - others) * 100) / 100
+    return [...rows.slice(0, -1), { ...rows[rows.length - 1], amount: rest > 0 ? String(rest) : '' }]
+  }
+
+  function updateSplit(i, patch) {
+    setSplit((rows) => {
+      const next = rows.map((row, j) => (j === i ? { ...row, ...patch } : row))
+      return 'amount' in patch && i < next.length - 1 ? fillRest(next, total) : next
+    })
+  }
+
+  function stopSplit() {
+    if (split?.[0]?.accountId) setAccountId(split[0].accountId)
+    setSplit(null)
+  }
+
+  function changeAmount(value) {
+    setAmount(value)
+    // A new total keeps the typed parts and lets the last one absorb it.
+    setSplit((rows) => (rows ? fillRest(rows, parseFloat(value) || 0) : rows))
+  }
+
+  function addSplitRow() {
+    const used = new Set(split.map((row) => row.accountId))
+    const free = accounts.find((a) => !used.has(a.id))
+    // In before the last one, which stays the remainder.
+    setSplit((rows) => [...rows.slice(0, -1), { accountId: free?.id || '', amount: '' }, rows[rows.length - 1]])
+  }
+
+  function removeSplitRow(i) {
+    setSplit((rows) => {
+      const next = rows.filter((_, j) => j !== i)
+      if (next.length <= 1) {
+        if (next[0]?.accountId) setAccountId(next[0].accountId)
+        return null
+      }
+      return fillRest(next, total)
+    })
   }
 
   // Which top-level category groups this tab offers — income tab only shows
@@ -144,6 +212,7 @@ export default function EntryScreen() {
       setAccounts((prev) => [...prev, created])
       if (creatingAccountFor === 'from') setFromAccountId(created.id)
       else if (creatingAccountFor === 'to') setToAccountId(created.id)
+      else if (creatingAccountFor === 'split') setSplit((rows) => [...rows.slice(0, -1), { accountId: created.id, amount: '' }, rows[rows.length - 1]])
       else setAccountId(created.id)
       setCreatingAccountFor(null)
     } finally {
@@ -232,19 +301,26 @@ export default function EntryScreen() {
 
   async function handleSave() {
     if (type === 'transfer') return handleTransferSave()
-    if (!selected || !amount) return
+    if (!selected || !amount || !splitReady) return
     setSaving(true)
     setSaveError('')
     try {
-      await db.addTransaction(user.id, context, {
-        amount: parseFloat(amount),
-        date,
-        comment,
-        group: selected.group,
-        category_key: selected.key,
-        sub: selected.sub,
-        account_id: accountId || null,
-      })
+      const parts = split
+        ? split.map((row) => ({ accountId: row.accountId, amount: parseFloat(row.amount) }))
+        : [{ accountId, amount: parseFloat(amount) }]
+      // One row per account, so every balance moves by exactly what it got,
+      // while the category, date and note stay the same for the whole payout.
+      for (const part of parts) {
+        await db.addTransaction(user.id, context, {
+          amount: part.amount,
+          date,
+          comment,
+          group: selected.group,
+          category_key: selected.key,
+          sub: selected.sub,
+          account_id: part.accountId || null,
+        })
+      }
       let milestone = null
       if (selected.group === 'savings') {
         // Putting money toward savings is what the daily check-in/streak tracks.
@@ -256,7 +332,7 @@ export default function EntryScreen() {
           if (milestone) setMilestoneHit({ pct: milestone, goalName: topGoal.name })
         }
         await db.checkInToday(user.id, context)
-      } else if (roundUp && topGoal && selected.group !== 'income') {
+      } else if (roundUp && topGoal && selected.group !== 'income' && !split) {
         // Round-up savings: spare change from Needs/Wants purchases nudges the goal forward too.
         const spent = parseFloat(amount)
         const upTo = Math.ceil(spent)
@@ -370,7 +446,7 @@ export default function EntryScreen() {
         )}
 
         <Card className="space-y-3">
-          <Input label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
+          <Input label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => changeAmount(e.target.value)} placeholder="0" />
           <Input label={t('entry.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           <Input
             label={t('entry.comment')}
@@ -401,17 +477,64 @@ export default function EntryScreen() {
                 <p className="text-[11px] text-wants -mt-1">{t('entry.sameAccountError')}</p>
               )}
             </>
+          ) : split ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-muted text-xs font-medium">{t('entry.splitTitle')}</span>
+                <button type="button" onClick={stopSplit} className="text-xs text-primary font-medium">{t('entry.splitOff')}</button>
+              </div>
+              {split.map((row, i) => (
+                <div key={i}>
+                  <div className="flex items-end gap-2">
+                    <div className="flex-1 min-w-0 text-sm">
+                      <AccountPicker sheetTitle={t('entry.accountLabel')} emptyLabel="—" accounts={accounts} value={row.accountId} onChange={(id) => updateSplit(i, { accountId: id })} t={t} />
+                    </div>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      value={row.amount}
+                      onChange={(e) => updateSplit(i, { amount: e.target.value })}
+                      placeholder="0"
+                      className="w-28 min-h-[48px] bg-surface2 border border-border rounded-[14px] px-3 text-[15px] font-num outline-none focus:border-primary/70"
+                    />
+                    {split.length > 2 && (
+                      <button type="button" onClick={() => removeSplitRow(i)} className="min-h-[48px] px-1.5 text-muted text-xs" aria-label={t('common.delete')}>✕</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {creatingAccountFor === 'split' && renderNewAccountForm()}
+              <div className="flex items-center justify-between text-xs pt-0.5">
+                <span className="flex gap-3">
+                  <button type="button" onClick={addSplitRow} className="text-primary font-medium">+ {t('entry.splitAdd')}</button>
+                  <button type="button" onClick={() => startCreateAccount('split')} className="text-primary font-medium">+ {t('entry.createAccount')}</button>
+                </span>
+                {total > 0 && (
+                  <span className={`font-num ${Math.abs(splitLeft) < 0.005 ? 'text-savings' : 'text-wants'}`}>
+                    {Math.abs(splitLeft) < 0.005
+                      ? t('entry.splitDone')
+                      : splitLeft > 0
+                        ? t('entry.splitLeft', { amt: splitLeft.toFixed(2).replace(/\.00$/, '') })
+                        : t('entry.splitOver', { amt: (-splitLeft).toFixed(2).replace(/\.00$/, '') })}
+                  </span>
+                )}
+              </div>
+            </div>
           ) : (
             <div className="block text-sm">
               <AccountPicker label={t('entry.accountLabel')} emptyLabel={t('entry.accountNone')} accounts={accounts} value={accountId} onChange={setAccountId} t={t} />
-              <button type="button" onClick={() => startCreateAccount('main')} className="mt-1 text-xs text-primary font-medium">+ {t('entry.createAccount')}</button>
+              <div className="mt-1 flex items-center justify-between">
+                <button type="button" onClick={() => startCreateAccount('main')} className="text-xs text-primary font-medium">+ {t('entry.createAccount')}</button>
+                <button type="button" onClick={startSplit} className="text-xs text-primary font-medium">{t('entry.splitOn')}</button>
+              </div>
             </div>
           )}
           {creatingAccountFor === 'main' && renderNewAccountForm()}
-          {type === 'income' && (
+          {type === 'income' && !split && (
             <p className="text-[11px] text-muted -mt-1">{t('entry.incomeAccountHint')}</p>
           )}
-          {type === 'expense' && topGoal && (
+          {type === 'expense' && topGoal && !split && (
             <label className="flex items-center justify-between text-sm pt-1 cursor-pointer">
               <span className="text-muted">{t('entry.roundUpLabel', { name: topGoal.name })}</span>
               <input type="checkbox" checked={roundUp} onChange={(e) => setRoundUp(e.target.checked)} className="w-4 h-4 accent-primary" />
@@ -542,7 +665,7 @@ export default function EntryScreen() {
           disabled={
             saving ||
             !amount ||
-            (type === 'transfer' ? !fromAccountId || !toAccountId || fromAccountId === toAccountId : !selected)
+            (type === 'transfer' ? !fromAccountId || !toAccountId || fromAccountId === toAccountId : !selected || !splitReady)
           }
         >
           {saving
