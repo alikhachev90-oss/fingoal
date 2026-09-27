@@ -13,4 +13,4 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - run: curl -fsS --max-time 60 https://fingoal-tan.vercel.app/api/push/tick
+      - run: curl -fsS --max-time 60 https://fingoal-tan.vercel.app/api/push/tick | tee /dev/stderr | grep -q '"ok":true'
