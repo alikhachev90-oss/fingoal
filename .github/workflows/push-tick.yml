@@ -3,6 +3,7 @@ name: Push reminders tick
 # Vercel's free plan only runs its own cron once a day, which is far too
 # coarse for "remind me at 18:30". This pokes the endpoint every 5 minutes;
 # the endpoint itself decides what is due and never sends anything twice.
+# The first two steps double as a health check of the live site.
 on:
   schedule:
     - cron: '*/5 * * * *'
@@ -13,4 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - run: curl -fsS --max-time 60 https://fingoal-tan.vercel.app/api/push/tick | tee /dev/stderr | grep -q '"ok":true'
+      - name: App shell is served
+        run: curl -fsS --max-time 30 https://fingoal-tan.vercel.app/dashboard | grep -q 'id="root"'
+      - name: Build version is published
+        run: curl -fsS --max-time 30 https://fingoal-tan.vercel.app/version.json | tee /dev/stderr | grep -q '"id"'
+      - name: Send due reminders
+        run: curl -fsS --max-time 60 https://fingoal-tan.vercel.app/api/push/tick | tee /dev/stderr | grep -q '"ok":true'
