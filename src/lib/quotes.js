@@ -186,7 +186,9 @@ const COMBINED = interleave(
 // Deterministic pick: same entry all day, rotates day to day, no storage needed.
 // Rotates through both paraphrased book quotes and cited real statistics.
 export function getQuoteOfDay(date = new Date()) {
-  const dayNumber = Math.floor(date.getTime() / 86400000)
+  // Counted in local days, so the new line arrives at the person's midnight,
+  // not at UTC midnight (early evening in the US).
+  const dayNumber = Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000)
   const idx = ((dayNumber % COMBINED.length) + COMBINED.length) % COMBINED.length
   return COMBINED[idx]
 }
