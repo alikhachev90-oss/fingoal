@@ -13,7 +13,6 @@ function fmt(n) {
 
 export default function TaxEstimateScreen() {
   const { user, context, t, lang } = useApp()
-  const [settings, setSettings] = useState(null)
   const [acked, setAcked] = useState(false)
   const [ackChecked, setAckChecked] = useState(false)
   const [filingStatus, setFilingStatus] = useState('single')
@@ -23,7 +22,6 @@ export default function TaxEstimateScreen() {
 
   useEffect(() => {
     if (!user) return
-    db.getSettings(user.id, context).then(setSettings).catch(() => setSettings(null))
     // Prefill from logged income (annualised) rather than a signup figure.
     db.listTransactions(user.id, context).then((txs) => {
       const monthly = deriveMonthlyIncome(txs)

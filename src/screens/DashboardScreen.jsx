@@ -468,34 +468,32 @@ export default function DashboardScreen() {
           />
         </div>
 
-        {(
-          <Card className="bills-card space-y-3" data-tour="dash-bills">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold">{t('bills.title')}</p>
-              <button type="button" className="text-xs text-primary py-3" onClick={() => setEditingBills(true)}>{t('bills.edit')}</button>
-            </div>
-            {!bills.length && <p className="text-xs text-muted">{t('bills.empty')}</p>}
-            <div className="space-y-2">
-              {bills.map((b) => (
-                <div key={b.billId} className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{b.label}</p>
-                    <p className="text-xs text-muted">
-                      {fmt(b.amount)}
-                      {b.due !== undefined && b.due !== null && (
-                        <span className={b.due < 0 ? 'text-wants font-medium' : ''}>
-                          {' · '}{b.due < 0 ? t('bills.cardOverdue') : t('bills.cardDueIn', { n: b.due })}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <ReminderButton billId={b.billId} label={b.label} amount={b.amount} />
+        <Card className="bills-card space-y-3" data-tour="dash-bills">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold">{t('bills.title')}</p>
+            <button type="button" className="text-xs text-primary py-3" onClick={() => setEditingBills(true)}>{t('bills.edit')}</button>
+          </div>
+          {!bills.length && <p className="text-xs text-muted">{t('bills.empty')}</p>}
+          <div className="space-y-2">
+            {bills.map((b) => (
+              <div key={b.billId} className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{b.label}</p>
+                  <p className="text-xs text-muted">
+                    {fmt(b.amount)}
+                    {b.due !== undefined && b.due !== null && (
+                      <span className={b.due < 0 ? 'text-wants font-medium' : ''}>
+                        {' · '}{b.due < 0 ? t('bills.cardOverdue') : t('bills.cardDueIn', { n: b.due })}
+                      </span>
+                    )}
+                  </p>
                 </div>
-              ))}
-            </div>
-            <p className="text-[11px] text-muted leading-relaxed">{t('bills.notifNote')}</p>
-          </Card>
-        )}
+                <ReminderButton billId={b.billId} label={b.label} amount={b.amount} />
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-muted leading-relaxed">{t('bills.notifNote')}</p>
+        </Card>
 
         <Link to="/accounts" className="block">
           <Card className="accounts-link !p-3.5 flex items-center gap-3 hover:border-primary/50">

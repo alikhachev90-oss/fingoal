@@ -71,15 +71,6 @@ export function IconCircle({ icon: Icon, className = '', size = 40, iconSize = 1
   )
 }
 
-export function SectionTitle({ children, action }) {
-  return (
-    <div className="flex items-center justify-between mb-2 px-1">
-      <h2 className="section-label">{children}</h2>
-      {action}
-    </div>
-  )
-}
-
 export function StatTile({ label, value, valueClassName = '', icon: Icon, iconClassName = 'bg-primary/10 text-primary' }) {
   return (
     <Card className="!p-4 space-y-3">

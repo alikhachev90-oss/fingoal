@@ -55,7 +55,7 @@ html:not(.dark) .app-ambient[class*="theme-"] {
 .app-ambient .entry-mode-active { background: rgb(var(--color-primary) / .15); border-color: rgb(var(--color-primary) / .6); }
 .app-ambient .home-greeting > p:first-child, .app-ambient .home-checkin > p,
 .app-ambient .home-tool, .app-ambient .balance-hero a { color: rgb(var(--color-text)); }
-.app-ambient .home-caption, .app-ambient .home-tagline, .app-ambient .home-toolbar > span { color: rgb(var(--color-muted)); }
+.app-ambient .home-caption, .app-ambient .home-toolbar > span { color: rgb(var(--color-muted)); }
 .app-ambient .icon-circle {
   position:relative;
   overflow:hidden;

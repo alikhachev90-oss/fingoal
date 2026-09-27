@@ -9,23 +9,18 @@ import { computeGoalPlan, deriveMonthlyIncome } from './lib/finance'
 import * as db from './lib/db'
 import AuthScreen from './screens/AuthScreen'
 import OnboardingScreen from './screens/OnboardingScreen'
-import EntryScreen from './screens/EntryScreen'
-import DashboardScreen from './screens/DashboardScreen'
-import GoalsScreen from './screens/GoalsScreen'
-import LessonsScreen from './screens/LessonsScreen'
-import InsightsScreen from './screens/InsightsScreen'
 import TaxEstimateScreen from './screens/TaxEstimateScreen'
 import ReportScreen from './screens/ReportScreen'
 import ConnectBankScreen from './screens/ConnectBankScreen'
 import AccountsScreen from './screens/AccountsScreen'
 import SettingsScreen from './screens/SettingsScreen'
 import FeedbackButton from './components/FeedbackButton'
-import ScreenErrorBoundary from './components/ScreenErrorBoundary'
 import TabPager from './components/TabPager'
 import BottomNav from './components/BottomNav'
 
-// Polls for due bill reminders while the app is open, and fires a browser
-// Notification for any that come due. No backend push — see lib/reminders.js.
+// Bill reminders: shown right away if the app is open when one comes due,
+// and copied to the account so the server can push them with the app closed
+// (lib/serverReminders.js).
 function ReminderWatcher() {
   const { user, context } = useApp()
   // Keep the account's copy (what the closed-app push works from) current.
@@ -42,8 +37,8 @@ function ReminderWatcher() {
 }
 
 // Daily goal check-in reminder — polls once a minute while the app is open,
-// fires at most once per goal per day at the user-picked time. Same free/
-// no-backend limitation as ReminderWatcher — see lib/goalReminders.js.
+// fires at most once per goal per day at the user-picked time. With the app
+// closed the server sends it instead (lib/serverReminders.js).
 function GoalReminderWatcher() {
   const { user, context, lang } = useApp()
   useEffect(() => {

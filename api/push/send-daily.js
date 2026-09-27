@@ -1,12 +1,9 @@
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
 
-// Fired once a day by Vercel Cron (see vercel.json). Reads every stored push
-// subscription and sends the same generic nudge to all of them — this
-// function has no access to any one person's actual transactions (those live
-// in their own browser's localStorage, never on this server), so the message
-// is intentionally generic, same spirit as the reminder the user described
-// from another app: "did you log everything today?", nothing more specific.
+// Fired once a day by Vercel Cron (see vercel.json). Sends the same short
+// "did you log today?" nudge to every device that turned push on in Settings.
+// Personal reminders (bills, goals) go out separately via api/push/tick.js.
 export default async function handler(req, res) {
   // Vercel sets this header on requests it triggers via Cron when a
   // CRON_SECRET env var is configured — reject anything else so this

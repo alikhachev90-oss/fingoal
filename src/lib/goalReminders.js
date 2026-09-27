@@ -1,6 +1,5 @@
-// Daily goal check-in reminder — client-side only, same honest limitation as
-// lib/reminders.js: fires as a browser Notification once a day at a
-// user-picked time, but only while the app/tab is open around that time.
+// Daily goal check-in reminder at a user-picked time. Fires here while the
+// app is open; with it closed the server sends it (lib/serverReminders.js).
 // Unlike bill reminders (one-off, a fixed datetime), this repeats every day —
 // so state is keyed by goal id and tracks the last date it fired, not a
 // single `fired` flag.

@@ -216,6 +216,7 @@ export default function SettingsScreen() {
               </Button>
               {pushError === 'denied' && <p className="text-xs text-wants">{t('settings.pushDenied')}</p>}
               {pushError === 'save_failed' && <p className="text-xs text-wants">{t('settings.pushSaveFailed')}</p>}
+              {pushError === 'failed' && <p className="text-xs text-wants">{t('settings.pushFailed')}</p>}
             </>
           ) : (
             <>

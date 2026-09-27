@@ -5,8 +5,10 @@ import './product-material.css'
 import App from './App.jsx'
 import './appearance.css'
 import { installHaptics } from './haptics'
+import { installAppUpdate } from './appUpdate'
 
 installHaptics()
+installAppUpdate()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

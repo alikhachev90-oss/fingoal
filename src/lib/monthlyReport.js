@@ -101,7 +101,7 @@ function summarize(tx, lang) {
 // A single month's recap: income vs. what actually got spent/saved, plus how
 // much closer each active goal got during that specific month (the delta,
 // not the goal's all-time total — that's what "this month" should mean).
-export function computeMonthReport({ transactions, goals, settings, monthDate, lang }) {
+export function computeMonthReport({ transactions, goals, monthDate, lang }) {
   const tx = txForMonth(transactions, monthDate)
   const { byGroup, spent, saved, topCategories } = summarize(tx, lang)
   // Income is what was actually logged that month, not a figure from signup.
@@ -136,7 +136,7 @@ export function computeMonthReport({ transactions, goals, settings, monthDate, l
 }
 
 // A year's recap: same shape, aggregated across the 12 months of that year.
-export function computeYearReport({ transactions, goals, settings, year, lang }) {
+export function computeYearReport({ transactions, goals, year, lang }) {
   const tx = transactions.filter((t) => new Date(t.date).getFullYear() === year)
   const { byGroup, spent, saved, topCategories } = summarize(tx, lang)
   const monthsWithData = new Set(tx.map((t) => new Date(t.date).getMonth())).size

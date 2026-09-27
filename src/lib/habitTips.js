@@ -22,7 +22,6 @@ function buildCoffeeTip(avgAmount, count, windowDays) {
 }
 
 function buildCafeTip(avgAmount, count, windowDays) {
-  const monthlyOutSpend = avgAmount * count * (30 / windowDays)
   const homeMealCost = avgAmount * 0.35 // rough: cooking at home ~35% of eating-out price
   const savings = Math.max(50, Math.round(((avgAmount - homeMealCost) * count * (30 / windowDays) * 12) / 10) * 10)
   const amt = avgAmount.toFixed(2)

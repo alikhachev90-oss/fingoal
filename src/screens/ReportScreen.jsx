@@ -22,7 +22,6 @@ const MONTH_FMT = { en: 'en-US', es: 'es-ES', fr: 'fr-FR', ru: 'ru-RU' }
 
 export default function ReportScreen() {
   const { user, context, t, lang } = useApp()
-  const [settings, setSettings] = useState(null)
   const [transactions, setTransactions] = useState([])
   const [goals, setGoals] = useState([])
   const [mode, setMode] = useState('month') // 'month' | 'year'
@@ -31,7 +30,6 @@ export default function ReportScreen() {
 
   useEffect(() => {
     if (!user) return
-    db.getSettings(user.id, context).then(setSettings)
     db.listTransactions(user.id, context).then(setTransactions)
     db.listGoals(user.id, context).then(setGoals)
   }, [user, context])
@@ -46,12 +44,12 @@ export default function ReportScreen() {
   }, [user, context, mode, monthDate, year])
 
   const monthReport = useMemo(
-    () => computeMonthReport({ transactions, goals, settings, monthDate, lang }),
-    [transactions, goals, settings, monthDate, lang],
+    () => computeMonthReport({ transactions, goals, monthDate, lang }),
+    [transactions, goals, monthDate, lang],
   )
   const yearReport = useMemo(
-    () => computeYearReport({ transactions, goals, settings, year, lang }),
-    [transactions, goals, settings, year, lang],
+    () => computeYearReport({ transactions, goals, year, lang }),
+    [transactions, goals, year, lang],
   )
 
   const monthIdx = months.findIndex((m) => m.getFullYear() === monthDate.getFullYear() && m.getMonth() === monthDate.getMonth())

@@ -353,7 +353,7 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
 // but answers a handful of common questions grounded in real numbers.
 export function answerQuestion(question, ctx) {
   const q = question.toLowerCase()
-  const { settings, transactions, goals, lang = 'ru' } = ctx
+  const { transactions, goals, lang = 'ru' } = ctx
   const en = lang === 'en'
   const now = new Date()
   const monthTx = transactions.filter((t) => isSameMonth(t.date, now))

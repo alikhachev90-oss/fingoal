@@ -10,24 +10,6 @@ export const GROUP_LABELS = {
   income: { ru: 'Доход', en: 'Income', es: "Ingresos", fr: "Revenus" },
 }
 
-export const GROUP_LABELS_SHORT = GROUP_LABELS
-
-export const GROUP_COLORS = {
-  needs: 'needs',
-  wants: 'wants',
-  savings: 'savings',
-  income: 'income',
-}
-
-// Static Tailwind class strings — must NOT be built dynamically (bg-${x}/10),
-// Tailwind's JIT scanner only picks up literal class names.
-export const GROUP_PILL_CLASSES = {
-  needs: 'bg-needs/10 text-needs',
-  wants: 'bg-wants/10 text-wants',
-  savings: 'bg-savings/10 text-savings',
-  income: 'bg-income/10 text-income',
-}
-
 // A sub-category is {key, label:{ru,en}, hint:{ru,en}}. `hint` exists because
 // people genuinely don't know where things like car insurance or a home
 // repair belong (a recurring bill vs. a one-off, a car cost vs. a house

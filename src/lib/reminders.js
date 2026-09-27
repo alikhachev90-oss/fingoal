@@ -1,9 +1,6 @@
-// Lightweight bill reminders — client-side only, no backend/push service.
-// A reminder fires as a browser Notification while the app/tab is open (checked
-// on an interval mounted once at the app root); it can't wake the phone when the
-// app is fully closed — that would need a real push backend, which is a bigger
-// (later, paid) feature. This is the honest, free version: "remind me while I
-// have the app open around that time."
+// Bill reminders, kept on the device. While the app is open they're checked
+// on an interval mounted at the app root; with it closed the server sends
+// them from the account copy (lib/serverReminders.js, api/push/tick.js).
 
 // Through the service worker when there is one: Android Chrome refuses
 // `new Notification()` outright, which is why reminders never showed there.

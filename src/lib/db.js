@@ -55,22 +55,6 @@ export async function resendSignupEmail(email) {
   if (error) throw error
 }
 
-export async function sendPhoneCode(phone, shouldCreateUser = false) {
-  if (!supabaseEnabled) throw new Error('Телефонная регистрация доступна после подключения Supabase')
-  const { error } = await supabase.auth.signInWithOtp({
-    phone,
-    options: { shouldCreateUser },
-  })
-  if (error) throw error
-}
-
-export async function verifyPhoneCode(phone, token) {
-  if (!supabaseEnabled) throw new Error('Подтверждение телефона доступно после подключения Supabase')
-  const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: 'sms' })
-  if (error) throw error
-  return data.user
-}
-
 export async function signIn(email, password) {
   if (supabaseEnabled) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
@@ -400,17 +384,6 @@ export async function addTransfer(userId, context, { fromAccountId, toAccountId,
   const out = await addTransaction(userId, context, legs[0])
   const inn = await addTransaction(userId, context, legs[1])
   return [out, inn]
-}
-
-export async function deleteTransaction(userId, txId) {
-  if (supabaseEnabled) {
-    const { error } = await supabase.from('transactions').delete().eq('id', txId)
-    if (error) throw error
-    return
-  }
-  const db = loadMock()
-  db.transactions = db.transactions.filter((t) => t.id !== txId)
-  saveMock(db)
 }
 
 // -------------------------------------------------------------------- streak

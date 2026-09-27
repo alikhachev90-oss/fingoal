@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import DashboardScreen from '../screens/DashboardScreen'
 import EntryScreen from '../screens/EntryScreen'
@@ -9,16 +9,13 @@ import ScreenErrorBoundary from './ScreenErrorBoundary'
 
 // The five tabs, in the order they sit in the bottom bar, so dragging moves
 // the same direction the eye expects.
-export const TABS = [
+const TABS = [
   { path: '/dashboard', Component: DashboardScreen },
   { path: '/entry', Component: EntryScreen },
   { path: '/goals', Component: GoalsScreen },
   { path: '/insights', Component: InsightsScreen },
   { path: '/lessons', Component: LessonsScreen },
 ]
-
-const PaneActiveContext = createContext(true)
-export const usePaneActive = () => useContext(PaneActiveContext)
 
 // Past this share of the screen, or this fast a flick, the page changes;
 // below both it springs back.
@@ -321,11 +318,9 @@ export default function TabPager() {
               aria-hidden={!active}
               inert={active ? undefined : true}
             >
-              <PaneActiveContext.Provider value={active}>
-                <ScreenErrorBoundary>
-                  <Component />
-                </ScreenErrorBoundary>
-              </PaneActiveContext.Provider>
+              <ScreenErrorBoundary>
+                <Component />
+              </ScreenErrorBoundary>
             </div>
           )
         })}

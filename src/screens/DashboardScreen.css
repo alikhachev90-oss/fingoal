@@ -5,7 +5,6 @@
 .home-heading { padding: max(25px,env(safe-area-inset-top)) 25px 8px; }
 .home-greeting > p:first-child { font-size: 13px; color: rgb(242 241 237 / .88); }
 .home-greeting h1 { font-size: 34px; letter-spacing: -.045em; font-weight: 400; line-height: 1.15; margin-top: 3px; }
-.home-tagline { color: rgb(158 160 165); font-size: 12px; margin-top: 7px; }
 .home-toolbar { display:flex; justify-content:space-between; align-items:center; margin-top:17px; }
 .home-toolbar > span { color:rgb(158 160 165); font-size:10px; letter-spacing:.08em; }
 .home-tool { display:flex; justify-content:center; align-items:center; width:34px; height:34px; border-radius:50%; border:1px solid rgb(255 255 255 / .13); color:rgb(242 241 237 / .9); background:linear-gradient(140deg,rgb(255 255 255 / .09),rgb(255 255 255 / .025)); }
@@ -97,7 +96,6 @@ html:not(.dark) .app-ambient:has(.home-reference)::before {
   background: radial-gradient(ellipse 74% 50% at -8% -8%, #ffffff, transparent 62%), radial-gradient(ellipse 74% 58% at 108% 20%, #d9e8e2aa, transparent 72%), linear-gradient(160deg, #fafcfb, #f0f4f3 62%, #fbfcfc);
 }
 html:not(.dark) .home-greeting > p:first-child,
-html:not(.dark) .home-tagline,
 html:not(.dark) .home-toolbar > span,
 html:not(.dark) .home-caption { color: #687370; }
 html:not(.dark) .home-tool { color: #36413f; border-color: #33423f1f; background: #ffffffa8; }
