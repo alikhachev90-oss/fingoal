@@ -3,6 +3,7 @@ import { Bell, BellRing, X, Check } from 'lucide-react'
 import { IconButton, Button } from './UI'
 import { useApp } from '../context/AppContext'
 import { getReminderFor, setReminder, clearReminder, requestNotificationPermission } from '../lib/reminders'
+import { syncServerReminders } from '../lib/serverReminders'
 
 function defaultDateTimeLocal() {
   // Default to tomorrow, same time-of-day rounded to the next hour.
@@ -36,11 +37,13 @@ export default function ReminderButton({ billId, label, amount }) {
     setReminder(user.id, context, { billId, label, amount, when: iso })
     setReminderState(getReminderFor(user.id, context, billId))
     setOpen(false)
+    syncServerReminders(user)
   }
 
   function handleClear() {
     clearReminder(user.id, context, billId)
     setReminderState(null)
+    syncServerReminders(user)
   }
 
   if (reminder && !reminder.fired) {

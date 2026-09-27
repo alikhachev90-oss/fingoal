@@ -26,7 +26,8 @@ self.addEventListener('push', (event) => {
       body,
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-96.png',
-      tag: 'fintera-daily-reminder',
+      tag: data.tag || 'fintera-daily-reminder',
+      data: { url: data.url || '/dashboard' },
     }),
   )
 })
@@ -38,7 +39,7 @@ self.addEventListener('notificationclick', (event) => {
       for (const client of clientList) {
         if ('focus' in client) return client.focus()
       }
-      if (self.clients.openWindow) return self.clients.openWindow('/dashboard')
+      if (self.clients.openWindow) return self.clients.openWindow(event.notification.data?.url || '/dashboard')
     }),
   )
 })

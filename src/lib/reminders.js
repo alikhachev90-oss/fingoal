@@ -5,6 +5,25 @@
 // (later, paid) feature. This is the honest, free version: "remind me while I
 // have the app open around that time."
 
+// Through the service worker when there is one: Android Chrome refuses
+// `new Notification()` outright, which is why reminders never showed there.
+// The tag matches the server push for the same reminder, so if both arrive
+// the phone shows one notification, not two.
+export function showLocalNotification(title, options) {
+  const fallback = () => {
+    try {
+      new Notification(title, options)
+    } catch {
+      // Not allowed on this browser — the server push still covers it.
+    }
+  }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration('/sw.js').then((reg) => (reg ? reg.showNotification(title, options) : fallback())).catch(fallback)
+  } else {
+    fallback()
+  }
+}
+
 function remindersKey(userId, context) {
   return `fintrack_reminders_${userId}_${context}`
 }
@@ -61,7 +80,7 @@ export function checkDueReminders(userId, context) {
     r.fired = true
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
-        new Notification(r.label, { body: r.amount ? `$${Math.round(r.amount)}` : undefined, tag: r.id })
+        showLocalNotification(r.label, { body: r.amount ? `$${Math.round(r.amount)}` : undefined, tag: r.id })
       } catch {
         // Notification constructor can throw on some mobile browsers — ignore.
       }

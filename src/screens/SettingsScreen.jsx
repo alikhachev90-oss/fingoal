@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext'
 import { LANGUAGES } from '../i18n/strings'
 import { requestNotificationPermission } from '../lib/reminders'
 import { resetTour } from '../lib/tours'
+import { syncServerReminders } from '../lib/serverReminders'
 import { enablePushNotifications, disablePushNotifications, isPushEnabled, pushSupported } from '../lib/pushNotifications'
 import { pushBackendEnabled } from '../lib/pushClient'
 import { BACKGROUNDS } from '../lib/backgrounds'
@@ -64,7 +65,10 @@ export default function SettingsScreen() {
         setPushOn(false)
       } else {
         const result = await enablePushNotifications()
-        if (result.ok) setPushOn(true)
+        if (result.ok) {
+          setPushOn(true)
+          syncServerReminders(user)
+        }
         else setPushError(result.reason)
       }
     } finally {

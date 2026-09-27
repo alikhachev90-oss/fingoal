@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AppProvider, useApp } from './context/AppContext'
 import { getBackground } from './lib/backgrounds'
 import { checkDueReminders } from './lib/reminders'
+import { syncServerReminders } from './lib/serverReminders'
 import { getGoalReminder, checkGoalReminderDue } from './lib/goalReminders'
 import { computeGoalPlan, deriveMonthlyIncome } from './lib/finance'
 import * as db from './lib/db'
@@ -27,6 +28,10 @@ import BottomNav from './components/BottomNav'
 // Notification for any that come due. No backend push — see lib/reminders.js.
 function ReminderWatcher() {
   const { user, context } = useApp()
+  // Keep the account's copy (what the closed-app push works from) current.
+  useEffect(() => {
+    if (user) syncServerReminders(user)
+  }, [user])
   useEffect(() => {
     if (!user) return
     checkDueReminders(user.id, context)

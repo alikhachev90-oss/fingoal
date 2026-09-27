@@ -4,8 +4,9 @@ import { IconButton, Button } from './UI'
 import { useApp } from '../context/AppContext'
 import { getGoalReminder, setGoalReminder, clearGoalReminder } from '../lib/goalReminders'
 import { requestNotificationPermission } from '../lib/reminders'
+import { syncServerReminders } from '../lib/serverReminders'
 
-export default function GoalReminderButton({ goalId }) {
+export default function GoalReminderButton({ goalId, goalName }) {
   const { user, context, lang } = useApp()
   const [open, setOpen] = useState(false)
   const [time, setTime] = useState(() => getGoalReminder(user?.id, context, goalId)?.time || '21:00')
@@ -14,14 +15,16 @@ export default function GoalReminderButton({ goalId }) {
   async function handleSave() {
     if (!time) return
     await requestNotificationPermission()
-    const state = setGoalReminder(user.id, context, goalId, { enabled: true, time })
+    const state = setGoalReminder(user.id, context, goalId, { enabled: true, time, name: goalName })
     setReminderState(state)
     setOpen(false)
+    syncServerReminders(user)
   }
 
   function handleClear() {
     clearGoalReminder(user.id, context, goalId)
     setReminderState(null)
+    syncServerReminders(user)
   }
 
   const labels = {

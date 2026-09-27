@@ -319,7 +319,7 @@ export default function GoalsScreen() {
               <div className="flex items-center gap-2 flex-wrap">
                 <Button variant="secondary" disabled={contributionBusy} onClick={() => { setContributionMessage(''); setContributionAmount(''); setContributingGoalId(contributingGoalId === goal.id ? null : goal.id) }} type="button" className="!w-auto flex-1">{t('goals.addSavingsToday')}</Button>
                 <span data-tour="goals-reminder">
-                  <GoalReminderButton goalId={goal.id} />
+                  <GoalReminderButton goalId={goal.id} goalName={goal.name} />
                 </span>
               </div>
             </Card>

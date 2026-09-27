@@ -5,6 +5,8 @@
 // so state is keyed by goal id and tracks the last date it fired, not a
 // single `fired` flag.
 
+import { showLocalNotification } from './reminders'
+
 function keyFor(userId, context, goalId) {
   return `fintera_goal_reminder_${userId}_${context}_${goalId}`
 }
@@ -22,9 +24,9 @@ export function getGoalReminder(userId, context, goalId) {
 }
 
 // `time` is 'HH:MM' (24h, local time).
-export function setGoalReminder(userId, context, goalId, { enabled, time }) {
+export function setGoalReminder(userId, context, goalId, { enabled, time, name }) {
   const existing = getGoalReminder(userId, context, goalId) || {}
-  const next = { ...existing, enabled, time, lastFiredDate: existing.lastFiredDate || null }
+  const next = { ...existing, enabled, time, name: name || existing.name || null, lastFiredDate: existing.lastFiredDate || null }
   localStorage.setItem(keyFor(userId, context, goalId), JSON.stringify(next))
   return next
 }
@@ -71,7 +73,7 @@ export function checkGoalReminderDue(userId, context, goal, plan, checkedInToday
   const body = buildMessage(goal, plan, checkedInToday, lang)
   if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
     try {
-      new Notification(lang === 'en' ? 'Goal check-in' : 'Напоминание о цели', { body, tag: `goal_${goal.id}_${today}` })
+      showLocalNotification(lang === 'en' ? 'Goal check-in' : 'Напоминание о цели', { body, tag: `goal_${goal.id}` })
     } catch {
       // Notification constructor can throw on some mobile browsers — ignore.
     }
