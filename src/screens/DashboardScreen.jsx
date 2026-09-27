@@ -344,7 +344,7 @@ export default function DashboardScreen() {
         <div className="home-greeting">
           <p>{t('home.welcome')}</p>
           <h1>{displayName}</h1>
-          <p className="home-tagline">{t('home.tagline')}</p>
+          <div data-tour="dash-quote"><DailyQuoteCard inline /></div>
         </div>
         <div className="home-toolbar">
           <span>{context === 'personal' ? t('topbar.personal') : t('topbar.business')}</span>
@@ -466,10 +466,6 @@ export default function DashboardScreen() {
             icon={PiggyBank}
             iconClassName="metric-orb-income"
           />
-        </div>
-
-        <div data-tour="dash-quote" className="px-1">
-          <DailyQuoteCard />
         </div>
 
         {(
