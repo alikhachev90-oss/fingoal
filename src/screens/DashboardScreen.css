@@ -10,7 +10,7 @@
 .home-tool { display:flex; justify-content:center; align-items:center; width:34px; height:34px; border-radius:50%; border:1px solid rgb(255 255 255 / .13); color:rgb(242 241 237 / .9); background:linear-gradient(140deg,rgb(255 255 255 / .09),rgb(255 255 255 / .025)); }
 .home-reference .dashboard-content { padding: 5px 20px calc(105px + env(safe-area-inset-bottom)); }
 .home-reference .dashboard-content > * + * { margin-top:12px; }
-.home-reference .glass { border-radius:18px; background:linear-gradient(125deg,rgb(255 255 255 / .075),rgb(255 255 255 / .022) 65%); border:1px solid rgb(255 255 255 / .12); box-shadow:0 1px 0 rgb(255 255 255 / .075) inset,0 14px 30px -25px #000; backdrop-filter:blur(24px); }
+.home-reference .glass { border-radius:18px; background:linear-gradient(125deg,rgb(255 255 255 / .075),rgb(255 255 255 / .022) 65%); border:1px solid rgb(255 255 255 / .12); box-shadow:0 1px 0 rgb(255 255 255 / .075) inset,0 14px 30px -25px #000; }
 .home-reference .balance-hero { padding:17px 17px 15px !important; background:radial-gradient(ellipse at 0% 0%,rgb(221 190 127 / .18),transparent 85%),linear-gradient(120deg,rgb(64 54 38 / .56),rgb(22 23 25 / .52)); border-color:rgb(221 190 127 / .38); }
 .home-reference .balance-hero > div:first-child { gap:10px; }
 .home-reference .balance-hero > div:first-child > div { width:30px !important; height:30px !important; color:rgb(221 190 127); background:rgb(221 190 127 / .1); }

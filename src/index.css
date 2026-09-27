@@ -29,7 +29,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .app-ambient { position: relative; width: 100%; max-width: 480px; min-height: 100svh; isolation: isolate; background: rgb(var(--color-bg)); overflow-x: clip; }
 .app-ambient::before { content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none; background: var(--app-bg-image), radial-gradient(ellipse 75% 42% at 100% -4%, rgb(221 190 127 / .09), transparent 72%), radial-gradient(ellipse 64% 40% at -8% 58%, rgb(94 204 157 / .05), transparent 74%), linear-gradient(160deg, #161719, #0a0c0e 58%, #111214); background-size: cover; }
 .app-ambient::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 50% 110%, rgb(255 255 255 / .025), transparent 62%); }
-.glass { position: relative; background: linear-gradient(145deg, rgb(255 255 255 / .07), rgb(255 255 255 / .022)); -webkit-backdrop-filter: blur(24px) saturate(112%); backdrop-filter: blur(24px) saturate(112%); border: 1px solid rgb(255 255 255 / .12); box-shadow: 0 1px 0 rgb(255 255 255 / .07) inset, 0 18px 38px -28px rgb(0 0 0 / .74); transition: border-color .2s ease, background .2s ease; }
+/* No backdrop blur on cards: they sit on a smooth gradient, where a blur
+   looks the same but costs every card a GPU pass on every frame of a swipe. */
+.glass { position: relative; background: linear-gradient(145deg, rgb(255 255 255 / .07), rgb(255 255 255 / .022)); border: 1px solid rgb(255 255 255 / .12); box-shadow: 0 1px 0 rgb(255 255 255 / .07) inset, 0 18px 38px -28px rgb(0 0 0 / .74); transition: border-color .2s ease, background .2s ease; }
 .bg-surface { background-color: rgb(var(--color-surface) / .86) !important; }
 .bg-surface2 { background-color: rgb(255 255 255 / .045) !important; }
 .border-border { border-color: rgb(255 255 255 / .12) !important; }
