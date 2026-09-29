@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Settings, Landmark, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import DailyQuoteCard from '../components/DailyQuoteCard'
+import PathCard from '../components/PathCard'
 import BatteryProgress from '../components/BatteryProgress'
 import InfoTag from '../components/InfoTag'
 import ReminderButton from '../components/ReminderButton'
@@ -356,6 +357,7 @@ export default function DashboardScreen() {
         </div>
       </header>
       <div className="dashboard-content flex-1 px-5 py-3 space-y-4">
+        <PathCard transactions={transactions} settings={settings} debts={debts} goals={goals} />
         <Card data-tour="dash-safe-to-spend" className="balance-hero !p-6">
           <div className="flex items-center gap-3">
             <IconCircle icon={Wallet} className="bg-primary/10 text-primary !rounded-full" size={38} iconSize={18} />

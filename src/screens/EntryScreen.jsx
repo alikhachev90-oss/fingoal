@@ -7,6 +7,7 @@ import * as db from '../lib/db'
 import { suggestCategories, categoryTree, findCategory, pickLang, subLabel, customKey } from '../lib/categories'
 import { addCustomCategory, addCustomSub, removeCustomCategory, removeCustomSub } from '../lib/customCategories'
 import InfoTag from '../components/InfoTag'
+import { computePath, saveRate } from '../lib/path'
 import { computeGoalPlan, daysSavedByAmount, crossedMilestone, deriveMonthlyIncome } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
 import { Wand2, ChevronDown, Check, Plus, X } from 'lucide-react'
@@ -55,7 +56,7 @@ function AccountPicker({ label, sheetTitle, emptyLabel, accounts, value, onChang
 }
 
 export default function EntryScreen() {
-  const { user, context, t, lang } = useApp()
+  const { user, setUser, context, t, lang } = useApp()
   const navigate = useNavigate()
 
   const [amount, setAmount] = useState('')
@@ -73,6 +74,10 @@ export default function EntryScreen() {
   const [quickResult, setQuickResult] = useState(null)
   const [roundUp, setRoundUp] = useState(true)
   const [roundUpNote, setRoundUpNote] = useState(null)
+  // Pay yourself first: on by default, because the default is what people
+  // keep (Madrian & Shea — 71% stayed with the saving they were enrolled in).
+  const [payFirst, setPayFirst] = useState(true)
+  const [debts, setDebts] = useState([])
   const [pendingCat, setPendingCat] = useState(null) // {group,key} — waiting for a sub pick
   const [accounts, setAccounts] = useState([])
   const [accountId, setAccountId] = useState('')
@@ -179,6 +184,7 @@ export default function EntryScreen() {
   useEffect(() => {
     if (!user) return
     db.listGoals(user.id, context).then((goals) => setTopGoal(goals?.[0] || null))
+    db.listDebts(user.id, context).then(setDebts).catch(() => setDebts([]))
     db.getSettings(user.id, context).then(setSettings)
     // A default Cash source always exists so the account picker below has
     // something to offer even before the user adds a card/bank account.
@@ -375,6 +381,30 @@ export default function EntryScreen() {
         })
       }
       let milestone = null
+      if (selected.group === 'income' && payFirst && payFirstAmount > 0) {
+        // The share goes where the current step of the path needs it, and
+        // leaves the account the income landed in.
+        await db.addTransaction(user.id, context, {
+          amount: payFirstAmount,
+          date,
+          comment: t('entry.payFirstComment'),
+          group: 'savings',
+          category_key: pathNow.saveTo,
+          sub: null,
+          account_id: parts[0].accountId || null,
+        })
+        if (pathNow.saveTo === 'debt_extra' && pathNow.next) await db.payDownDebt(user.id, pathNow.next.id, payFirstAmount)
+        await db.checkInToday(user.id, context)
+        // Start the clock for the monthly +1% the first time it's used.
+        if (!user.user_metadata?.save_rate_at) {
+          db.saveUserMeta(user.id, { save_rate: rate, save_rate_at: new Date().toISOString() }).then(setUser).catch(() => {})
+        }
+        setRoundUpNote(t('entry.payFirstNote', { amt: `$${payFirstAmount.toFixed(2)}`, step: t(`path.step.${pathNow.key}`) }))
+      }
+      if (selected.group === 'savings' && selected.key === 'debt_extra' && pathNow.key === 'debt' && pathNow.next) {
+        // Extra paid on debt comes off the smallest expensive one first.
+        await db.payDownDebt(user.id, pathNow.next.id, parseFloat(amount))
+      }
       if (selected.group === 'savings') {
         // Putting money toward savings is what the daily check-in/streak tracks.
         if (topGoal && (selected.key === 'emergency' || selected.key === 'investments' || selected.key === 'debt_extra')) {
@@ -419,6 +449,13 @@ export default function EntryScreen() {
       setSaving(false)
     }
   }
+
+  const rate = saveRate(user)
+  const pathNow = useMemo(
+    () => computePath({ transactions: recentTransactions, settings, debts, goals: topGoal ? [topGoal] : [] }).current,
+    [recentTransactions, settings, debts, topGoal],
+  )
+  const payFirstAmount = Math.round((parseFloat(amount) || 0) * rate) / 100
 
   // Money comes in TO an account and goes out FROM one.
   const accountTitle = type === 'expense' ? t('entry.accountLabelFrom') : t('entry.accountLabel')
@@ -607,6 +644,14 @@ export default function EntryScreen() {
           {creatingAccountFor === 'main' && renderNewAccountForm()}
           {type === 'income' && !split && (
             <p className="text-[11px] text-muted -mt-1">{t('entry.incomeAccountHint')}</p>
+          )}
+          {type === 'income' && rate > 0 && (
+            <label className="flex items-center justify-between gap-3 text-sm pt-1 cursor-pointer">
+              <span className="text-muted">
+                {t('entry.payFirst', { rate, amt: `$${payFirstAmount.toFixed(2).replace(/\.00$/, '')}`, dest: t(`path.step.${pathNow.key}`) })}
+              </span>
+              <input type="checkbox" checked={payFirst} onChange={(e) => setPayFirst(e.target.checked)} className="w-4 h-4 accent-primary shrink-0" />
+            </label>
           )}
           {type === 'expense' && topGoal && !split && (
             <label className="flex items-center justify-between text-sm pt-1 cursor-pointer">

@@ -183,6 +183,22 @@ export async function addDebt(userId, context, debt) {
   return row
 }
 
+// An extra payment on a debt lowers what's left on it (never below zero).
+export async function payDownDebt(userId, debtId, amount) {
+  if (supabaseEnabled) {
+    const { data: debt } = await supabase.from('debts').select('balance').eq('id', debtId).single()
+    const balance = Math.max(0, Math.round(((debt?.balance || 0) - amount) * 100) / 100)
+    const { error } = await supabase.from('debts').update({ balance }).eq('id', debtId)
+    if (error) throw error
+    return balance
+  }
+  const db = loadMock()
+  const d = db.debts.find((x) => x.id === debtId)
+  if (d) d.balance = Math.max(0, Math.round(((d.balance || 0) - amount) * 100) / 100)
+  saveMock(db)
+  return d?.balance
+}
+
 // ---------------------------------------------------------------- accounts
 // An account is a named card/bank account the user tracks separately —
 // {type: 'debit'|'credit', name, statement_day, due_day, credit_limit}.
