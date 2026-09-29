@@ -8,6 +8,9 @@ import { suggestCategories, categoryTree, findCategory, pickLang, subLabel, cust
 import { addCustomCategory, addCustomSub, removeCustomCategory, removeCustomSub } from '../lib/customCategories'
 import InfoTag from '../components/InfoTag'
 import { computePath, saveRate } from '../lib/path'
+import { computeAccountBalance } from '../lib/creditCards'
+import { setCardReminder } from '../lib/cardReminders'
+import { syncServerReminders } from '../lib/serverReminders'
 import { computeGoalPlan, daysSavedByAmount, crossedMilestone, deriveMonthlyIncome } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
 import { Wand2, ChevronDown, Check, Plus, X } from 'lucide-react'
@@ -94,6 +97,8 @@ export default function EntryScreen() {
   // Pay yourself first: on by default, because the default is what people
   // keep (Madrian & Shea — 71% stayed with the saving they were enrolled in).
   const [payFirst, setPayFirst] = useState(true)
+  // Spending on a credit card: on by default, remind every day to pay it off.
+  const [cardRemind, setCardRemind] = useState(true)
   const [debts, setDebts] = useState([])
   const [pendingCat, setPendingCat] = useState(null) // {group,key} — waiting for a sub pick
   const [accounts, setAccounts] = useState([])
@@ -139,6 +144,7 @@ export default function EntryScreen() {
     setRoundUpNote(null)
     setMilestoneHit(null)
     setPayFirst(true)
+    setCardRemind(true)
     setDate(todayStr())
     setDateTouched(false)
   }
@@ -428,6 +434,17 @@ export default function EntryScreen() {
           account_id: part.accountId || null,
         })
       }
+      if (selected.group !== 'income' && cardRemind) {
+        let touched = false
+        for (const part of parts) {
+          const card = accounts.find((a) => a.id === part.accountId && a.type === 'credit')
+          if (!card) continue
+          const owedBefore = Math.max(0, computeAccountBalance(card, recentTransactions))
+          setCardReminder(user.id, card.id, { name: card.name, owed: owedBefore + part.amount })
+          touched = true
+        }
+        if (touched) syncServerReminders(user)
+      }
       let milestone = null
       if (selected.group === 'income' && payFirst && payFirstAmount > 0) {
         // The share goes where the current step of the path needs it, and
@@ -699,6 +716,12 @@ export default function EntryScreen() {
                 {t('entry.payFirst', { rate, amt: `$${payFirstAmount.toFixed(2).replace(/\.00$/, '')}`, dest: t(`path.step.${pathNow.key}`) })}
               </span>
               <input type="checkbox" checked={payFirst} onChange={(e) => setPayFirst(e.target.checked)} className="w-4 h-4 accent-primary shrink-0" />
+            </label>
+          )}
+          {type === 'expense' && (split ? split.some((row) => accounts.find((a) => a.id === row.accountId)?.type === 'credit') : accounts.find((a) => a.id === accountId)?.type === 'credit') && (
+            <label className="flex items-center justify-between gap-3 text-sm pt-1 cursor-pointer">
+              <span className="text-muted">{t('entry.cardRemind')}</span>
+              <input type="checkbox" checked={cardRemind} onChange={(e) => setCardRemind(e.target.checked)} className="w-4 h-4 accent-primary shrink-0" />
             </label>
           )}
           {type === 'expense' && topGoal && !split && (

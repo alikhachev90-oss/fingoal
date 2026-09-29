@@ -10,6 +10,8 @@ import DailyQuoteCard from '../components/DailyQuoteCard'
 import PathCard from '../components/PathCard'
 import { CoachLink } from './CoachScreen'
 import { GoalVisionBanner } from '../components/GoalVision'
+import { refreshCardReminders } from '../lib/cardReminders'
+import { syncServerReminders } from '../lib/serverReminders'
 import BatteryProgress from '../components/BatteryProgress'
 import InfoTag from '../components/InfoTag'
 import ReminderButton from '../components/ReminderButton'
@@ -281,6 +283,11 @@ export default function DashboardScreen() {
     }
     return ['cash', 'debit', 'credit'].filter((k) => has[k]).map((k) => ({ kind: k, amount: piles[k] }))
   })()
+
+  // Keep the daily "pay the card off" reminders in step with real balances.
+  useEffect(() => {
+    if (user && accounts?.length && refreshCardReminders(user.id, accounts, transactions)) syncServerReminders(user)
+  }, [user, accounts, transactions])
 
   const openDebtTotal = (debts || []).reduce((sum, d) => sum + Math.max(0, Number(d.balance) || 0), 0)
 

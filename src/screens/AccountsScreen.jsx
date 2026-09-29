@@ -5,6 +5,9 @@ import { Card, Button, Input, IconCircle } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { getCardReminder, setCardReminder, clearCardReminder, refreshCardReminders } from '../lib/cardReminders'
+import { syncServerReminders } from '../lib/serverReminders'
+import { requestNotificationPermission } from '../lib/reminders'
 import { computeAccountBalance, computeUtilization, nextDateForDay, daysUntil, getCreditTips } from '../lib/creditCards'
 import { todayStr } from '../lib/dates'
 
@@ -111,6 +114,26 @@ export default function AccountsScreen() {
     } finally {
       setPayBusy(false)
     }
+  }
+
+  // Daily "pay the card off" reminders, one per card. Balances are brought up
+  // to date on every visit, and a paid-off card's reminder switches itself off.
+  const [cardReminders, setCardReminders] = useState({})
+  useEffect(() => {
+    if (!user || !accounts.length) return
+    if (refreshCardReminders(user.id, accounts, transactions)) syncServerReminders(user)
+    setCardReminders(Object.fromEntries(accounts.map((a) => [a.id, getCardReminder(user.id, a.id)])))
+  }, [user, accounts, transactions])
+
+  async function toggleCardReminder(account, on, time) {
+    if (on) {
+      await requestNotificationPermission()
+      setCardReminder(user.id, account.id, { name: account.name, owed: Math.max(0, computeAccountBalance(account, transactions)), ...(time ? { time } : {}) })
+    } else {
+      clearCardReminder(user.id, account.id)
+    }
+    setCardReminders((prev) => ({ ...prev, [account.id]: getCardReminder(user.id, account.id) }))
+    syncServerReminders(user)
   }
 
   const rows = useMemo(
@@ -229,6 +252,27 @@ export default function AccountsScreen() {
                     {a.due < 0 ? L.overdue : L.dueIn(a.due)}
                   </p>
                 )}
+
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <label className="flex items-center gap-2 cursor-pointer text-muted">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-primary"
+                      disabled={a.balance <= 0}
+                      checked={Boolean(cardReminders[a.id]?.enabled)}
+                      onChange={(e) => toggleCardReminder(a, e.target.checked)}
+                    />
+                    {a.balance > 0 ? t('accounts.dailyRemind') : t('accounts.dailyRemindOff')}
+                  </label>
+                  {cardReminders[a.id]?.enabled && (
+                    <input
+                      type="time"
+                      value={cardReminders[a.id].time}
+                      onChange={(e) => e.target.value && toggleCardReminder(a, true, e.target.value)}
+                      className="bg-surface2 border border-border rounded-lg px-2 py-1 text-xs text-text outline-none focus:border-primary"
+                    />
+                  )}
+                </div>
 
                 {payingId === a.id ? (
                   <div className="space-y-1.5">

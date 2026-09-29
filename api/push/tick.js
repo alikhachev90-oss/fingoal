@@ -77,7 +77,7 @@ export default async function handler(req, res) {
             due.push(r)
             goalLast[r.id] = local.day
           }
-        } else if (r.kind === 'goal' && r.time) {
+        } else if ((r.kind === 'goal' || r.kind === 'daily') && r.time) {
           const [h, m] = r.time.split(':').map(Number)
           const late = local.minutes - (h * 60 + m)
           if (goalLast[r.id] !== local.day && late >= 0 && late <= GOAL_WINDOW_MIN) {

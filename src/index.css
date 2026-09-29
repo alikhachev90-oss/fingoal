@@ -157,3 +157,8 @@ html:not(.dark) .nav-material {
   box-shadow: 0 14px 36px -24px rgb(31 42 39 / .22);
 }
 html:not(.dark) input, html:not(.dark) select, html:not(.dark) textarea { color-scheme: light; }
+
+/* Voice recording wave (CoachScreen) */
+@keyframes voice-bar { 0%, 100% { transform: scaleY(.55) } 50% { transform: scaleY(1) } }
+.voice-bar { transform-origin: center; transition: height .18s ease; animation: voice-bar .9s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .voice-bar { animation: none } }

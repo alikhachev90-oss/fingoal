@@ -24,29 +24,47 @@ function visibleText(message) {
 function useSpeech(lang, onText) {
   const recRef = useRef(null)
   const wantRef = useRef(false)
-  const baseRef = useRef('')
+  const finalsRef = useRef([])
   const [listening, setListening] = useState(false)
+  const [pulse, setPulse] = useState(0) // bumps on every recognised bit, drives the wave
   const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
 
-  // Chrome on Android mishandles continuous mode: every partial result comes
-  // back again, so "привет" piled up as "привет привет привет", and it still
-  // cut off at the first pause. Instead each phrase is its own short session,
-  // restarted right away until the person taps stop.
+  // One continuous session, so Android doesn't chime between phrases. Its
+  // continuous mode resends earlier words inside newer results ("привет",
+  // "привет как", "привет как дела"), so a result that extends the previous
+  // one replaces it instead of being added again.
+  function addFinal(text) {
+    const finals = finalsRef.current
+    const last = finals[finals.length - 1]
+    if (last && text.startsWith(last)) finals[finals.length - 1] = text
+    else if (last && last.startsWith(text)) return
+    else if (!finals.includes(text)) finals.push(text)
+  }
+
+  function render(interim) {
+    const finals = finalsRef.current
+    const last = finals[finals.length - 1]
+    const shown = interim && last && interim.startsWith(last) ? [...finals.slice(0, -1), interim] : [...finals, interim]
+    onText(shown.filter(Boolean).join(' '))
+  }
+
   function listen() {
     const rec = new Recognition()
     rec.lang = SPEECH_LANG[lang] || 'ru-RU'
-    rec.continuous = false
+    rec.continuous = true
     rec.interimResults = true
     rec.onresult = (e) => {
-      const r = e.results[e.results.length - 1]
-      const text = r[0].transcript.trim()
-      if (r.isFinal) {
-        baseRef.current = `${baseRef.current} ${text}`.trim()
-        onText(baseRef.current)
-      } else {
-        onText(`${baseRef.current} ${text}`.trim())
+      let interim = ''
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const text = e.results[i][0].transcript.trim()
+        if (!text) continue
+        if (e.results[i].isFinal) addFinal(text)
+        else interim = text
       }
+      render(interim)
+      setPulse((p) => p + 1)
     }
+    // A long silence still ends the session; pick up again quietly.
     rec.onend = () => {
       if (wantRef.current) {
         try { listen() } catch { wantRef.current = false; setListening(false) }
@@ -55,8 +73,6 @@ function useSpeech(lang, onText) {
       }
     }
     rec.onerror = (e) => {
-      // Silence just ends the phrase; anything else (no permission, no
-      // network) stops listening.
       if (e.error !== 'no-speech' && e.error !== 'aborted') wantRef.current = false
     }
     recRef.current = rec
@@ -65,7 +81,7 @@ function useSpeech(lang, onText) {
 
   function start() {
     if (!Recognition) return
-    baseRef.current = ''
+    finalsRef.current = []
     wantRef.current = true
     setListening(true)
     listen()
@@ -78,7 +94,28 @@ function useSpeech(lang, onText) {
   }
 
   useEffect(() => () => { wantRef.current = false; recRef.current?.abort?.() }, [])
-  return Recognition ? { listening, start, stop } : null
+  return Recognition ? { listening, pulse, start, stop } : null
+}
+
+// A live wave while recording: it moves whenever speech is being recognised,
+// so it's clear the phone is hearing you.
+function VoiceWave({ pulse }) {
+  const bars = 24
+  return (
+    <div className="flex items-center justify-center gap-[3px] h-10" aria-hidden="true">
+      {Array.from({ length: bars }, (_, i) => {
+        const seed = Math.sin((pulse + 1) * (i + 3) * 12.9898) * 43758.5453
+        const h = 18 + Math.round((seed - Math.floor(seed)) * 82)
+        return (
+          <span
+            key={i}
+            className="w-[3px] rounded-full bg-primary voice-bar"
+            style={{ height: `${h}%`, animationDelay: `${(i % 6) * 90}ms` }}
+          />
+        )
+      })}
+    </div>
+  )
 }
 
 export default function CoachScreen() {
@@ -270,6 +307,15 @@ export default function CoachScreen() {
       </div>
 
       <div className="px-3 pt-2 pb-[max(env(safe-area-inset-bottom),12px)] border-t border-border/60 space-y-2">
+        {speech?.listening && (
+          <div className="rounded-2xl border border-primary/40 bg-primary/10 px-3.5 py-2.5 space-y-1.5">
+            <VoiceWave pulse={speech.pulse} />
+            <p className="text-[15px] leading-relaxed whitespace-pre-wrap min-h-[1.5em] max-h-40 overflow-y-auto">
+              {draft || <span className="text-muted">{t('coach.listening')}</span>}
+            </p>
+            <p className="text-[11px] text-muted">{t('coach.voiceHint')}</p>
+          </div>
+        )}
         <div className="flex items-end gap-2">
           {speech && (
             <button
@@ -285,6 +331,7 @@ export default function CoachScreen() {
             </button>
           )}
           <textarea
+            hidden={speech?.listening}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             rows={1}

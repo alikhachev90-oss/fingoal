@@ -50,6 +50,19 @@ function collectReminders(userId, meta = {}) {
         if (!r?.enabled || !r.time) continue
         const goalId = key.split('_').pop()
         out.push({ id: `goal_${goalId}`, kind: 'goal', time: r.time, title: r.name ? `«${r.name}»` : 'Цель', body: 'Пора отложить на цель сегодня.' })
+      } else if (key.startsWith(`fintera_card_reminder_${userId}_`)) {
+        const r = JSON.parse(localStorage.getItem(key))
+        if (!r?.enabled || !r.time || !(r.owed > 0)) continue
+        const accountId = key.slice(`fintera_card_reminder_${userId}_`.length)
+        const owed = `$${Math.round(r.owed).toLocaleString('en-US')}`
+        out.push({
+          id: `card_${accountId}`,
+          kind: 'daily',
+          time: r.time,
+          title: en ? `Pay off "${r.name}"` : `Погаси «${r.name}»`,
+          body: en ? `${owed} on the card. Pay it in full before the due date — no interest.` : `На карте долг ${owed}. Закрой полностью до даты платежа — и никаких процентов.`,
+          url: '/accounts',
+        })
       } else if (key.startsWith(`fintera_vision_${userId}_`)) {
         const r = JSON.parse(localStorage.getItem(key))
         if (!r?.enabled || !r.time || !r.snapshot) continue

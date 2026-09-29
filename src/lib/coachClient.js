@@ -53,7 +53,9 @@ export async function buildSnapshot(user, context, lang) {
   const path = computePath({ transactions, settings, debts, goals })
   const now = new Date()
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const name = (user.user_metadata?.full_name || user.user_metadata?.name || '').trim()
   const lines = [
+    `Their name: ${name || 'not given — you may ask once what to call them'}`,
     `Local date and time on their phone: ${now.toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { dateStyle: 'full', timeStyle: 'short' })} (${tz})`,
     `App language: ${lang}`,
     `Typical monthly income (from logged income): ${money(deriveMonthlyIncome(transactions))}`,
