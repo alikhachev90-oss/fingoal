@@ -35,6 +35,11 @@ export function installAppUpdate() {
     check({ reloadNow: true })
     navigator.serviceWorker?.getRegistration('/sw.js').then((reg) => reg?.update()).catch(() => {})
   })
+  // "Back" can bring a page straight out of the browser's memory, old code and
+  // all. Check it the moment it's shown again.
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) check({ reloadNow: true })
+  })
   setInterval(() => {
     if (document.visibilityState === 'visible') check({ reloadNow: false })
   }, CHECK_EVERY_MS)

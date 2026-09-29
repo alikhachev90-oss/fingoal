@@ -42,6 +42,7 @@ export default function BottomNav() {
                 <NavLink
                   key={item.to}
                   to={item.to}
+                  replace
                   onClick={(e) => {
                     // Tapping the tab you are already on takes that page back
                     // to its top, the way a phone's own tab bars do.

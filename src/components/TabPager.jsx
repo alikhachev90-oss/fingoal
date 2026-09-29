@@ -164,7 +164,7 @@ export default function TabPager() {
           carry.current = offsetRef.current - h.landing
           offsetRef.current = carry.current
           keepAlive(step(h.target - 1), step(h.target + 1))
-          navigate(TABS[h.target].path)
+          navigate(TABS[h.target].path, { replace: true })
         }
       } else {
         keepAlive(step(i - 1), step(i + 1))
@@ -262,7 +262,9 @@ export default function TabPager() {
       settle(travelled, landing, d.velocity * 1000, () => {
         animating.current = false
         heading.current = null
-        navigate(TABS[target].path)
+        // Replace, not push: switching tabs isn't a step "Back" should undo
+        // one by one, the way a phone's own tab bar behaves.
+        navigate(TABS[target].path, { replace: true })
       })
     }
 
