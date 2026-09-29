@@ -1,3 +1,4 @@
+import { toDate } from './dates'
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
 }
@@ -6,7 +7,7 @@ export function getCoachAction({ settings, transactions = [], goals = [], debts 
   const en = lang === 'en'
   const now = new Date()
   const monthTx = transactions.filter((t) => {
-    const d = new Date(t.date)
+    const d = toDate(t.date)
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   })
   const incomeLogged = monthTx.filter((t) => t.group === 'income').reduce((s, t) => s + (t.amount || 0), 0)
@@ -42,10 +43,10 @@ export function getCoachAction({ settings, transactions = [], goals = [], debts 
   const daysLeftThisMonth = Math.max(1, new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1)
   const dailyAvailable = Math.max(0, (income - monthlyNeeds - wants) / daysLeftThisMonth)
   const remaining = Math.max(0, (goal.target_amount || 0) - (goal.saved_amount || 0))
-  const daysLeft = Math.max(1, Math.ceil((new Date(goal.deadline).setHours(0, 0, 0, 0) - now.setHours(0, 0, 0, 0)) / 86400000))
+  const daysLeft = Math.max(1, Math.ceil((toDate(goal.deadline).setHours(0, 0, 0, 0) - now.setHours(0, 0, 0, 0)) / 86400000))
   const dailyGoalStep = remaining / daysLeft
   const savedRecently = transactions.some((t) => {
-    const age = Date.now() - new Date(t.date).getTime()
+    const age = Date.now() - toDate(t.date).getTime()
     return t.group === 'savings' && age >= 0 && age < 14 * 86400000
   })
 

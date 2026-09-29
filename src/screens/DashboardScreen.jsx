@@ -5,7 +5,7 @@ import { billLabel } from '../lib/essentialBudget'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
-import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Settings, Landmark, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Settings, Landmark, CreditCard, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import DailyQuoteCard from '../components/DailyQuoteCard'
 import PathCard from '../components/PathCard'
 import { GoalVisionBanner } from '../components/GoalVision'
@@ -23,6 +23,8 @@ import { detectHabitTip, dismissHabitTip } from '../lib/habitTips'
 import { TOURS } from '../lib/tours'
 import { computeAccountBalance, nextDateForDay, daysUntil } from '../lib/creditCards'
 import { getCoachAction } from '../lib/coach'
+import { toDate, todayStr } from '../lib/dates'
+import { useDataVersion } from '../lib/useDataVersion'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -41,6 +43,8 @@ const MONTH_FMT = { en: 'en-US', es: 'es-ES', fr: 'fr-FR', ru: 'ru-RU' }
 
 export default function DashboardScreen() {
   const { user, context, t, lang } = useApp()
+  // Reload when something is logged on another tab (they stay mounted).
+  const dataVersion = useDataVersion()
   const [settings, setSettings] = useState(undefined)
   const [editingBills, setEditingBills] = useState(false)
   const [transactions, setTransactions] = useState([])
@@ -71,7 +75,7 @@ export default function DashboardScreen() {
     db.listDebts(user.id, context).then(setDebts).catch(() => setDebts([]))
     db.listAccounts(user.id, context).then(setAccounts).catch(() => setAccounts([]))
     refreshCheckins()
-  }, [user, context])
+  }, [user, context, dataVersion])
 
   function closeHabitTip() {
     if (habitTip) dismissHabitTip(user.id, context, habitTip.key)
@@ -81,7 +85,7 @@ export default function DashboardScreen() {
   function refreshCheckins() {
     db.getCheckins(user.id, context).then((c) => {
       setStreak(db.computeStreak(c))
-      const today = new Date().toISOString().slice(0, 10)
+      const today = todayStr()
       setCheckedInToday(c.some((x) => x.date === today))
     })
   }
@@ -100,10 +104,10 @@ export default function DashboardScreen() {
     try {
       await db.addTransaction(user.id, context, {
         amount,
-        date: new Date().toISOString().slice(0, 10),
+        date: todayStr(),
         comment: t('dashboard.checkinComment'),
         group: 'savings',
-        category_key: topGoal ? 'emergency' : 'emergency',
+        category_key: 'emergency',
         sub: null,
         account_id: null,
       })
@@ -133,7 +137,7 @@ export default function DashboardScreen() {
   const monthTx = useMemo(() => {
     const now = new Date()
     return transactions.filter((t) => {
-      const d = new Date(t.date)
+      const d = toDate(t.date)
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
     })
   }, [transactions])
@@ -164,7 +168,7 @@ export default function DashboardScreen() {
 
   const chartMonthTx = useMemo(() => {
     return transactions.filter((t) => {
-      const d = new Date(t.date)
+      const d = toDate(t.date)
       return d.getMonth() === chartMonthDate.getMonth() && d.getFullYear() === chartMonthDate.getFullYear()
     })
   }, [transactions, chartMonthDate])
@@ -276,6 +280,8 @@ export default function DashboardScreen() {
     }
     return ['cash', 'debit', 'credit'].filter((k) => has[k]).map((k) => ({ kind: k, amount: piles[k] }))
   })()
+
+  const openDebtTotal = (debts || []).reduce((sum, d) => sum + Math.max(0, Number(d.balance) || 0), 0)
 
   const safeToday = computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, byGroup.wants)
 
@@ -518,6 +524,21 @@ export default function DashboardScreen() {
               ) : (
                 <p className="text-xs text-muted mt-0.5">{t('accounts.entrySubtitle')}</p>
               )}
+            </div>
+            <ArrowRight size={16} className="text-muted shrink-0" />
+          </Card>
+        </Link>
+
+        <Link to="/debts" className="block">
+          <Card className="!p-3.5 flex items-center gap-3 hover:border-primary/50">
+            <IconCircle icon={CreditCard} className="bg-wants/10 text-wants" size={38} iconSize={17} />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm">{t('debts.title')}</p>
+              <p className="text-xs text-muted mt-0.5">
+                {openDebtTotal > 0
+                  ? <><span className="font-num font-semibold text-wants">{fmt(openDebtTotal)}</span> · {t('debts.linkSubtitle')}</>
+                  : t('debts.emptySubtitle')}
+              </p>
             </div>
             <ArrowRight size={16} className="text-muted shrink-0" />
           </Card>

@@ -5,6 +5,7 @@
 // shows once per closed period, the same pattern lib/aiInsights.js uses for
 // the subscription radar's 30-day check.
 import { findCategory, pickLang } from './categories'
+import { toDate } from './dates'
 
 function reportKey(userId, context) {
   return `fintrack_reports_seen_${userId}_${context}`
@@ -40,7 +41,7 @@ export function pendingMonthReport(userId, context, transactions, today = new Da
   const seen = getSeenState(userId, context)
   if (seen.months.includes(id)) return null
   const hasData = transactions.some((t) => {
-    const d = new Date(t.date)
+    const d = toDate(t.date)
     return d.getFullYear() === closed.getFullYear() && d.getMonth() === closed.getMonth()
   })
   return hasData ? closed : null
@@ -53,7 +54,7 @@ export function pendingYearReport(userId, context, transactions, today = new Dat
   const year = lastClosedYear(today)
   const seen = getSeenState(userId, context)
   if (seen.years.includes(year)) return null
-  const hasData = transactions.some((t) => new Date(t.date).getFullYear() === year)
+  const hasData = transactions.some((t) => toDate(t.date).getFullYear() === year)
   return hasData ? year : null
 }
 
@@ -73,7 +74,7 @@ export function markYearReportSeen(userId, context, year) {
 // -------------------------------------------------------------- computation
 function txForMonth(transactions, date) {
   return transactions.filter((t) => {
-    const d = new Date(t.date)
+    const d = toDate(t.date)
     return d.getFullYear() === date.getFullYear() && d.getMonth() === date.getMonth()
   })
 }
@@ -137,9 +138,9 @@ export function computeMonthReport({ transactions, goals, monthDate, lang }) {
 
 // A year's recap: same shape, aggregated across the 12 months of that year.
 export function computeYearReport({ transactions, goals, year, lang }) {
-  const tx = transactions.filter((t) => new Date(t.date).getFullYear() === year)
+  const tx = transactions.filter((t) => toDate(t.date).getFullYear() === year)
   const { byGroup, spent, saved, topCategories } = summarize(tx, lang)
-  const monthsWithData = new Set(tx.map((t) => new Date(t.date).getMonth())).size
+  const monthsWithData = new Set(tx.map((t) => toDate(t.date).getMonth())).size
   const income = tx.filter((t) => t.group === 'income').reduce((sum, t) => sum + Number(t.amount || 0), 0)
   const savingsRate = income > 0 ? Math.round((saved / income) * 100) : 0
 
@@ -148,7 +149,7 @@ export function computeYearReport({ transactions, goals, year, lang }) {
   // Best/worst month by net (spent vs saved) — a small highlight, not a full
   // month-by-month table.
   const perMonth = Array.from({ length: 12 }, (_, m) => {
-    const mtx = tx.filter((t) => new Date(t.date).getMonth() === m)
+    const mtx = tx.filter((t) => toDate(t.date).getMonth() === m)
     return { month: m, saved: mtx.filter((t) => t.group === 'savings').reduce((s, t) => s + t.amount, 0) }
   }).filter((m) => m.saved > 0)
   const bestMonth = perMonth.length ? perMonth.reduce((a, b) => (b.saved > a.saved ? b : a)) : null
@@ -173,7 +174,7 @@ export function computeYearReport({ transactions, goals, year, lang }) {
 export function monthsWithActivity(transactions) {
   const set = new Set()
   for (const t of transactions) {
-    const d = new Date(t.date)
+    const d = toDate(t.date)
     set.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
   return Array.from(set)
@@ -186,6 +187,6 @@ export function monthsWithActivity(transactions) {
 }
 
 export function yearsWithActivity(transactions) {
-  const set = new Set(transactions.map((t) => new Date(t.date).getFullYear()))
+  const set = new Set(transactions.map((t) => toDate(t.date).getFullYear()))
   return Array.from(set).sort((a, b) => b - a)
 }

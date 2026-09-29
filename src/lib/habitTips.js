@@ -1,3 +1,4 @@
+import { toDate } from './dates'
 // Detects a repeated small discretionary purchase (takeout coffee, eating
 // out) and offers one concrete, math-backed alternative — shown once as a
 // dismissible tip, never repeated once the user has seen it for that habit.
@@ -48,7 +49,7 @@ export function detectHabitTip(userId, context, transactions) {
     if (localStorage.getItem(SHOWN_KEY(userId, context, rule.key))) continue
     const cutoff = now - rule.windowDays * 86400000
     const matches = (transactions || []).filter(
-      (t) => t.group === rule.group && t.category_key === rule.category_key && new Date(t.date).getTime() >= cutoff,
+      (t) => t.group === rule.group && t.category_key === rule.category_key && toDate(t.date).getTime() >= cutoff,
     )
     if (matches.length >= rule.minCount) {
       const avgAmount = matches.reduce((s, t) => s + Number(t.amount || 0), 0) / matches.length

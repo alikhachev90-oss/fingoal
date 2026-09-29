@@ -8,6 +8,7 @@
 
 import { suggestCategories, findCategory, pickLang } from './categories'
 import { deriveMonthlyIncome } from './finance'
+import { toDate } from './dates'
 
 export function categoryLabel(group, key, lang = 'ru') {
   return pickLang(findCategory(group, key)?.label, lang) || key
@@ -49,12 +50,12 @@ function fmt(n) {
 }
 
 function monthKey(d) {
-  const dt = new Date(d)
+  const dt = toDate(d)
   return `${dt.getFullYear()}-${dt.getMonth()}`
 }
 
 function isSameMonth(d, ref) {
-  const a = new Date(d)
+  const a = toDate(d)
   return a.getMonth() === ref.getMonth() && a.getFullYear() === ref.getFullYear()
 }
 
@@ -66,7 +67,7 @@ export function forecastGoal(goal, goalPlan, transactions, windowDays = 30, lang
   if (!goal || !goalPlan) return null
   const now = new Date()
   const since = new Date(now.getTime() - windowDays * 86400000)
-  const contributions = transactions.filter((t) => t.group === 'savings' && new Date(t.date) >= since)
+  const contributions = transactions.filter((t) => t.group === 'savings' && toDate(t.date) >= since)
   const total = contributions.reduce((s, t) => s + t.amount, 0)
   const actualPerDay = total / windowDays
 
@@ -84,7 +85,7 @@ export function forecastGoal(goal, goalPlan, transactions, windowDays = 30, lang
   const remaining = Math.max(0, goal.target_amount - (goal.saved_amount || 0))
   const projectedDays = Math.ceil(remaining / actualPerDay)
   const projectedDate = new Date(now.getTime() + projectedDays * 86400000)
-  const deadline = new Date(goal.deadline)
+  const deadline = toDate(goal.deadline)
   const diffDays = Math.round((projectedDate - deadline) / 86400000)
   const onTrack = diffDays <= 0
 
@@ -322,7 +323,7 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
     const monthlyNeeds = Object.values(settings?.needs_budget || {}).reduce((s, v) => s + (v || 0), 0)
     // Local import avoided to keep this module dependency-light; recompute plan inline via ratio.
     const remaining = Math.max(0, goal.target_amount - (goal.saved_amount || 0))
-    const daysLeft = Math.max(1, Math.round((new Date(goal.deadline) - now) / 86400000))
+    const daysLeft = Math.max(1, Math.round((toDate(goal.deadline) - now) / 86400000))
     const perDay = remaining / daysLeft
     const forecast = forecastGoal(goal, { perDay }, transactions, 30, lang)
     if (forecast) {
@@ -362,7 +363,7 @@ export function answerQuestion(question, ctx) {
 
   if (/цел[ьи]|успею|хватит|дедлайн|goal|deadline|make it|enough/.test(q) && goal) {
     const remaining = Math.max(0, goal.target_amount - (goal.saved_amount || 0))
-    const daysLeft = Math.max(1, Math.round((new Date(goal.deadline) - now) / 86400000))
+    const daysLeft = Math.max(1, Math.round((toDate(goal.deadline) - now) / 86400000))
     const perDay = remaining / daysLeft
     const forecast = forecastGoal(goal, { perDay }, transactions, 30, lang)
     return (
@@ -596,7 +597,7 @@ export function evaluateChallenge(active, transactions, available = CHALLENGES) 
   const start = new Date(active.startedAt)
   const now = new Date()
   const daysElapsed = Math.min(def.days, Math.floor((now - start) / 86400000))
-  const windowTx = transactions.filter((t) => new Date(t.date) >= start)
+  const windowTx = transactions.filter((t) => toDate(t.date) >= start)
   const violating = windowTx.find((t) => def.match(t))
   const completed = !violating && daysElapsed >= def.days
   const failed = Boolean(violating)

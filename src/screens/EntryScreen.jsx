@@ -11,6 +11,8 @@ import { computePath, saveRate } from '../lib/path'
 import { computeGoalPlan, daysSavedByAmount, crossedMilestone, deriveMonthlyIncome } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
 import { Wand2, ChevronDown, Check, Plus, X } from 'lucide-react'
+import { todayStr } from '../lib/dates'
+import { useDataVersion } from '../lib/useDataVersion'
 
 function accountLabel(account, t) {
   return `${account.name}${account.type === 'credit' ? ` (${t('accounts.credit')})` : ''}`
@@ -57,10 +59,15 @@ function AccountPicker({ label, sheetTitle, emptyLabel, accounts, value, onChang
 
 export default function EntryScreen() {
   const { user, setUser, context, t, lang } = useApp()
+  // Reload when something is logged on another tab (they stay mounted).
+  const dataVersion = useDataVersion()
   const navigate = useNavigate()
 
   const [amount, setAmount] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
+  const [date, setDate] = useState(todayStr())
+  // Whether the date was picked by hand — if not, it follows the calendar
+  // (the screen stays mounted for days, so "today" at mount goes stale).
+  const [dateTouched, setDateTouched] = useState(false)
   const [comment, setComment] = useState('')
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(null) // {group,key,sub,label,explanation}
@@ -99,6 +106,39 @@ export default function EntryScreen() {
   const [newCatFor, setNewCatFor] = useState(null) // group getting a new category
   const [newSubFor, setNewSubFor] = useState(false) // pendingCat getting a new sub
   const [newCatName, setNewCatName] = useState('')
+
+  useEffect(() => {
+    const sync = () => { if (document.visibilityState === 'visible' && !dateTouched) setDate(todayStr()) }
+    document.addEventListener('visibilitychange', sync)
+    return () => document.removeEventListener('visibilitychange', sync)
+  }, [dateTouched])
+
+  // After a save the screen stays mounted behind the others — clear it, so
+  // coming back shows an empty form, not the last entry waiting to be saved twice.
+  function resetForm() {
+    setAmount('')
+    setComment('')
+    setQuery('')
+    setSelected(null)
+    setPendingCat(null)
+    setSplit(null)
+    setQuickText('')
+    setQuickResult(null)
+    setSaved(false)
+    setSaveError('')
+    setRoundUpNote(null)
+    setMilestoneHit(null)
+    setPayFirst(true)
+    setDate(todayStr())
+    setDateTouched(false)
+  }
+
+  function finishSave(delay) {
+    setTimeout(() => {
+      navigate('/dashboard', { replace: true })
+      resetForm()
+    }, delay)
+  }
 
   function changeType(next) {
     setType(next)
@@ -214,7 +254,7 @@ export default function EntryScreen() {
       }
       setRecentComments(recent)
     }).catch(() => { setRecentTransactions([]); setRecentComments([]) })
-  }, [user, context])
+  }, [user, context, dataVersion])
 
   function startCreateAccount(target) {
     setCreatingAccountFor(target)
@@ -350,7 +390,7 @@ export default function EntryScreen() {
         comment,
       })
       setSaved(true)
-      setTimeout(() => navigate('/dashboard', { replace: true }), 900)
+      finishSave(900)
     } catch {
       setSaveError(t('entry.saveError'))
     } finally {
@@ -441,7 +481,7 @@ export default function EntryScreen() {
         }
       }
       setSaved(true)
-      setTimeout(() => navigate('/dashboard', { replace: true }), milestone ? 2200 : 900)
+      finishSave(milestone ? 2200 : 900)
     } catch {
       // A dead button with no message is what made this impossible to diagnose.
       setSaveError(t('entry.saveError'))
@@ -558,7 +598,7 @@ export default function EntryScreen() {
 
         <Card className="space-y-3">
           <Input label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => changeAmount(e.target.value)} placeholder="0" />
-          <Input label={t('entry.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <Input label={t('entry.date')} type="date" value={date} onChange={(e) => { setDate(e.target.value); setDateTouched(true) }} />
           <Input
             label={t('entry.comment')}
             value={comment}

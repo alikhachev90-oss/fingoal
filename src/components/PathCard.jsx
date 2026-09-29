@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ChevronDown, Check, TrendingUp } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ChevronDown, Check, TrendingUp, BookOpen, Flame, ArrowRight } from 'lucide-react'
 import { Card, ProgressBar } from './UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
-import { computePath, saveRate, saveRateStepDue, SAVE_RATE_MAX } from '../lib/path'
+import { computePath, saveRate, saveRateStepDue, SAVE_RATE_MAX, STEP_HELP } from '../lib/path'
+import { LESSONS } from '../lib/lessons'
+import { CHALLENGES, challengeTitle, getActiveChallenge, startChallenge } from '../lib/aiInsights'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -13,7 +15,8 @@ function fmt(n) {
 // The one line that says where you are on the way out of paycheck-to-paycheck
 // and what the next dollar is for. Everything else on the screen feeds it.
 export default function PathCard({ transactions, settings, debts, goals }) {
-  const { user, setUser, t } = useApp()
+  const { user, setUser, context, t, lang } = useApp()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const path = computePath({ transactions, settings, debts, goals })
@@ -21,6 +24,15 @@ export default function PathCard({ transactions, settings, debts, goals }) {
   const total = path.steps.length
   const rate = saveRate(user)
   const offerRaise = saveRateStepDue(user)
+  const help = STEP_HELP[step.key] || {}
+  const lesson = LESSONS.find((l) => l.key === help.lesson)
+  const challenge = CHALLENGES.find((c) => c.key === help.challenge)
+  const running = getActiveChallenge(user.id, context)
+
+  function takeChallenge() {
+    if (!running) startChallenge(user.id, context, challenge.key)
+    navigate('/insights', { replace: true })
+  }
 
   async function setRate(next) {
     setBusy(true)
@@ -64,6 +76,34 @@ export default function PathCard({ transactions, settings, debts, goals }) {
           <span className="w-10 text-center font-num font-semibold">{rate}%</span>
           <button type="button" disabled={busy || rate >= SAVE_RATE_MAX} onClick={() => setRate(rate + 1)} className="w-8 h-8 rounded-lg border border-border text-muted disabled:opacity-40" aria-label="+1%">+</button>
         </span>
+      </div>
+
+      <div className="space-y-1.5">
+        {step.key === 'debt' && (
+          <Link to="/debts" className="flex items-center gap-2 text-xs text-primary font-medium">
+            <ArrowRight size={13} /> {t('path.openDebts')}
+          </Link>
+        )}
+        {lesson && (
+          <Link to={`/lessons?focus=${lesson.key}`} replace className="flex items-center gap-2 text-xs text-muted">
+            <BookOpen size={13} className="text-primary shrink-0" />
+            <span className="truncate">{t('path.lesson')}: <span className="text-text">{lesson.title[lang] || lesson.title.ru}</span></span>
+          </Link>
+        )}
+        {challenge && (
+          <button type="button" onClick={takeChallenge} className="flex items-center gap-2 text-xs text-muted text-left">
+            <Flame size={13} className="text-primary shrink-0" />
+            <span className="truncate">
+              {running
+                ? t('path.challengeRunning')
+                : <>{t('path.challenge')}: <span className="text-text">{challengeTitle(challenge, lang)}</span></>}
+            </span>
+          </button>
+        )}
+        <Link to="/earn" className="flex items-center gap-2 text-xs text-muted">
+          <TrendingUp size={13} className="text-primary shrink-0" />
+          <span>{t('path.earnMore')}</span>
+        </Link>
       </div>
 
       {offerRaise && (

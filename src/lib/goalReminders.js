@@ -5,13 +5,10 @@
 // single `fired` flag.
 
 import { showLocalNotification } from './reminders'
+import { todayStr } from './dates'
 
 function keyFor(userId, context, goalId) {
   return `fintera_goal_reminder_${userId}_${context}_${goalId}`
-}
-
-function todayStr(d = new Date()) {
-  return d.toISOString().slice(0, 10)
 }
 
 export function getGoalReminder(userId, context, goalId) {

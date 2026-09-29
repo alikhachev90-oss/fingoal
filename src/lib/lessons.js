@@ -4,6 +4,7 @@
 // about your money," not a generic finance blog post.
 
 import { deriveMonthlyIncome } from './finance'
+import { toDate } from './dates'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -122,7 +123,7 @@ export const LESSONS = [
     body: (ctx, lang) => {
       const now = new Date()
       const monthWants = (ctx.transactions || []).filter((t) => {
-        const d = new Date(t.date)
+        const d = toDate(t.date)
         return t.group === 'wants' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
       })
       const total = monthWants.reduce((s, t) => s + t.amount, 0)
@@ -166,7 +167,7 @@ export const LESSONS = [
 export function getLessonsWithStatus({ settings, debts = [], goals = [], transactions = [], lang = 'ru' }) {
   const now = new Date()
   const monthTxList = transactions.filter((t) => {
-    const d = new Date(t.date)
+    const d = toDate(t.date)
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   })
   const monthTx = { wants: monthTxList.filter((t) => t.group === 'wants').reduce((s, t) => s + t.amount, 0) }

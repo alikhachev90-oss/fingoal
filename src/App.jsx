@@ -14,9 +14,12 @@ import ReportScreen from './screens/ReportScreen'
 import ConnectBankScreen from './screens/ConnectBankScreen'
 import AccountsScreen from './screens/AccountsScreen'
 import SettingsScreen from './screens/SettingsScreen'
+import DebtsScreen from './screens/DebtsScreen'
+import EarnScreen from './screens/EarnScreen'
 import FeedbackButton from './components/FeedbackButton'
 import TabPager from './components/TabPager'
 import BottomNav from './components/BottomNav'
+import { todayStr } from './lib/dates'
 
 // Bill reminders: shown right away if the app is open when one comes due,
 // and copied to the account so the server can push them with the app closed
@@ -52,7 +55,7 @@ function GoalReminderWatcher() {
       ])
       if (!settings || !goals.length) return
       const monthlyIncome = deriveMonthlyIncome(transactions)
-      const today = new Date().toISOString().slice(0, 10)
+      const today = todayStr()
       const checkedInToday = checkins.some((c) => c.date === today)
       const monthlyNeeds = Object.values(settings.needs_budget || {}).reduce((s, v) => s + (v || 0), 0)
       for (const goal of goals) {
@@ -98,6 +101,8 @@ function Shell() {
       <Route path="/bank" element={<RequireAuth><ConnectBankScreen /></RequireAuth>} />
       <Route path="/accounts" element={<RequireAuth><AccountsScreen /></RequireAuth>} />
       <Route path="/settings" element={<RequireAuth><SettingsScreen /></RequireAuth>} />
+      <Route path="/debts" element={<RequireAuth><DebtsScreen /></RequireAuth>} />
+      <Route path="/earn" element={<RequireAuth><EarnScreen /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
     {/* One bar for the whole app: it outlives route changes, so it can

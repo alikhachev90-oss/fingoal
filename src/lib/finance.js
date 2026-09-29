@@ -1,3 +1,4 @@
+import { toDate } from './dates'
 // Goal / budget math helpers.
 
 // Monthly income is derived from what the person actually logged, never from a
@@ -32,7 +33,7 @@ export function deriveMonthlyIncome(transactions, today = new Date()) {
 }
 
 export function daysBetween(from, to) {
-  const ms = new Date(to).setHours(0, 0, 0, 0) - new Date(from).setHours(0, 0, 0, 0)
+  const ms = toDate(to).setHours(0, 0, 0, 0) - toDate(from).setHours(0, 0, 0, 0)
   return Math.max(1, Math.round(ms / 86400000))
 }
 

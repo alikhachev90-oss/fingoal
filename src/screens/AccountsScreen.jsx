@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { computeAccountBalance, computeUtilization, nextDateForDay, daysUntil, getCreditTips } from '../lib/creditCards'
+import { todayStr } from '../lib/dates'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -23,6 +24,7 @@ export default function AccountsScreen() {
   const [payingId, setPayingId] = useState(null)
   const [payAmount, setPayAmount] = useState('')
   const [payBusy, setPayBusy] = useState(false)
+  const [payFrom, setPayFrom] = useState('')
   const [deletingAccount, setDeletingAccount] = useState(null)
   const [actionError, setActionError] = useState('')
 
@@ -71,18 +73,36 @@ export default function AccountsScreen() {
     setActionError('')
     setPayBusy(true)
     try {
-      await db.addTransaction(user.id, context, {
-        amount: amt,
-        date: new Date().toISOString().slice(0, 10),
-        comment: t('accounts.paymentComment', { name: account.name }),
-        group: 'needs',
-        category_key: 'other',
-        sub: null,
-        account_id: account.id,
-        // Marks this as moving money to the card, not new spending — the
-        // purchases it covers were already counted when they were logged.
-        is_payment: true,
-      })
+      const from = payFrom || accounts.find((a) => a.type !== 'credit')?.id
+      let moved = false
+      if (from) {
+        // Paying the card moves money from your own account to the card: the
+        // debt goes down AND the account it came from goes down. Recording
+        // only the card side left that money counted as still yours.
+        await db.addTransfer(user.id, context, {
+          fromAccountId: from,
+          toAccountId: account.id,
+          amount: amt,
+          date: todayStr(),
+          comment: t('accounts.paymentComment', { name: account.name }),
+        }).then(() => { moved = true }).catch(() => {})
+      }
+      // No own account to pay from (or the transfer couldn't be saved): at
+      // least bring the card's balance down.
+      if (!moved) {
+        await db.addTransaction(user.id, context, {
+          amount: amt,
+          date: todayStr(),
+          comment: t('accounts.paymentComment', { name: account.name }),
+          group: 'needs',
+          category_key: 'other',
+          sub: null,
+          account_id: account.id,
+          // Marks this as moving money to the card, not new spending — the
+          // purchases it covers were already counted when they were logged.
+          is_payment: true,
+        })
+      }
       setPayingId(null)
       setPayAmount('')
       refresh()
@@ -136,6 +156,7 @@ export default function AccountsScreen() {
     dueIn: (n) => ({ ru: `Платёж через ${n} дн.`, en: `Due in ${n} day(s)` }[lang] || `Due in ${n}`),
     overdue: { ru: 'Просрочка!', en: 'Overdue!' }[lang] || 'Overdue',
     payBtn: { ru: 'Записать платёж', en: 'Log a payment' }[lang] || 'Log a payment',
+    payFrom: { ru: 'С какого счёта', en: 'From', es: 'Desde', fr: 'Depuis' }[lang] || 'С какого счёта',
     payAmountLabel: { ru: 'Сумма платежа', en: 'Payment amount' }[lang] || 'Payment amount',
     confirmPay: { ru: 'Готово', en: 'Done' }[lang] || 'Done',
     delete: { ru: 'Удалить', en: 'Delete' }[lang] || 'Delete',
@@ -210,6 +231,19 @@ export default function AccountsScreen() {
                 )}
 
                 {payingId === a.id ? (
+                  <div className="space-y-1.5">
+                  {ownRows.length > 0 && (
+                    <label className="flex items-center gap-2 text-xs text-muted">
+                      {L.payFrom}
+                      <select
+                        value={payFrom || ownRows[0].id}
+                        onChange={(e) => setPayFrom(e.target.value)}
+                        className="flex-1 bg-surface2 border border-border rounded-lg px-2 py-1.5 text-sm text-text outline-none focus:border-primary"
+                      >
+                        {ownRows.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+                      </select>
+                    </label>
+                  )}
                   <div className="flex gap-1.5">
                     <input
                       type="number"
@@ -219,6 +253,7 @@ export default function AccountsScreen() {
                       className="flex-1 bg-surface2 border border-border rounded-lg px-2.5 py-2 text-sm outline-none focus:border-primary"
                     />
                     <Button className="!w-auto px-3 text-xs" disabled={payBusy || !(parseFloat(payAmount) > 0)} onClick={() => logPayment(a)} type="button">{L.confirmPay}</Button>
+                  </div>
                   </div>
                 ) : (
                   <Button variant="secondary" onClick={() => { setPayingId(a.id); setPayAmount(a.balance > 0 ? String(a.balance) : '') }} type="button">

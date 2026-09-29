@@ -9,9 +9,12 @@ import { getRecommendedLesson } from '../lib/coach'
 import { useSearchParams } from 'react-router-dom'
 import { TRACKS, isTrackUnlocked, getCompletedLessons } from '../lib/course'
 import CourseTrack from '../components/CourseTrack'
+import { useDataVersion } from '../lib/useDataVersion'
 
 export default function LessonsScreen() {
   const { user, context, t, lang } = useApp()
+  // Reload when something is logged on another tab (they stay mounted).
+  const dataVersion = useDataVersion()
   const [settings, setSettings] = useState(undefined)
   const [debts, setDebts] = useState([])
   const [goals, setGoals] = useState([])
@@ -32,7 +35,7 @@ export default function LessonsScreen() {
     db.listGoals(user.id, context).then(setGoals)
     db.listTransactions(user.id, context).then(setTransactions)
     refreshCompleted()
-  }, [user, context])
+  }, [user, context, dataVersion])
 
   function refreshCompleted() {
     db.listCompletedLessons(user.id, context).then(setCompleted)

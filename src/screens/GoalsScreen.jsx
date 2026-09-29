@@ -14,6 +14,8 @@ import { computeGoalPlan, MILESTONES, crossedMilestone, deriveMonthlyIncome } fr
 import { TOURS } from '../lib/tours'
 import { GOAL_TIPS } from '../lib/goalGuide'
 import { Lightbulb, ShieldCheck, CreditCard, Home, TrendingUp } from 'lucide-react'
+import { toDate, todayStr } from '../lib/dates'
+import { useDataVersion } from '../lib/useDataVersion'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -34,12 +36,14 @@ const GOAL_PRESETS = [
 function futureDate(months) {
   const d = new Date()
   d.setMonth(d.getMonth() + months)
-  return d.toISOString().slice(0, 10)
+  return todayStr(d)
 }
 
 
 export default function GoalsScreen() {
   const { user, context, t, lang } = useApp()
+  // Reload when something is logged on another tab (they stay mounted).
+  const dataVersion = useDataVersion()
   const [settings, setSettings] = useState(null)
   const [goals, setGoals] = useState([])
   const [transactions, setTransactions] = useState([])
@@ -68,7 +72,7 @@ export default function GoalsScreen() {
     // Needed to derive real monthly income for the goal plan.
     db.listTransactions(user.id, context).then(setTransactions).catch(() => setTransactions([]))
     refresh()
-  }, [user, context])
+  }, [user, context, dataVersion])
 
   useEffect(() => {
     if (suggestedGoalId) setSuggestedAmount(searchParams.get('amount') || '')
@@ -255,7 +259,7 @@ export default function GoalsScreen() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-semibold">{goal.name}</p>
-                  <p className="text-xs text-muted">{t('goals.until', { date: new Date(goal.deadline).toLocaleDateString('en-US') })}</p>
+                  <p className="text-xs text-muted">{t('goals.until', { date: toDate(goal.deadline).toLocaleDateString('en-US') })}</p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <button type="button" onClick={() => startEditGoal(goal)} className="text-xs text-primary font-medium py-2 -my-2">

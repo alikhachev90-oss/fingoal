@@ -1,4 +1,5 @@
 import { supabase, supabaseEnabled } from './supabaseClient'
+import { toDate, todayStr } from './dates'
 
 // ---------------------------------------------------------------------------
 // Data layer. When VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are set, every
@@ -23,6 +24,16 @@ function saveMock(db) {
 }
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36)
+}
+
+// ------------------------------------------------------------- change signal
+// The five main tabs stay mounted between swipes, so a screen that loaded its
+// data once would keep showing it after you logged something elsewhere. Every
+// write announces itself; screens listen via useDataVersion() and reload.
+let changeTimer = 0
+function notifyChange() {
+  clearTimeout(changeTimer)
+  changeTimer = setTimeout(() => window.dispatchEvent(new Event('fintera-data-changed')), 50)
 }
 
 // ---------------------------------------------------------------------- auth
@@ -137,7 +148,7 @@ export async function getSettings(userId, context) {
   return db.settings[`${userId}:${context}`] || null
 }
 
-export async function saveSettings(userId, context, settings) {
+async function saveSettingsImpl(userId, context, settings) {
   if (supabaseEnabled) {
     const { data, error } = await supabase
       .from('context_settings')
@@ -165,7 +176,7 @@ export async function listDebts(userId, context) {
   return db.debts.filter((d) => d.user_id === userId && d.context === context)
 }
 
-export async function addDebt(userId, context, debt) {
+async function addDebtImpl(userId, context, debt) {
   if (supabaseEnabled) {
     // Let Postgres generate the UUID and timestamp. The local mock uses its own id.
     const { data, error } = await supabase
@@ -183,8 +194,32 @@ export async function addDebt(userId, context, debt) {
   return row
 }
 
+async function updateDebtImpl(userId, debtId, patch) {
+  if (supabaseEnabled) {
+    const { data, error } = await supabase.from('debts').update(patch).eq('id', debtId).select().single()
+    if (error) throw error
+    return data
+  }
+  const db = loadMock()
+  const d = db.debts.find((x) => x.id === debtId)
+  if (d) Object.assign(d, patch)
+  saveMock(db)
+  return d
+}
+
+async function deleteDebtImpl(userId, debtId) {
+  if (supabaseEnabled) {
+    const { error } = await supabase.from('debts').delete().eq('id', debtId)
+    if (error) throw error
+    return
+  }
+  const db = loadMock()
+  db.debts = db.debts.filter((x) => x.id !== debtId)
+  saveMock(db)
+}
+
 // An extra payment on a debt lowers what's left on it (never below zero).
-export async function payDownDebt(userId, debtId, amount) {
+async function payDownDebtImpl(userId, debtId, amount) {
   if (supabaseEnabled) {
     const { data: debt } = await supabase.from('debts').select('balance').eq('id', debtId).single()
     const balance = Math.max(0, Math.round(((debt?.balance || 0) - amount) * 100) / 100)
@@ -216,7 +251,7 @@ export async function listAccounts(userId, context) {
   return db.accounts.filter((a) => a.user_id === userId && a.context === context)
 }
 
-export async function upsertAccount(userId, context, account) {
+async function upsertAccountImpl(userId, context, account) {
   if (supabaseEnabled) {
     const row = account.id ? account : { ...account, user_id: userId, context }
     const { data, error } = await supabase.from('accounts').upsert(row).select().single()
@@ -236,7 +271,7 @@ export async function upsertAccount(userId, context, account) {
   return row
 }
 
-export async function deleteAccount(userId, accountId) {
+async function deleteAccountImpl(userId, accountId) {
   if (supabaseEnabled) {
     const { error } = await supabase.from('accounts').delete().eq('id', accountId)
     if (error) throw error
@@ -268,7 +303,7 @@ function isUnknownColumn(error, column) {
   return (error.code === 'PGRST204' || error.code === '42703') && text.includes(column)
 }
 
-export async function upsertGoal(userId, context, goal) {
+async function upsertGoalImpl(userId, context, goal) {
   if (supabaseEnabled) {
     const row = goal.id ? goal : { ...goal, user_id: userId, context }
     let { data, error } = await supabase.from('goals').upsert(row).select().single()
@@ -295,7 +330,7 @@ export async function upsertGoal(userId, context, goal) {
   return row
 }
 
-export async function deleteGoal(userId, goalId) {
+async function deleteGoalImpl(userId, goalId) {
   if (supabaseEnabled) {
     const { error } = await supabase.from('goals').delete().eq('id', goalId)
     if (error) throw error
@@ -320,7 +355,7 @@ export async function deleteAllUserData(userId) {
   }
 }
 
-export async function addToGoalSavings(userId, goalId, amount) {
+async function addToGoalSavingsImpl(userId, goalId, amount) {
   if (supabaseEnabled) {
     const { data: goal } = await supabase.from('goals').select('saved_amount').eq('id', goalId).single()
     const { data, error } = await supabase
@@ -354,10 +389,10 @@ export async function listTransactions(userId, context) {
   const db = loadMock()
   return db.transactions
     .filter((t) => t.user_id === userId && t.context === context)
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => toDate(b.date) - toDate(a.date))
 }
 
-export async function addTransaction(userId, context, tx) {
+async function addTransactionImpl(userId, context, tx) {
   if (supabaseEnabled) {
     // Let Postgres generate the UUID and timestamp. uid() is not a valid uuid,
     // so sending it made every insert fail (same fix as addDebt above).
@@ -379,7 +414,7 @@ export async function addTransaction(userId, context, tx) {
 // A transfer between two of the user's own accounts (e.g. cash -> debit card)
 // is recorded as two linked rows so both account balances stay correct and
 // neither leg is ever double-counted as real income/expense in reports.
-export async function addTransfer(userId, context, { fromAccountId, toAccountId, amount, date, comment }) {
+async function addTransferImpl(userId, context, { fromAccountId, toAccountId, amount, date, comment }) {
   // transfer_id is a uuid column, so it needs a real uuid — not the mock uid().
   const transferId = (globalThis.crypto?.randomUUID?.() || uid())
   const base = { amount, date, comment, group: 'transfer', category_key: 'transfer', sub: null }
@@ -413,8 +448,8 @@ export async function getCheckins(userId, context) {
   return db.checkins.filter((c) => c.user_id === userId && c.context === context)
 }
 
-export async function checkInToday(userId, context) {
-  const today = new Date().toISOString().slice(0, 10)
+async function checkInTodayImpl(userId, context) {
+  const today = todayStr()
   if (supabaseEnabled) {
     // Without onConflict, PostgREST matches on the primary key and the second
     // check-in of the same day trips the unique(user_id, context, date) index.
@@ -471,7 +506,7 @@ function markLessonLocally(userId, context, lessonKey) {
   try { localStorage.setItem(LOCAL_LESSONS_KEY, JSON.stringify(all)) } catch { /* private mode */ }
 }
 
-export async function completeLesson(userId, context, lessonKey) {
+async function completeLessonImpl(userId, context, lessonKey) {
   if (supabaseEnabled) {
     const { data: lesson } = await supabase.from('lessons').select('id').eq('key', lessonKey).maybeSingle()
     if (!lesson) {
@@ -496,7 +531,7 @@ export function computeStreak(checkins) {
   let streak = 0
   const d = new Date()
   while (true) {
-    const key = d.toISOString().slice(0, 10)
+    const key = todayStr(d)
     if (dates.has(key)) {
       streak += 1
       d.setDate(d.getDate() - 1)
@@ -505,4 +540,88 @@ export function computeStreak(checkins) {
     }
   }
   return streak
+}
+
+export async function saveSettings(...args) {
+  const result = await saveSettingsImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function addDebt(...args) {
+  const result = await addDebtImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function updateDebt(...args) {
+  const result = await updateDebtImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function deleteDebt(...args) {
+  const result = await deleteDebtImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function payDownDebt(...args) {
+  const result = await payDownDebtImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function upsertAccount(...args) {
+  const result = await upsertAccountImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function deleteAccount(...args) {
+  const result = await deleteAccountImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function upsertGoal(...args) {
+  const result = await upsertGoalImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function deleteGoal(...args) {
+  const result = await deleteGoalImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function addToGoalSavings(...args) {
+  const result = await addToGoalSavingsImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function addTransaction(...args) {
+  const result = await addTransactionImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function addTransfer(...args) {
+  const result = await addTransferImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function checkInToday(...args) {
+  const result = await checkInTodayImpl(...args)
+  notifyChange()
+  return result
+}
+
+export async function completeLesson(...args) {
+  const result = await completeLessonImpl(...args)
+  notifyChange()
+  return result
 }

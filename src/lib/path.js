@@ -1,3 +1,4 @@
+import { toDate } from './dates'
 // "Путь" — one ladder from zero to financial freedom, so every screen answers
 // "what am I working on right now?". The order follows the research-backed
 // consensus (r/personalfinance flowchart, Money Guy's order of operations,
@@ -14,7 +15,7 @@
 // Nothing here is ticked by hand: the current step is the first one the data
 // says isn't done yet.
 
-const HIGH_RATE = 8 // % APR — above this, paying debt beats investing
+export const HIGH_RATE = 8 // % APR — above this, paying debt beats investing
 const STARTER = 500
 const INVEST_TARGET = 0.15
 const DAY = 86400000
@@ -33,7 +34,7 @@ export function monthlyEssentials(settings, transactions, today = new Date()) {
   const budget = Object.values(settings?.needs_budget || {}).reduce((s, v) => s + (Number(v) || 0), 0)
   if (budget > 0) return budget
   const since = today.getTime() - 90 * DAY
-  const spent = sum(transactions.filter((t) => t.group === 'needs' && !t.is_payment && new Date(t.date).getTime() >= since))
+  const spent = sum(transactions.filter((t) => t.group === 'needs' && !t.is_payment && toDate(t.date).getTime() >= since))
   return spent > 0 ? Math.round(spent / 3) : 1000
 }
 
@@ -46,7 +47,7 @@ export function computePath({ transactions = [], settings, debts = [], goals = [
   const debtLeft = expensive.reduce((s, d) => s + Number(d.balance), 0)
 
   const since = today.getTime() - 30 * DAY
-  const recent = transactions.filter((t) => new Date(t.date).getTime() >= since)
+  const recent = transactions.filter((t) => toDate(t.date).getTime() >= since)
   const income30 = sum(recent.filter((t) => t.group === 'income'))
   const invested30 = sum(recent.filter((t) => t.group === 'savings' && t.category_key === 'investments'))
   const investTarget = Math.round(income30 * INVEST_TARGET)
@@ -64,6 +65,17 @@ export function computePath({ transactions = [], settings, debts = [], goals = [
 
   const index = Math.max(0, steps.findIndex((s) => !s.done))
   return { steps, index, current: steps[index], cushion, essentials }
+}
+
+// What to read and what to try while on each step — so the lessons and
+// challenges stop being a separate menu and become part of the climb.
+export const STEP_HELP = {
+  starter: { lesson: 'emergency_fund', challenge: 'zero_wants_3' },
+  month: { lesson: 'wants_tracking', challenge: 'no_delivery_week' },
+  debt: { lesson: 'debt_strategy', challenge: 'no_coffee_week' },
+  threeMonths: { lesson: 'lifestyle_creep', challenge: 'no_delivery_week' },
+  invest: { lesson: 'rule_502030', challenge: null },
+  goals: { lesson: 'goal_math', challenge: null },
 }
 
 // ------------------------------------------------------ pay yourself first

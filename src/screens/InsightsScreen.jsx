@@ -28,6 +28,7 @@ import {
 } from '../lib/aiInsights'
 import { projectSavingsGrowth } from '../lib/finance'
 import { pendingMonthReport, pendingYearReport } from '../lib/monthlyReport'
+import { useDataVersion } from '../lib/useDataVersion'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -60,6 +61,8 @@ const TONE_STYLE = {
 
 export default function InsightsScreen() {
   const { user, context, t, lang } = useApp()
+  // Reload when something is logged on another tab (they stay mounted).
+  const dataVersion = useDataVersion()
   const [settings, setSettings] = useState(undefined)
   const [debts, setDebts] = useState([])
   const [goals, setGoals] = useState([])
@@ -87,7 +90,7 @@ export default function InsightsScreen() {
     db.listGoals(user.id, context).then(setGoals)
     db.listTransactions(user.id, context).then(setTransactions)
     setActiveChallenge(getActiveChallenge(user.id, context))
-  }, [user, context])
+  }, [user, context, dataVersion])
 
   // Hooks must run on every render, so this is computed before the
   // settings===null early return below (React error #310 otherwise).
