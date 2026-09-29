@@ -23,40 +23,61 @@ function visibleText(message) {
 // the browser has none (the mic button just doesn't show).
 function useSpeech(lang, onText) {
   const recRef = useRef(null)
+  const wantRef = useRef(false)
+  const baseRef = useRef('')
   const [listening, setListening] = useState(false)
   const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
 
-  function start() {
-    if (!Recognition) return
+  // Chrome on Android mishandles continuous mode: every partial result comes
+  // back again, so "привет" piled up as "привет привет привет", and it still
+  // cut off at the first pause. Instead each phrase is its own short session,
+  // restarted right away until the person taps stop.
+  function listen() {
     const rec = new Recognition()
     rec.lang = SPEECH_LANG[lang] || 'ru-RU'
-    rec.continuous = true
+    rec.continuous = false
     rec.interimResults = true
-    let base = ''
     rec.onresult = (e) => {
-      let finalText = ''
-      let interim = ''
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const r = e.results[i]
-        if (r.isFinal) finalText += r[0].transcript
-        else interim += r[0].transcript
+      const r = e.results[e.results.length - 1]
+      const text = r[0].transcript.trim()
+      if (r.isFinal) {
+        baseRef.current = `${baseRef.current} ${text}`.trim()
+        onText(baseRef.current)
+      } else {
+        onText(`${baseRef.current} ${text}`.trim())
       }
-      if (finalText) base = `${base} ${finalText}`.trim()
-      onText(`${base} ${interim}`.trim())
     }
-    rec.onend = () => setListening(false)
-    rec.onerror = () => setListening(false)
+    rec.onend = () => {
+      if (wantRef.current) {
+        try { listen() } catch { wantRef.current = false; setListening(false) }
+      } else {
+        setListening(false)
+      }
+    }
+    rec.onerror = (e) => {
+      // Silence just ends the phrase; anything else (no permission, no
+      // network) stops listening.
+      if (e.error !== 'no-speech' && e.error !== 'aborted') wantRef.current = false
+    }
     recRef.current = rec
     rec.start()
+  }
+
+  function start() {
+    if (!Recognition) return
+    baseRef.current = ''
+    wantRef.current = true
     setListening(true)
+    listen()
   }
 
   function stop() {
+    wantRef.current = false
     recRef.current?.stop()
     setListening(false)
   }
 
-  useEffect(() => () => recRef.current?.abort?.(), [])
+  useEffect(() => () => { wantRef.current = false; recRef.current?.abort?.() }, [])
   return Recognition ? { listening, start, stop } : null
 }
 
@@ -99,7 +120,10 @@ export default function CoachScreen() {
       setResolved({})
       if (reply.stop_reason === 'refusal') setError(t('coach.refusal'))
     } catch (err) {
-      setError(t(`coach.error.${err.message}`) === `coach.error.${err.message}` ? t('coach.error.failed') : t(`coach.error.${err.message}`))
+      const [code, detail] = String(err.message).split('|')
+      const known = t(`coach.error.${code}`) !== `coach.error.${code}`
+      // The reason stays visible, so a screenshot is enough to know what broke.
+      setError(`${known ? t(`coach.error.${code}`) : t('coach.error.failed')}${detail ? ` (${detail})` : !known ? ` (${code})` : ''}`)
     } finally {
       setStreaming(null)
       setBusy(false)
@@ -239,7 +263,7 @@ export default function CoachScreen() {
         {error && (
           <div className="text-xs text-wants space-y-1.5">
             <p>{error}</p>
-            {error === t('coach.error.bad_conversation') && <button type="button" className="text-primary" onClick={restart}>{t('coach.restart')}</button>}
+            {error.startsWith(t('coach.error.bad_conversation')) && <button type="button" className="text-primary" onClick={restart}>{t('coach.restart')}</button>}
           </div>
         )}
         <div ref={bottom} />
@@ -265,7 +289,9 @@ export default function CoachScreen() {
             onChange={(e) => setDraft(e.target.value)}
             rows={1}
             placeholder={speech?.listening ? t('coach.listening') : t('coach.placeholder')}
-            className="flex-1 min-h-11 max-h-32 resize-none bg-surface2 border border-border rounded-2xl px-3.5 py-2.5 text-[15px] outline-none focus:border-primary"
+            onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px` }}
+            style={{ lineHeight: '20px' }}
+            className="flex-1 h-11 max-h-32 resize-none bg-surface2 border border-border rounded-2xl px-3.5 py-[11px] text-[15px] outline-none focus:border-primary"
           />
           <button type="button" disabled={busy || !draft.trim()} onClick={submitDraft} className="w-11 h-11 shrink-0 rounded-full bg-primary text-onprimary flex items-center justify-center disabled:opacity-40" aria-label={t('coach.send')}>
             <Send size={17} />

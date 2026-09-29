@@ -110,7 +110,7 @@ export async function askCoach(messages, snapshot, onText) {
         text += event.t
         onText(text)
       } else if (event.error) {
-        throw new Error(event.error)
+        throw new Error(event.detail ? `${event.error}|${event.detail}` : event.error)
       } else if (event.done) {
         return { content: event.content, stop_reason: event.stop_reason }
       }

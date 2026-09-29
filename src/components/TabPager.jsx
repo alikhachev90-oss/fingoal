@@ -309,7 +309,7 @@ export default function TabPager() {
             <div
               key={tab.path}
               data-pane={tab.path}
-              className="absolute inset-y-0 w-full overflow-y-auto overscroll-y-contain pb-[92px]"
+              className="absolute inset-y-0 w-full overflow-y-auto overflow-x-hidden overscroll-y-contain pb-[92px]"
               style={{
                 left: `${rel * 100}%`,
                 // Kept in the tree but out of the way: no paint cost, no
@@ -320,9 +320,14 @@ export default function TabPager() {
               aria-hidden={!active}
               inert={active ? undefined : true}
             >
-              <ScreenErrorBoundary>
-                <Component />
-              </ScreenErrorBoundary>
+              {/* Clipped here, not on the scroller: a scroller can still be
+                  pushed sideways (overflow-x:hidden), a plain clip can't.
+                  Decorations poking past the edge made the page slide. */}
+              <div className="overflow-x-clip">
+                <ScreenErrorBoundary>
+                  <Component />
+                </ScreenErrorBoundary>
+              </div>
             </div>
           )
         })}

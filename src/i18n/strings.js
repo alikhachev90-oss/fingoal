@@ -422,7 +422,7 @@ const STRINGS = {
   'coach.starter1': { ru: 'У меня долги по кредиткам, не знаю, с чего начать', en: 'I have credit card debt and don’t know where to start', es: 'Tengo deudas de tarjetas y no sé por dónde empezar', fr: 'J’ai des dettes de carte et je ne sais pas par où commencer' },
   'coach.starter2': { ru: 'Хочу начать копить на квартиру или машину', en: 'I want to start saving for an apartment or a car', es: 'Quiero empezar a ahorrar para un piso o un coche', fr: 'Je veux commencer à épargner pour un appart ou une voiture' },
   'coach.starter3': { ru: 'Посмотри мои цифры и скажи, что делать в этом месяце', en: 'Look at my numbers and tell me what to do this month', es: 'Mira mis números y dime qué hacer este mes', fr: 'Regarde mes chiffres et dis-moi quoi faire ce mois-ci' },
-  'coach.placeholder': { ru: 'Напиши или нажми на микрофон…', en: 'Type or tap the mic…', es: 'Escribe o toca el micrófono…', fr: 'Écris ou touche le micro…' },
+  'coach.placeholder': { ru: 'Напиши или скажи…', en: 'Type or talk…', es: 'Escribe o habla…', fr: 'Écris ou parle…' },
   'coach.listening': { ru: 'Слушаю… говори', en: 'Listening… go ahead', es: 'Escuchando… habla', fr: 'J’écoute… vas-y' },
   'coach.voice': { ru: 'Сказать голосом', en: 'Speak', es: 'Hablar', fr: 'Parler' },
   'coach.stopVoice': { ru: 'Остановить запись', en: 'Stop recording', es: 'Detener', fr: 'Arrêter' },

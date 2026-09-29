@@ -7,7 +7,6 @@ import { createClient } from '@supabase/supabase-js'
 // server-sent events. Only signed-in users can call it, so the API key can't
 // be used by strangers.
 
-export const config = { maxDuration: 60 }
 
 const MODEL = 'claude-opus-5-5'
 const MAX_MESSAGES = 120
@@ -120,7 +119,8 @@ export default async function handler(req, res) {
       max_tokens: 8000,
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',
-      output_config: { effort: 'medium' },
+      // Chat wants quick answers; low effort still thinks, just less.
+      output_config: { effort: 'low' },
       // The stable instructions are cached; the snapshot changes every visit.
       system: [
         { type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } },
@@ -136,7 +136,9 @@ export default async function handler(req, res) {
     send(res, { done: true, content: final.content, stop_reason: final.stop_reason })
   } catch (err) {
     const status = err instanceof Anthropic.APIError ? err.status : 0
-    send(res, { error: status === 429 ? 'busy' : status === 400 ? 'bad_conversation' : 'failed' })
+    // The API's own message (never the key) helps tell what went wrong.
+    const detail = `${status || 'net'}: ${String(err?.message || err).slice(0, 160)}`
+    send(res, { error: status === 429 ? 'busy' : status === 400 ? 'bad_conversation' : 'failed', detail })
   }
   res.end()
 }

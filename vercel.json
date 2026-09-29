@@ -30,5 +30,10 @@
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/coach.js": {
+      "maxDuration": 60
+    }
+  }
 }
