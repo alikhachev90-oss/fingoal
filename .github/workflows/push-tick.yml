@@ -26,3 +26,6 @@ jobs:
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' https://fingoal-tan.vercel.app/api/coach)
           echo "coach endpoint: $code"
           [ "$code" = "401" ] && echo "AI key: configured" || echo "AI key: NOT configured"
+      - name: Supabase cron is running
+        # Reported, never failing: when the every-minute job last called in.
+        run: curl -s --max-time 30 'https://fingoal-tan.vercel.app/api/push/tick?status=1' || true

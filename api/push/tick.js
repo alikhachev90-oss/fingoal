@@ -28,6 +28,19 @@ export default async function handler(req, res) {
   webpush.setVapidDetails('mailto:a.likhachev90@gmail.com', process.env.VITE_VAPID_PUBLIC_KEY, process.env.PUSH_VAPID_PRIVATE_KEY)
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
 
+  // Health: remember when the every-minute Supabase job (supabase/cron.sql,
+  // which calls through pg_net) last reached us, and report it on ?status=1.
+  const HEALTH = { bucket: 'goal-images', path: '_health/cron.json' }
+  if (req.query?.status) {
+    const { data } = await supabase.storage.from(HEALTH.bucket).download(HEALTH.path).catch(() => ({ data: null }))
+    const last = data ? JSON.parse(await data.text()).at : null
+    return res.status(200).json({ ok: true, cron_last_at: last, minutes_ago: last ? Math.round((Date.now() - new Date(last).getTime()) / 60000) : null })
+  }
+  if (/pg_net/i.test(req.headers['user-agent'] || '')) {
+    await supabase.storage.createBucket(HEALTH.bucket, { public: true }).catch(() => {})
+    await supabase.storage.from(HEALTH.bucket).upload(HEALTH.path, JSON.stringify({ at: new Date().toISOString() }), { contentType: 'application/json', upsert: true }).catch(() => {})
+  }
+
   const now = new Date()
   let sent = 0
   let checked = 0
