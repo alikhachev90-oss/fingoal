@@ -16,6 +16,7 @@ import AccountsScreen from './screens/AccountsScreen'
 import SettingsScreen from './screens/SettingsScreen'
 import DebtsScreen from './screens/DebtsScreen'
 import EarnScreen from './screens/EarnScreen'
+import CoachScreen from './screens/CoachScreen'
 import FeedbackButton from './components/FeedbackButton'
 import TabPager from './components/TabPager'
 import BottomNav from './components/BottomNav'
@@ -103,6 +104,7 @@ function Shell() {
       <Route path="/settings" element={<RequireAuth><SettingsScreen /></RequireAuth>} />
       <Route path="/debts" element={<RequireAuth><DebtsScreen /></RequireAuth>} />
       <Route path="/earn" element={<RequireAuth><EarnScreen /></RequireAuth>} />
+      <Route path="/coach" element={<RequireAuth><CoachScreen /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
     {/* One bar for the whole app: it outlives route changes, so it can

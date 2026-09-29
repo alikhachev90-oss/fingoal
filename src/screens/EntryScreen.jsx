@@ -57,6 +57,16 @@ function AccountPicker({ label, sheetTitle, emptyLabel, accounts, value, onChang
   )
 }
 
+// The default Cash account is created once, even if the screen loads twice
+// at the same moment (a reload right after the first write used to race it
+// into two "Cash" accounts).
+const creatingCash = {}
+function ensureCash(userId, context, name) {
+  const k = `${userId}:${context}`
+  creatingCash[k] ||= db.upsertAccount(userId, context, { name, type: 'cash' })
+  return creatingCash[k]
+}
+
 export default function EntryScreen() {
   const { user, setUser, context, t, lang } = useApp()
   // Reload when something is logged on another tab (they stay mounted).
@@ -229,9 +239,7 @@ export default function EntryScreen() {
     // A default Cash source always exists so the account picker below has
     // something to offer even before the user adds a card/bank account.
     db.listAccounts(user.id, context).then(async (list) => {
-      const resolved = list.length === 0
-        ? [await db.upsertAccount(user.id, context, { name: t('accounts.cash'), type: 'cash' })]
-        : list
+      const resolved = list.length === 0 ? [await ensureCash(user.id, context, t('accounts.cash'))] : list
       setAccounts(resolved)
       // Default to the first account rather than "don't specify": money filed
       // against no account never reaches any balance, so leaving the picker

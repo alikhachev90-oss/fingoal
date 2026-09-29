@@ -8,6 +8,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { Flame, Wallet, ShieldCheck, TrendingDown, PiggyBank, ArrowRight, Target, Compass, ClipboardList, Settings, Landmark, CreditCard, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import DailyQuoteCard from '../components/DailyQuoteCard'
 import PathCard from '../components/PathCard'
+import { CoachLink } from './CoachScreen'
 import { GoalVisionBanner } from '../components/GoalVision'
 import BatteryProgress from '../components/BatteryProgress'
 import InfoTag from '../components/InfoTag'
@@ -365,6 +366,7 @@ export default function DashboardScreen() {
       </header>
       <div className="dashboard-content flex-1 px-5 py-3 space-y-4">
         <PathCard transactions={transactions} settings={settings} debts={debts} goals={goals} />
+        <CoachLink />
         <GoalVisionBanner goal={goals[0]} />
         <Card data-tour="dash-safe-to-spend" className="balance-hero !p-6">
           <div className="flex items-center gap-3">
