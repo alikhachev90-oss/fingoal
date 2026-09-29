@@ -24,47 +24,30 @@ function visibleText(message) {
 function useSpeech(lang, onText) {
   const recRef = useRef(null)
   const wantRef = useRef(false)
-  const finalsRef = useRef([])
+  const baseRef = useRef('')
   const [listening, setListening] = useState(false)
   const [pulse, setPulse] = useState(0) // bumps on every recognised bit, drives the wave
   const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
 
-  // One continuous session, so Android doesn't chime between phrases. Its
-  // continuous mode resends earlier words inside newer results ("привет",
-  // "привет как", "привет как дела"), so a result that extends the previous
-  // one replaces it instead of being added again.
-  function addFinal(text) {
-    const finals = finalsRef.current
-    const last = finals[finals.length - 1]
-    if (last && text.startsWith(last)) finals[finals.length - 1] = text
-    else if (last && last.startsWith(text)) return
-    else if (!finals.includes(text)) finals.push(text)
-  }
-
-  function render(interim) {
-    const finals = finalsRef.current
-    const last = finals[finals.length - 1]
-    const shown = interim && last && interim.startsWith(last) ? [...finals.slice(0, -1), interim] : [...finals, interim]
-    onText(shown.filter(Boolean).join(' '))
-  }
-
+  // Phrase by phrase, restarted right away until the person taps stop —
+  // the version tested on the phone. (Chrome on Android repeats words in
+  // continuous mode; the short sound between phrases is the system's own.)
   function listen() {
     const rec = new Recognition()
     rec.lang = SPEECH_LANG[lang] || 'ru-RU'
-    rec.continuous = true
+    rec.continuous = false
     rec.interimResults = true
     rec.onresult = (e) => {
-      let interim = ''
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const text = e.results[i][0].transcript.trim()
-        if (!text) continue
-        if (e.results[i].isFinal) addFinal(text)
-        else interim = text
+      const r = e.results[e.results.length - 1]
+      const text = r[0].transcript.trim()
+      if (r.isFinal) {
+        baseRef.current = `${baseRef.current} ${text}`.trim()
+        onText(baseRef.current)
+      } else {
+        onText(`${baseRef.current} ${text}`.trim())
       }
-      render(interim)
       setPulse((p) => p + 1)
     }
-    // A long silence still ends the session; pick up again quietly.
     rec.onend = () => {
       if (wantRef.current) {
         try { listen() } catch { wantRef.current = false; setListening(false) }
@@ -81,7 +64,7 @@ function useSpeech(lang, onText) {
 
   function start() {
     if (!Recognition) return
-    finalsRef.current = []
+    baseRef.current = ''
     wantRef.current = true
     setListening(true)
     listen()

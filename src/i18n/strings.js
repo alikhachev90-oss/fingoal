@@ -426,7 +426,7 @@ const STRINGS = {
   'coach.listening': { ru: 'Слушаю… говори', en: 'Listening… go ahead', es: 'Escuchando… habla', fr: 'J’écoute… vas-y' },
   'coach.voice': { ru: 'Сказать голосом', en: 'Speak', es: 'Hablar', fr: 'Parler' },
   'coach.stopVoice': { ru: 'Остановить запись', en: 'Stop recording', es: 'Detener', fr: 'Arrêter' },
-  'coach.voiceHint': { ru: 'Говори сколько нужно, паузы не страшны. Закончил — нажми квадрат ■ слева внизу.', en: 'Talk as long as you like; pauses are fine. Done? Tap the square ■ below.', es: 'Habla lo que quieras; las pausas no importan. ¿Listo? Toca el cuadrado rojo.', fr: 'Parle autant que tu veux ; les pauses ne gênent pas. Fini ? Touche le carré rouge.' },
+  'coach.voiceHint': { ru: 'Говори спокойно, между фразами телефон может коротко пискнуть — это нормально. Закончил — нажми квадрат ■.', en: 'Talk as long as you like; pauses are fine. Done? Tap the square ■ below.', es: 'Habla lo que quieras; las pausas no importan. ¿Listo? Toca el cuadrado rojo.', fr: 'Parle autant que tu veux ; les pauses ne gênent pas. Fini ? Touche le carré rouge.' },
   'coach.send': { ru: 'Отправить', en: 'Send', es: 'Enviar', fr: 'Envoyer' },
   'coach.thinking': { ru: 'Думаю…', en: 'Thinking…', es: 'Pensando…', fr: 'Je réfléchis…' },
   'coach.new': { ru: 'Новый разговор', en: 'New conversation', es: 'Nueva conversación', fr: 'Nouvelle conversation' },
