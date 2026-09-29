@@ -138,7 +138,8 @@ export default async function handler(req, res) {
     const status = err instanceof Anthropic.APIError ? err.status : 0
     // The API's own message (never the key) helps tell what went wrong.
     const detail = `${status || 'net'}: ${String(err?.message || err).slice(0, 160)}`
-    send(res, { error: status === 429 ? 'busy' : status === 400 ? 'bad_conversation' : 'failed', detail })
+    const code = status === 401 || status === 403 ? 'ai_key_invalid' : status === 429 ? 'busy' : status === 400 ? 'bad_conversation' : 'failed'
+    send(res, { error: code, detail: code === 'failed' ? detail : undefined })
   }
   res.end()
 }
