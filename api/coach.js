@@ -93,8 +93,17 @@ function send(res, payload) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' })
   if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: 'ai_not_configured' })
+  // Health check: is the key actually accepted? Listing models costs nothing.
+  if (req.method === 'GET' && req.query?.check) {
+    try {
+      await new Anthropic().models.retrieve(MODEL)
+      return res.status(200).json({ ok: true, key: 'valid', model: MODEL })
+    } catch (err) {
+      return res.status(200).json({ ok: false, key: err instanceof Anthropic.APIError ? `rejected (${err.status})` : 'unreachable' })
+    }
+  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' })
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return res.status(500).json({ error: 'auth_not_configured' })
 
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
