@@ -33,7 +33,8 @@ async function deviceSubscription() {
   return { endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth }
 }
 
-function collectReminders(userId) {
+function collectReminders(userId, meta = {}) {
+  const en = (localStorage.getItem('fintrack_lang') || 'ru') === 'en'
   const out = []
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
@@ -49,6 +50,25 @@ function collectReminders(userId) {
         if (!r?.enabled || !r.time) continue
         const goalId = key.split('_').pop()
         out.push({ id: `goal_${goalId}`, kind: 'goal', time: r.time, title: r.name ? `«${r.name}»` : 'Цель', body: 'Пора отложить на цель сегодня.' })
+      } else if (key.startsWith(`fintera_vision_${userId}_`)) {
+        const r = JSON.parse(localStorage.getItem(key))
+        if (!r?.enabled || !r.time || !r.snapshot) continue
+        const goalId = key.slice(`fintera_vision_${userId}_`.length)
+        const { name, target, saved } = r.snapshot
+        const left = Math.max(0, Math.round(target - saved))
+        const pct = target > 0 ? Math.min(100, Math.round((saved / target) * 100)) : 0
+        const image = meta.goal_images?.[goalId]
+        out.push({
+          id: `vision_${goalId}`,
+          kind: 'weekly',
+          weekday: r.weekday || 1,
+          time: r.time,
+          title: `«${name}» · ${pct}%`,
+          body: en ? `$${left} to go. One more step this week.` : `Осталось $${left}. Ещё один шаг на этой неделе.`,
+          url: '/goals',
+          // Only a hosted photo can ride in a push, not an inline one.
+          image: image && image.startsWith('https://') ? image : undefined,
+        })
       }
     } catch {
       // A broken entry must not stop the rest from syncing.
@@ -71,7 +91,7 @@ export async function syncServerReminders(user) {
     if (device && !subs.some((s) => s.endpoint === device.endpoint)) subs = [...subs, device].slice(-5)
     await db.saveUserMeta(user.id, {
       push_subs: subs,
-      push_reminders: collectReminders(user.id),
+      push_reminders: collectReminders(user.id, current),
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })
   } catch {

@@ -27,6 +27,8 @@ self.addEventListener('push', (event) => {
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-96.png',
       tag: data.tag || 'fintera-daily-reminder',
+      // The goal's own photo, shown large in the notification on Android.
+      image: data.image,
       data: { url: data.url || '/dashboard' },
     }),
   )

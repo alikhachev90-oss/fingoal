@@ -4,6 +4,7 @@ import TopBar from '../components/TopBar'
 import { Button, Input, Card, Pill, IconCircle } from '../components/UI'
 import BatteryProgress from '../components/BatteryProgress'
 import GoalReminderButton from '../components/GoalReminderButton'
+import { GoalPhoto, VisionPush } from '../components/GoalVision'
 import TourGuide from '../components/TourGuide'
 import InfoTag from '../components/InfoTag'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -250,6 +251,7 @@ export default function GoalsScreen() {
             : null
           return (
             <Card key={goal.id} className="goal-card goal-detail-card space-y-3">
+              <GoalPhoto goal={goal} pct={Math.round(plan?.progressPct || 0)} />
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-semibold">{goal.name}</p>
@@ -322,6 +324,7 @@ export default function GoalsScreen() {
                   <GoalReminderButton goalId={goal.id} goalName={goal.name} />
                 </span>
               </div>
+              <VisionPush goal={goal} />
             </Card>
           )
         })}

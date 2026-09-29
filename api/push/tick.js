@@ -14,7 +14,8 @@ function localParts(tz, date) {
   try {
     const f = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
     const p = Object.fromEntries(f.formatToParts(date).map((x) => [x.type, x.value]))
-    return { day: `${p.year}-${p.month}-${p.day}`, minutes: (Number(p.hour) % 24) * 60 + Number(p.minute) }
+    const weekday = new Date(`${p.year}-${p.month}-${p.day}T12:00:00Z`).getUTCDay() || 7 // 1 = Monday … 7 = Sunday
+    return { day: `${p.year}-${p.month}-${p.day}`, weekday, minutes: (Number(p.hour) % 24) * 60 + Number(p.minute) }
   } catch {
     return localParts('UTC', date)
   }
@@ -56,6 +57,13 @@ export default async function handler(req, res) {
             due.push(r)
             fired.add(r.id)
           }
+        } else if (r.kind === 'weekly' && r.time) {
+          const [h, m] = r.time.split(':').map(Number)
+          const late = local.minutes - (h * 60 + m)
+          if (local.weekday === Number(r.weekday) && goalLast[r.id] !== local.day && late >= 0 && late <= GOAL_WINDOW_MIN) {
+            due.push(r)
+            goalLast[r.id] = local.day
+          }
         } else if (r.kind === 'goal' && r.time) {
           const [h, m] = r.time.split(':').map(Number)
           const late = local.minutes - (h * 60 + m)
@@ -69,7 +77,7 @@ export default async function handler(req, res) {
 
       const dead = new Set()
       for (const r of due) {
-        const payload = JSON.stringify({ title: r.title || 'Finterio', body: r.body || '', tag: r.id, url: r.kind === 'goal' ? '/goals' : '/dashboard' })
+        const payload = JSON.stringify({ title: r.title || 'Finterio', body: r.body || '', tag: r.id, url: r.url || (r.kind === 'goal' ? '/goals' : '/dashboard'), image: r.image })
         await Promise.allSettled(
           subs.map(async (s) => {
             try {
