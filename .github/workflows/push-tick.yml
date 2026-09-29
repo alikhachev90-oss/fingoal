@@ -19,3 +19,10 @@ jobs:
         run: curl -fsS --max-time 30 https://fingoal-tan.vercel.app/version.json | tee /dev/stderr | grep -q '"id"'
       - name: Send due reminders
         run: curl -fsS --max-time 60 https://fingoal-tan.vercel.app/api/push/tick | tee /dev/stderr | grep -q '"ok":true'
+      - name: AI friend is configured
+        # 401 = key is set (the call just isn't signed in); 503 = ANTHROPIC_API_KEY missing.
+        # Reported, never failing the job.
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' https://fingoal-tan.vercel.app/api/coach)
+          echo "coach endpoint: $code"
+          [ "$code" = "401" ] && echo "AI key: configured" || echo "AI key: NOT configured"
