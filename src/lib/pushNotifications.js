@@ -1,4 +1,5 @@
 import { pushSupabase, pushBackendEnabled } from './pushClient'
+import { PUSH_OFF_KEY } from './serverReminders'
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
 
@@ -21,6 +22,7 @@ export function pushSupported() {
 // before 16.4, or not installed to homescreen on iOS), 'not_configured' (the
 // backend env vars aren't set yet), 'denied' (user said no in the OS prompt).
 export async function enablePushNotifications() {
+  try { localStorage.removeItem(PUSH_OFF_KEY) } catch { /* ignore */ }
   if (!pushBackendEnabled || !VAPID_PUBLIC_KEY) return { ok: false, reason: 'not_configured' }
   if (!pushSupported()) return { ok: false, reason: 'unsupported' }
 
@@ -73,6 +75,8 @@ export async function enablePushNotifications() {
 }
 
 export async function disablePushNotifications() {
+  // Remembered, so reminder syncs don't quietly subscribe this device again.
+  try { localStorage.setItem(PUSH_OFF_KEY, '1') } catch { /* ignore */ }
   if (!('serviceWorker' in navigator)) return
   try {
   const reg = await navigator.serviceWorker.getRegistration('/sw.js')

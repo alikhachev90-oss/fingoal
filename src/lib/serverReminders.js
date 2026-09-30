@@ -19,8 +19,15 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0))
 }
 
+// Set when push is turned off in Settings: this device must then neither be
+// re-subscribed by a sync nor stay on the account's list.
+export const PUSH_OFF_KEY = 'fintera_push_off'
+const LAST_ENDPOINT_KEY = 'fintera_push_endpoint'
+const pushOff = () => { try { return localStorage.getItem(PUSH_OFF_KEY) === '1' } catch { return false } }
+
 // This device's push subscription, created if permission is already given.
 async function deviceSubscription() {
+  if (pushOff()) return null
   if (!VAPID_PUBLIC_KEY || !('serviceWorker' in navigator) || !('PushManager' in window)) return null
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return null
   const reg = (await navigator.serviceWorker.getRegistration('/sw.js')) || (await navigator.serviceWorker.register('/sw.js'))
@@ -30,6 +37,7 @@ async function deviceSubscription() {
     sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) })
   }
   const json = sub.toJSON()
+  try { localStorage.setItem(LAST_ENDPOINT_KEY, json.endpoint) } catch { /* ignore */ }
   return { endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth }
 }
 
@@ -100,6 +108,11 @@ export async function syncServerReminders(user) {
     const { data } = await supabase.auth.getUser()
     const current = data?.user?.user_metadata || user.user_metadata || {}
     let subs = Array.isArray(current.push_subs) ? current.push_subs : []
+    if (pushOff()) {
+      let last = null
+      try { last = localStorage.getItem(LAST_ENDPOINT_KEY) } catch { /* ignore */ }
+      if (last) subs = subs.filter((s) => s.endpoint !== last)
+    }
     const device = await deviceSubscription().catch(() => null)
     if (device && !subs.some((s) => s.endpoint === device.endpoint)) subs = [...subs, device].slice(-5)
     await db.saveUserMeta(user.id, {

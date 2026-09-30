@@ -103,12 +103,17 @@ export default async function handler(req, res) {
         )
       }
 
+      // Re-read right before writing: the phone may have saved something
+      // (a category, a photo, new reminders) while pushes were going out,
+      // and writing back the copy read at the start would erase it.
+      const { data: fresh } = await supabase.auth.admin.getUserById(user.id)
+      const latest = fresh?.user?.user_metadata || meta
       await supabase.auth.admin.updateUserById(user.id, {
         user_metadata: {
-          ...meta,
+          ...latest,
           push_fired: [...fired].slice(-100),
           push_goal_last: goalLast,
-          push_subs: subs.filter((s) => !dead.has(s.endpoint)),
+          push_subs: (Array.isArray(latest.push_subs) ? latest.push_subs : subs).filter((s) => !dead.has(s.endpoint)),
         },
       })
     }

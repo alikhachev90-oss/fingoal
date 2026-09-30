@@ -63,6 +63,7 @@ export default function SettingsScreen() {
       if (pushOn) {
         await disablePushNotifications()
         setPushOn(false)
+        syncServerReminders(user)
       } else {
         const result = await enablePushNotifications()
         if (result.ok) {

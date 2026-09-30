@@ -7,7 +7,7 @@ import * as db from '../lib/db'
 import { suggestCategories, categoryTree, findCategory, pickLang, subLabel, customKey } from '../lib/categories'
 import { addCustomCategory, addCustomSub, removeCustomCategory, removeCustomSub } from '../lib/customCategories'
 import InfoTag from '../components/InfoTag'
-import { computePath, saveRate } from '../lib/path'
+import { computePath, saveRate, HIGH_RATE } from '../lib/path'
 import { computeAccountBalance } from '../lib/creditCards'
 import { setCardReminder } from '../lib/cardReminders'
 import { syncServerReminders } from '../lib/serverReminders'
@@ -468,9 +468,13 @@ export default function EntryScreen() {
         }
         setRoundUpNote(t('entry.payFirstNote', { amt: `$${payFirstAmount.toFixed(2)}`, step: t(`path.step.${pathNow.key}`) }))
       }
-      if (selected.group === 'savings' && selected.key === 'debt_extra' && pathNow.key === 'debt' && pathNow.next) {
-        // Extra paid on debt comes off the smallest expensive one first.
-        await db.payDownDebt(user.id, pathNow.next.id, parseFloat(amount))
+      if (selected.group === 'savings' && selected.key === 'debt_extra') {
+        // Extra paid on debt comes off the debt first in payoff order
+        // (expensive, then smallest), whatever step the Path is on.
+        const target = [...debts]
+          .filter((d) => Number(d.balance) > 0)
+          .sort((a, b) => (Number(b.rate) >= HIGH_RATE) - (Number(a.rate) >= HIGH_RATE) || Number(a.balance) - Number(b.balance))[0]
+        if (target) await db.payDownDebt(user.id, target.id, parseFloat(amount))
       }
       if (selected.group === 'savings') {
         // Putting money toward savings is what the daily check-in/streak tracks.
