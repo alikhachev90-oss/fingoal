@@ -10,6 +10,7 @@ import DailyQuoteCard from '../components/DailyQuoteCard'
 import PathCard from '../components/PathCard'
 import { CoachLink } from './CoachScreen'
 import { GoalVisionBanner } from '../components/GoalVision'
+import LearnCard, { WelcomeModal, useWelcome } from '../components/LearnCard'
 import { refreshCardReminders } from '../lib/cardReminders'
 import { syncServerReminders } from '../lib/serverReminders'
 import BatteryProgress from '../components/BatteryProgress'
@@ -62,6 +63,9 @@ export default function DashboardScreen() {
   const [checkinBusy, setCheckinBusy] = useState(false)
   const [habitTip, setHabitTip] = useState(null)
   const [tourActive, setTourActive] = useState(false)
+  // First visit: the welcome offer comes before the walkthrough.
+  const welcome = useWelcome(user?.id)
+  const [tourLater, setTourLater] = useState(false)
   const [monthOffset, setMonthOffset] = useState(0)
   const [chartTab, setChartTab] = useState('expenses') // 'income' | 'expenses'
 
@@ -355,7 +359,14 @@ export default function DashboardScreen() {
         lang={lang}
         active={tourActive}
         onActiveChange={setTourActive}
+        autoStart={!welcome.pending && !tourLater}
       />
+      {welcome.pending && (
+        <WelcomeModal
+          onStart={() => { welcome.close(); setTourActive(true) }}
+          onLater={() => { welcome.close(); setTourLater(true) }}
+        />
+      )}
       <header className="home-heading">
         <div className="home-greeting">
           <p>{t('home.welcome')}</p>
@@ -372,8 +383,9 @@ export default function DashboardScreen() {
         </div>
       </header>
       <div className="dashboard-content flex-1 px-5 py-3 space-y-4">
+        <LearnCard onDashboardTour={() => setTourActive(true)} />
         <PathCard transactions={transactions} settings={settings} debts={debts} goals={goals} />
-        <CoachLink />
+        <div data-tour="dash-coach"><CoachLink /></div>
         <GoalVisionBanner goal={goals[0]} />
         <Card data-tour="dash-safe-to-spend" className="balance-hero !p-6">
           <div className="flex items-center gap-3">
@@ -515,7 +527,7 @@ export default function DashboardScreen() {
         </Card>
 
         <Link to="/accounts" className="block">
-          <Card className="accounts-link !p-3.5 flex items-center gap-3 hover:border-primary/50">
+          <Card data-tour="dash-accounts" className="accounts-link !p-3.5 flex items-center gap-3 hover:border-primary/50">
             <IconCircle icon={Landmark} className="bg-primary/10 text-primary" size={38} iconSize={17} />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm">{t('accounts.entryTitle')}</p>
@@ -539,7 +551,7 @@ export default function DashboardScreen() {
         </Link>
 
         <Link to="/debts" className="block">
-          <Card className="!p-3.5 flex items-center gap-3 hover:border-primary/50">
+          <Card data-tour="dash-debts" className="!p-3.5 flex items-center gap-3 hover:border-primary/50">
             <IconCircle icon={CreditCard} className="bg-wants/10 text-wants" size={38} iconSize={17} />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm">{t('debts.title')}</p>

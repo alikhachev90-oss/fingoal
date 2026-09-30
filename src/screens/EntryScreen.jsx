@@ -16,6 +16,8 @@ import { parseQuickEntry } from '../lib/aiInsights'
 import { Wand2, ChevronDown, Check, Plus, X } from 'lucide-react'
 import { todayStr } from '../lib/dates'
 import { useDataVersion } from '../lib/useDataVersion'
+import TourGuide from '../components/TourGuide'
+import { TOURS } from '../lib/tours'
 
 function accountLabel(account, t) {
   return `${account.name}${account.type === 'credit' ? ` (${t('accounts.credit')})` : ''}`
@@ -576,9 +578,10 @@ export default function EntryScreen() {
 
   return (
     <div className="screen-entry flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+      <TourGuide userId={user?.id} context={context} screenKey="entry" steps={TOURS.entry} lang={lang} />
       <TopBar title={t('entry.title')} />
       <div className="flex-1 px-4 py-4 space-y-4">
-        <div className="entry-type-tabs segmented-control grid grid-cols-3 gap-2">
+        <div data-tour="entry-type" className="entry-type-tabs segmented-control grid grid-cols-3 gap-2">
           {[
             { key: 'income', label: t('entry.typeIncome') },
             { key: 'expense', label: t('entry.typeExpense') },
@@ -621,7 +624,7 @@ export default function EntryScreen() {
           </Card>
         )}
 
-        <Card className="space-y-3">
+        <Card data-tour="entry-money" className="space-y-3">
           <Input label={t('entry.amount')} type="number" min="0" value={amount} onChange={(e) => changeAmount(e.target.value)} placeholder="0" />
           <Input label={t('entry.date')} type="date" value={date} onChange={(e) => { setDate(e.target.value); setDateTouched(true) }} />
           <Input
@@ -733,7 +736,7 @@ export default function EntryScreen() {
         </Card>
 
         {type !== 'transfer' && (
-        <Card className="space-y-3">
+        <Card data-tour="entry-category" className="space-y-3">
           <Input
             label={t('entry.category')}
             value={query}

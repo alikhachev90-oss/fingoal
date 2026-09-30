@@ -10,6 +10,8 @@ import { useSearchParams } from 'react-router-dom'
 import { TRACKS, isTrackUnlocked, getCompletedLessons } from '../lib/course'
 import CourseTrack from '../components/CourseTrack'
 import { useDataVersion } from '../lib/useDataVersion'
+import TourGuide from '../components/TourGuide'
+import { TOURS } from '../lib/tours'
 
 export default function LessonsScreen() {
   const { user, context, t, lang } = useApp()
@@ -76,9 +78,10 @@ export default function LessonsScreen() {
 
   return (
     <div className="screen-lessons flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+      <TourGuide userId={user?.id} context={context} screenKey="lessons" steps={TOURS.lessons} lang={lang} />
       <TopBar title={t('lessons.title')} subtitle={t('lessons.doneOfUnlocked', { done: doneCount, total: unlockedCount })} />
       <div className="flex-1 px-4 py-4 space-y-3">
-        <Card className="!p-5 overflow-hidden learning-hero">
+        <Card data-tour="lessons-hero" className="!p-5 overflow-hidden learning-hero">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-[.18em] text-primary font-bold">FINANCIAL IQ</p>

@@ -7,6 +7,8 @@ import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { todayStr } from '../lib/dates'
 import { loadConversation, saveConversation, clearConversation, buildSnapshot, askCoach } from '../lib/coachClient'
+import TourGuide from '../components/TourGuide'
+import { TOURS } from '../lib/tours'
 
 const SPEECH_LANG = { ru: 'ru-RU', en: 'en-US', es: 'es-US', fr: 'fr-FR' }
 
@@ -234,6 +236,7 @@ export default function CoachScreen() {
 
   return (
     <div className="screen-coach flex flex-col h-[100svh] max-w-app mx-auto w-full">
+      <TourGuide userId={user?.id} context={context} screenKey="coach" steps={TOURS.coach} lang={lang} />
       <TopBar title={t('coach.title')} subtitle={t('coach.subtitle')} />
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {shown.length === 0 && streaming === null && (
@@ -289,7 +292,7 @@ export default function CoachScreen() {
         <div ref={bottom} />
       </div>
 
-      <div className="px-3 pt-2 pb-[max(env(safe-area-inset-bottom),12px)] border-t border-border/60 space-y-2">
+      <div data-tour="coach-input" className="px-3 pt-2 pb-[max(env(safe-area-inset-bottom),12px)] border-t border-border/60 space-y-2">
         {speech?.listening && (
           <div className="rounded-2xl border border-primary/40 bg-primary/10 px-3.5 py-2.5 space-y-1.5">
             <VoiceWave pulse={speech.pulse} />

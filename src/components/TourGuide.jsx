@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { Button } from './UI'
 import { isTourDone, markTourDone } from '../lib/tours'
+import { usePaneActive } from '../lib/paneActive'
 
 const GAP = 6
 
@@ -9,18 +10,25 @@ const GAP = 6
 // explaining it. Runs automatically once per screen (tracked in
 // localStorage); `active`/`onActiveChange` let a screen's "?" button replay
 // it on demand.
-export default function TourGuide({ userId, context, screenKey, steps, lang, active, onActiveChange }) {
+export default function TourGuide({ userId, context, screenKey, steps, lang, active, onActiveChange, autoStart = true }) {
   const [stepIdx, setStepIdx] = useState(0)
   const [rect, setRect] = useState(null)
   const [running, setRunning] = useState(false)
+  const paneActive = usePaneActive()
 
+  // Runs the first time the screen is actually on screen — not while it's
+  // preloaded next to the one you're looking at — and pauses if you swipe away.
   useEffect(() => {
     if (!userId || !steps?.length) return
-    if (!isTourDone(userId, context, screenKey)) {
+    if (!paneActive) {
+      setRunning(false)
+      return
+    }
+    if (autoStart && !isTourDone(userId, context, screenKey)) {
       setStepIdx(0)
       setRunning(true)
     }
-  }, [userId, context, screenKey])
+  }, [userId, context, screenKey, paneActive, autoStart])
 
   useEffect(() => {
     if (active) {
@@ -118,6 +126,7 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
     setRunning(false)
     setRect(null)
     markTourDone(userId, context, screenKey)
+    window.dispatchEvent(new Event('fintera-tour-done'))
     onActiveChange?.(false)
   }
 
@@ -166,8 +175,10 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
       />
       {/* Tooltip */}
       <div
-        className="absolute bg-surface border border-border rounded-xl shadow-soft p-3.5 space-y-2.5"
+        className="absolute border border-border rounded-xl shadow-soft p-3.5 space-y-2.5"
         style={{
+          // Solid, so the page underneath never shows through the text.
+          backgroundColor: 'rgb(var(--color-surface))',
           top: placeBelow ? tooltipTop : undefined,
           bottom: placeBelow ? undefined : viewportH - tooltipTop,
           left: Math.min(Math.max(12, rect.left), viewportW - tooltipMaxWidth - 12),

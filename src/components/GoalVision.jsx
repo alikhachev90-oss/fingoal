@@ -62,7 +62,7 @@ export function GoalPhoto({ goal, pct }) {
           {busy && <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs">{t('common.saving')}</div>}
         </div>
       ) : (
-        <button type="button" disabled={busy} onClick={() => input.current?.click()} className="w-full flex items-center gap-2.5 rounded-xl border border-dashed border-primary/50 px-3 py-3 text-left">
+        <button type="button" data-tour="goals-photo" disabled={busy} onClick={() => input.current?.click()} className="w-full flex items-center gap-2.5 rounded-xl border border-dashed border-primary/50 px-3 py-3 text-left">
           <ImagePlus size={18} className="text-primary shrink-0" />
           <span className="min-w-0">
             <span className="block text-sm text-primary font-medium">{busy ? t('common.saving') : t('vision.add')}</span>
@@ -100,7 +100,7 @@ export function VisionPush({ goal }) {
 
   if (!state?.enabled) {
     return (
-      <button type="button" onClick={() => update({ enabled: true })} className="flex items-center gap-1.5 text-xs text-primary font-medium py-1">
+      <button type="button" data-tour="goals-vision" onClick={() => update({ enabled: true })} className="flex items-center gap-1.5 text-xs text-primary font-medium py-1">
         <CalendarClock size={14} /> {t('vision.weeklyOn')}
       </button>
     )

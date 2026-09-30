@@ -24,6 +24,62 @@ export function resetTour(userId, context, screenKey) {
 }
 
 export const TOURS = {
+  entry: [
+    {
+      id: 'entry-type',
+      title: { ru: 'Доход, расход или перевод', en: 'Income, expense or transfer' },
+      body: {
+        ru: 'Сначала выбери, что записываешь. «Перевод» — когда деньги просто переехали между твоими счетами (снял наличные, закинул на карту). Это не трата.',
+        en: 'First pick what you are logging. "Transfer" is money moving between your own accounts (cash withdrawal, card top-up) — not spending.',
+      },
+    },
+    {
+      id: 'entry-money',
+      title: { ru: 'Сумма и счёт', en: 'Amount and account' },
+      body: {
+        ru: 'Сумма, дата и с какой карты или из наличных. Доход пришёл частями (кэш, чек, перевод)? «Разделить по счетам». С кредитки можно сразу включить ежедневное напоминание её погасить. В доходе «Сначала себе» сразу откладывает твой %.',
+        en: 'Amount, date and which card or cash. Paid in parts (cash, check, transfer)? "Split across accounts". On a credit card you can turn on a daily pay-it-off reminder. For income, "Pay yourself first" sets your % aside right away.',
+      },
+    },
+    {
+      id: 'entry-category',
+      title: { ru: 'Категория', en: 'Category' },
+      body: {
+        ru: 'Начни печатать — приложение само подскажет категорию. Нет подходящей? «+ Своя» в любом разделе, и свои подкатегории тоже. Всё сохраняется.',
+        en: 'Start typing and it suggests a category. Nothing fits? "+ Your own" in any section, with your own subcategories too. They are saved.',
+      },
+    },
+  ],
+  lessons: [
+    {
+      id: 'lessons-hero',
+      title: { ru: 'Учёба', en: 'Learning' },
+      body: {
+        ru: 'Короткие уроки по 3–5 минут на твоих же цифрах: кредитки, проценты, подушка, инвестиции. Одного в день хватит — к каждому шагу Пути есть свой урок.',
+        en: 'Short 3–5 minute lessons built on your own numbers: cards, interest, cushions, investing. One a day is plenty — each Path step has its own lesson.',
+      },
+    },
+  ],
+  debts: [
+    {
+      id: 'debts-list',
+      title: { ru: 'Порядок погашения', en: 'Payoff order' },
+      body: {
+        ru: 'Первый в списке получает каждый лишний доллар, остальным — только минимум. Закрыл первый — его платёж переходит на следующий, и так до нуля.',
+        en: 'The first one gets every spare dollar; the rest get just the minimum. Once it is gone, its payment rolls to the next — all the way to zero.',
+      },
+    },
+  ],
+  coach: [
+    {
+      id: 'coach-input',
+      title: { ru: 'Пиши или говори', en: 'Type or talk' },
+      body: {
+        ru: 'Нажми микрофон и расскажи своими словами, или напиши. Чем честнее — тем точнее план. Разговор хранится на телефоне; «Новый разговор» начинает заново.',
+        en: 'Tap the mic and talk, or type. The more honest, the better the plan. The chat stays on your phone; "New conversation" starts fresh.',
+      },
+    },
+  ],
   dashboard: [
     {
       id: 'dash-quote',
@@ -31,6 +87,22 @@ export const TOURS = {
       body: {
         ru: 'Здесь каждый день новая мысль из книг по финансам — или реальная цифра из исследования (например, сколько людей в мире живут от зарплаты до зарплаты). Маленькая доза, но помогает не забывать, зачем всё это.',
         en: 'A new line from a finance book each day — or a real number from an actual study (e.g. how many people worldwide live paycheck to paycheck). A small dose, but it keeps the "why" in view.',
+      },
+    },
+    {
+      id: 'dash-path',
+      title: { ru: 'Путь — твой главный план', en: 'The Path — your main plan' },
+      body: {
+        ru: 'Шесть шагов от «живу от зарплаты до зарплаты» до свободы: подушка $500 → месяц в запасе → долги → 3 месяца → инвестиции → большие цели. Здесь видно, на каком ты шаге и сколько осталось. Нажми на карточку — раскроются все шаги, урок и челлендж к текущему. «Сначала себе» — сколько % с каждого дохода откладывать сразу.',
+        en: 'Six steps from paycheck-to-paycheck to freedom: $500 cushion → a month saved → debts → 3 months → investing → big goals. It shows which step you are on and what is left. Tap it to see every step plus a lesson and a challenge. "Pay yourself first" is the % of each income set aside right away.',
+      },
+    },
+    {
+      id: 'dash-coach',
+      title: { ru: 'Финансовый друг (AI)', en: 'Money friend (AI)' },
+      body: {
+        ru: 'Расскажи текстом или голосом, что происходит с деньгами — он видит твои цифры, задаст пару вопросов и скажет, с чего начать: что гасить первым, сколько копить. Долги и цели, о которых договоритесь, добавит в приложение в одно нажатие.',
+        en: 'Tell it by text or voice what is going on — it sees your numbers, asks a couple of questions and tells you where to start. Debts and goals you agree on go into the app in one tap.',
       },
     },
     {
@@ -47,6 +119,22 @@ export const TOURS = {
       body: {
         ru: 'Каждый день отмечайте, откладывали ли вы деньги. Это не про суммы — это про привычку. Пропустили день — серия обнулится, но начать заново можно в любой момент.',
         en: "Mark each day whether you set money aside. It's not about the amount — it's about the habit. Miss a day and the streak resets, but you can always start again.",
+      },
+    },
+    {
+      id: 'dash-accounts',
+      title: { ru: 'Карты и счета', en: 'Cards & accounts' },
+      body: {
+        ru: 'Сколько у тебя наличными, на картах и сколько должен по кредиткам. Нажми — каждый счёт отдельно, там же оплата кредитки и ежедневное напоминание её погасить.',
+        en: 'How much you have in cash, on cards, and owe on credit cards. Tap for each account — card payments and a daily pay-it-off reminder live there too.',
+      },
+    },
+    {
+      id: 'dash-debts',
+      title: { ru: 'Долги', en: 'Debts' },
+      body: {
+        ru: 'Все долги в порядке погашения: сначала дорогие, среди них — самый маленький. Вносишь платёж — долг уменьшается, закрытый празднуется.',
+        en: 'Every debt in payoff order: expensive first, smallest of those first. Log a payment and the balance drops; each one closed gets celebrated.',
       },
     },
     {
@@ -76,6 +164,14 @@ export const TOURS = {
       },
     },
     {
+      id: 'goals-photo',
+      title: { ru: 'Фото цели', en: 'Goal photo' },
+      body: {
+        ru: 'Добавь фото того, ради чего копишь — машину, дом, маму. Оно будет на цели и на главной, чтобы каждый день видеть, зачем всё это.',
+        en: 'Add a photo of what you are saving for — a car, a home, mom. It shows on the goal and the home screen so the "why" is always in view.',
+      },
+    },
+    {
       id: 'goals-plan',
       title: { ru: 'План: сколько откладывать', en: 'The plan: how much to set aside' },
       body: {
@@ -89,6 +185,14 @@ export const TOURS = {
       body: {
         ru: 'Выберите удобное время — раз в день придёт напоминание, сколько осталось до цели и стоит ли сегодня что-то отложить.',
         en: "Pick a time that works for you — once a day you'll get a nudge on how much is left toward the goal and whether today is a good day to set something aside.",
+      },
+    },
+    {
+      id: 'goals-vision',
+      title: { ru: 'Раз в неделю с фото', en: 'Once a week, with the photo' },
+      body: {
+        ru: 'Выбери день и время — придёт уведомление с фото цели и сколько осталось. Раз в неделю, чтобы не надоедало.',
+        en: 'Pick a day and time — a notification arrives with the goal photo and what is left. Once a week, so it never nags.',
       },
     },
   ],

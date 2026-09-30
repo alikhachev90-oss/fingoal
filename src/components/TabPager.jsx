@@ -6,6 +6,7 @@ import GoalsScreen from '../screens/GoalsScreen'
 import InsightsScreen from '../screens/InsightsScreen'
 import LessonsScreen from '../screens/LessonsScreen'
 import ScreenErrorBoundary from './ScreenErrorBoundary'
+import { PaneActiveContext } from '../lib/paneActive'
 
 // The five tabs, in the order they sit in the bottom bar, so dragging moves
 // the same direction the eye expects.
@@ -324,9 +325,11 @@ export default function TabPager() {
                   pushed sideways (overflow-x:hidden), a plain clip can't.
                   Decorations poking past the edge made the page slide. */}
               <div className="overflow-x-clip">
-                <ScreenErrorBoundary>
-                  <Component />
-                </ScreenErrorBoundary>
+                <PaneActiveContext.Provider value={active}>
+                  <ScreenErrorBoundary>
+                    <Component />
+                  </ScreenErrorBoundary>
+                </PaneActiveContext.Provider>
               </div>
             </div>
           )

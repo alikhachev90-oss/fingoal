@@ -15,7 +15,7 @@ import * as db from '../lib/db'
 import { supabaseEnabled } from '../lib/supabaseClient'
 
 const FEEDBACK_EMAIL = 'a.likhachev90@gmail.com'
-const TOUR_SCREENS = ['dashboard', 'goals', 'insights']
+const TOUR_SCREENS = ['dashboard', 'entry', 'goals', 'insights', 'lessons', 'debts', 'coach']
 
 export default function SettingsScreen() {
   const { user, context, theme, setTheme, lang, setLang, background, setBackground, t, signOut, updateProfile } = useApp()

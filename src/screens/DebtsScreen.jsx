@@ -7,6 +7,8 @@ import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { HIGH_RATE } from '../lib/path'
 import { todayStr } from '../lib/dates'
+import TourGuide from '../components/TourGuide'
+import { TOURS } from '../lib/tours'
 
 function fmt(n) {
   return '$' + Math.round(n || 0).toLocaleString('en-US')
@@ -18,7 +20,7 @@ const emptyForm = { id: null, name: '', balance: '', rate: '', min_payment: '' }
 // smallest balance first among those (Gal & McShane — each account that
 // disappears is what keeps people going until they're debt-free).
 export default function DebtsScreen() {
-  const { user, context, t } = useApp()
+  const { user, context, t, lang } = useApp()
   const [debts, setDebts] = useState([])
   const [form, setForm] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -129,6 +131,7 @@ export default function DebtsScreen() {
 
   return (
     <div className="screen-debts flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
+      <TourGuide userId={user?.id} context={context} screenKey="debts" steps={TOURS.debts} lang={lang} />
       <TopBar title={t('debts.title')} subtitle={t('debts.subtitle')} />
       <div className="flex-1 px-4 py-4 space-y-3">
         {cleared && (
@@ -153,7 +156,7 @@ export default function DebtsScreen() {
         {ordered.map((d, i) => {
           const high = Number(d.rate) >= HIGH_RATE
           return (
-            <Card key={d.id} className={`!p-3.5 space-y-2.5 ${i === 0 ? 'border-primary/40' : ''}`}>
+            <Card key={d.id} data-tour={i === 0 ? 'debts-list' : undefined} className={`!p-3.5 space-y-2.5 ${i === 0 ? 'border-primary/40' : ''}`}>
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <IconCircle icon={CreditCard} className={high ? 'bg-wants/10 text-wants' : 'bg-primary/10 text-primary'} size={36} iconSize={16} />
