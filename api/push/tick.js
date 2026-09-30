@@ -1,5 +1,6 @@
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
+import { buildDigest } from '../../src/lib/digest.js'
 
 // Sends every reminder that has come due, to the person's devices, with the
 // app closed. Called every few minutes (see .github/workflows/push-tick.yml).
@@ -54,7 +55,7 @@ export default async function handler(req, res) {
       const meta = user.user_metadata || {}
       const subs = Array.isArray(meta.push_subs) ? meta.push_subs : []
       const reminders = Array.isArray(meta.push_reminders) ? meta.push_reminders : []
-      if (!subs.length || !reminders.length) continue
+      if (!subs.length) continue
       checked += 1
 
       const fired = new Set(meta.push_fired || [])
@@ -84,6 +85,24 @@ export default async function handler(req, res) {
             due.push(r)
             goalLast[r.id] = local.day
           }
+        }
+      }
+      // Evening summary (on unless turned off in Settings), once a day at the
+      // person's chosen local time. Their data is read only when it's due.
+      const digest = meta.digest || {}
+      if (digest.on !== false) {
+        const [dh, dm] = String(digest.time || '21:00').split(':').map(Number)
+        const late = local.minutes - (dh * 60 + dm)
+        if (goalLast.digest !== local.day && late >= 0 && late <= GOAL_WINDOW_MIN) {
+          const since = new Date(now.getTime() - 120 * 86400000).toISOString().slice(0, 10)
+          const [{ data: tx }, { data: settings }, { data: goals }] = await Promise.all([
+            supabase.from('transactions').select('*').eq('user_id', user.id).eq('context', 'personal').gte('date', since),
+            supabase.from('context_settings').select('*').eq('user_id', user.id).eq('context', 'personal').maybeSingle(),
+            supabase.from('goals').select('*').eq('user_id', user.id).eq('context', 'personal').order('priority'),
+          ])
+          const { title, body } = buildDigest({ transactions: tx || [], settings, goals: goals || [], day: local.day, lang: meta.lang })
+          due.push({ id: 'digest', title, body, url: '/dashboard' })
+          goalLast.digest = local.day
         }
       }
       if (!due.length) continue

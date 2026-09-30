@@ -119,6 +119,7 @@ export async function syncServerReminders(user) {
       push_subs: subs,
       push_reminders: collectReminders(user.id, current),
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      lang: (() => { try { return localStorage.getItem('fintrack_lang') || 'ru' } catch { return 'ru' } })(),
     })
   } catch {
     // Offline: the next sync (app start or next reminder change) catches up.

@@ -1,4 +1,4 @@
-import { toDate } from './dates'
+import { toDate } from './dates.js'
 // Goal / budget math helpers.
 
 // Monthly income is derived from what the person actually logged, never from a

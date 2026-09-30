@@ -18,7 +18,12 @@ const FEEDBACK_EMAIL = 'a.likhachev90@gmail.com'
 const TOUR_SCREENS = ['dashboard', 'entry', 'goals', 'insights', 'lessons', 'debts', 'coach']
 
 export default function SettingsScreen() {
-  const { user, context, theme, setTheme, lang, setLang, background, setBackground, t, signOut, updateProfile } = useApp()
+  const { user, setUser, context, theme, setTheme, lang, setLang, background, setBackground, t, signOut, updateProfile } = useApp()
+  // Evening summary: on by default at 21:00, stored on the account for the server.
+  const digest = { on: true, time: '21:00', ...(user?.user_metadata?.digest || {}) }
+  async function saveDigest(patch) {
+    setUser(await db.saveUserMeta(user.id, { digest: { ...digest, ...patch } }))
+  }
   const [notifStatus, setNotifStatus] = useState(typeof Notification !== 'undefined' ? Notification.permission : 'unsupported')
   const [toursReset, setToursReset] = useState(false)
   const [confirmingReset, setConfirmingReset] = useState(false)
@@ -208,6 +213,16 @@ export default function SettingsScreen() {
 
         <Card className="!p-3.5 space-y-2.5">
           <p className="text-xs font-bold tracking-wide text-muted uppercase flex items-center gap-1.5"><Bell size={13} /> {t('settings.notifications')}</p>
+          <div className="flex items-center justify-between gap-2 text-sm">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" className="w-4 h-4 accent-primary" checked={digest.on} onChange={(e) => saveDigest({ on: e.target.checked })} />
+              {t('settings.digest')}
+            </label>
+            {digest.on && (
+              <input type="time" value={digest.time} onChange={(e) => e.target.value && saveDigest({ time: e.target.value })} className="bg-surface2 border border-border rounded-lg px-2 py-1 text-xs outline-none focus:border-primary" />
+            )}
+          </div>
+          <p className="text-[11px] text-muted leading-relaxed -mt-1">{t('settings.digestNote')}</p>
           {pushBackendEnabled && pushSupported() ? (
             <>
               <p className="text-sm">{notifLabel}</p>
