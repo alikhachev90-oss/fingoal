@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { Button } from './UI'
 import { isTourDone, markTourDone } from '../lib/tours'
@@ -15,6 +15,13 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
   const [rect, setRect] = useState(null)
   const [running, setRunning] = useState(false)
   const paneActive = usePaneActive()
+  // The tooltip's real height, so it can always be placed fully on screen.
+  const tipRef = useRef(null)
+  const [tipH, setTipH] = useState(180)
+  useLayoutEffect(() => {
+    const h = tipRef.current?.offsetHeight
+    if (h && h !== tipH) setTipH(h)
+  })
 
   // Runs the first time the screen is actually on screen — not while it's
   // preloaded next to the one you're looking at — and pauses if you swipe away.
@@ -151,8 +158,15 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
   const viewportH = window.visualViewport?.height || window.innerHeight
   const viewportW = window.visualViewport?.width || window.innerWidth
   const spaceBelow = viewportH - (rect.top + rect.height)
-  const placeBelow = spaceBelow > 190 || rect.top < 190
-  const tooltipTop = placeBelow ? rect.top + rect.height + GAP : Math.max(12, rect.top - GAP)
+  // Below the target if it fits, else above; a target too tall for either
+  // (the spending chart) gets the tooltip pinned to the bottom of the screen
+  // over it — otherwise "Next" ends up off-screen and the tour is stuck.
+  const need = tipH + GAP + 12
+  let tooltipTop
+  if (spaceBelow >= need) tooltipTop = rect.top + rect.height + GAP
+  else if (rect.top >= need) tooltipTop = rect.top - GAP - tipH
+  else tooltipTop = viewportH - tipH - 12
+  tooltipTop = Math.max(12, Math.min(tooltipTop, viewportH - tipH - 12))
   const tooltipMaxWidth = Math.min(340, viewportW - 32)
 
   const skipLabel = lang === 'en' ? 'Skip' : lang === 'es' ? 'Omitir' : lang === 'fr' ? 'Passer' : 'Пропустить'
@@ -175,12 +189,14 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
       />
       {/* Tooltip */}
       <div
+        ref={tipRef}
         className="absolute border border-border rounded-xl shadow-soft p-3.5 space-y-2.5"
         style={{
           // Solid, so the page underneath never shows through the text.
           backgroundColor: 'rgb(var(--color-surface))',
-          top: placeBelow ? tooltipTop : undefined,
-          bottom: placeBelow ? undefined : viewportH - tooltipTop,
+          top: tooltipTop,
+          maxHeight: viewportH - 24,
+          overflowY: 'auto',
           left: Math.min(Math.max(12, rect.left), viewportW - tooltipMaxWidth - 12),
           width: tooltipMaxWidth,
         }}
