@@ -18,9 +18,10 @@ import { GOAL_TIPS } from '../lib/goalGuide'
 import { Lightbulb, ShieldCheck, CreditCard, Home, TrendingUp } from 'lucide-react'
 import { toDate, todayStr } from '../lib/dates'
 import { useDataVersion } from '../lib/useDataVersion'
+import { fmtMoney } from '../lib/money'
 
 function fmt(n) {
-  return '$' + Math.round(n || 0).toLocaleString('en-US')
+  return fmtMoney(n)
 }
 
 function pickLang(obj, lang) {

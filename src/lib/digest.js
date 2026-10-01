@@ -1,15 +1,16 @@
 import { computeSafeToSpendToday, deriveMonthlyIncome } from './finance.js'
 import { tr } from './tr.js'
+import { formatMoney } from './money.js'
 
 // The evening summary: today against today's limit, what that does to
 // tomorrow's, and how the top goal is moving. Pure — used by the server tick
 // (api/push/tick.js) with the person's own local date. Same math as "Safe to
 // spend today" on the home screen, so the numbers always match.
 
-const money = (n) => '$' + Math.round(Math.abs(n)).toLocaleString('en-US')
 const counts = (t) => t.group !== 'transfer' && !t.is_payment
 
-export function buildDigest({ transactions = [], settings, goals = [], day, lang = 'ru', saveRate = 5 }) {
+export function buildDigest({ transactions = [], settings, goals = [], day, lang = 'ru', saveRate = 5, currency = 'USD' }) {
+  const money = (n) => formatMoney(Math.abs(n), currency, lang)
   const L = (texts) => tr(lang, texts)
   const [y, m, d] = day.split('-').map(Number)
   const today = new Date(y, m - 1, d)

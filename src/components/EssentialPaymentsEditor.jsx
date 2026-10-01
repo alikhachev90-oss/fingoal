@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 import { Button, Input } from './UI'
 import { saveSettings } from '../lib/db'
 import { billLabel, budgetRows, serializeBudget } from '../lib/essentialBudget'
+import { fmtMoney } from '../lib/money'
 
 export default function EssentialPaymentsEditor({ settings, onSaved, onClose }) {
   const { user, context, lang, t } = useApp()
@@ -55,7 +56,7 @@ export default function EssentialPaymentsEditor({ settings, onSaved, onClose }) 
           ))}
           <Button type="button" variant="secondary" icon={Plus} onClick={() => setRows((current) => [...current, { id: crypto.randomUUID(), key: '', custom: true, name: '', amount: '' }])}>{t('bills.add')}</Button>
         </fieldset>
-        <p className="flex justify-between text-sm"><span>{t('bills.total')}</span><strong>{new Intl.NumberFormat(lang, { style: 'currency', currency: 'USD' }).format(total)}</strong></p>
+        <p className="flex justify-between text-sm"><span>{t('bills.total')}</span><strong>{fmtMoney(total, { decimals: true })}</strong></p>
         {error && <p role="alert" className="text-danger text-sm">{error}</p>}
         <div className="flex gap-2">
           <Button type="button" variant="secondary" disabled={saving} onClick={onClose}>{t('common.cancel')}</Button>

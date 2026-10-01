@@ -3,6 +3,7 @@ import * as db from '../lib/db'
 import { translate } from '../i18n/strings'
 import { getBackground } from '../lib/backgrounds'
 import { loadCustomCategories } from '../lib/customCategories'
+import { guessCountry, currencyFor, setMoneyContext } from '../lib/money'
 
 const AppContext = createContext(null)
 
@@ -18,6 +19,19 @@ export function AppProvider({ children }) {
   const [theme, setTheme] = useState(() => localStorage.getItem('fintrack_theme') || 'system')
   const [lang, setLang] = useState(() => localStorage.getItem('fintrack_lang') || detectDefaultLang())
   const [background, setBackground] = useState(() => getBackground(localStorage.getItem('fintrack_background')).id)
+  // Country of residence decides the currency. Saved on the account so it
+  // follows the person to other devices; until then, guessed from the phone.
+  const [localCountry, setLocalCountry] = useState(() => {
+    try { return localStorage.getItem('fintera_country') || guessCountry() } catch { return guessCountry() }
+  })
+  const country = user?.user_metadata?.country || localCountry
+  // Set during render so every screen below formats money the same way.
+  setMoneyContext(currencyFor(country), lang)
+  const setCountry = useCallback(async (code) => {
+    setLocalCountry(code)
+    try { localStorage.setItem('fintera_country', code) } catch { /* ignore */ }
+    if (user) setUser(await db.saveUserMeta(user.id, { country: code, currency: currencyFor(code) }))
+  }, [user])
 
   // The person's own categories have to be in place before any screen draws
   // a label, so they're loaded right here in render when the user changes.
@@ -90,6 +104,9 @@ export function AppProvider({ children }) {
     setTheme,
     lang,
     setLang,
+    country,
+    currency: currencyFor(country),
+    setCountry,
     background,
     setBackground,
     t,

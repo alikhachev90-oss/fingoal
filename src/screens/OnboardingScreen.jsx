@@ -4,6 +4,8 @@ import { Home, Car, ShoppingCart, HeartPulse, CreditCard, ChevronLeft, PlusCircl
 import { Button, Input, Card, IconCircle } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
+import CountrySelect from '../components/CountrySelect'
+import { fmtMoney } from '../lib/money'
 
 const emptyDebt = { name: '', balance: '', rate: '', termMonths: '', minPayment: '' }
 
@@ -68,6 +70,7 @@ export default function OnboardingScreen() {
   const steps = [
     // Step 0: essential monthly payments
     <div key="needs" className="space-y-5 animate-slide-up">
+      <CountrySelect />
       <p className="text-muted text-sm">{t('onboarding.needsHint')}</p>
       <div className="space-y-3">
         {NEEDS_FIELDS.map((f) => (
@@ -90,7 +93,7 @@ export default function OnboardingScreen() {
       </div>
       <div className="flex items-center justify-between bg-surface2 rounded-xl px-4 py-3 border border-border">
         <span className="text-sm text-muted font-medium">{t('onboarding.totalNeeds')}</span>
-        <span className="text-lg font-bold font-num">${totalNeeds.toLocaleString('en-US')}</span>
+        <span className="text-lg font-bold font-num">{fmtMoney(totalNeeds)}</span>
       </div>
     </div>,
 

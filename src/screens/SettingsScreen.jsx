@@ -11,6 +11,7 @@ import { enablePushNotifications, disablePushNotifications, isPushEnabled, pushS
 import { pushBackendEnabled } from '../lib/pushClient'
 import { BACKGROUNDS } from '../lib/backgrounds'
 import ConfirmDialog from '../components/ConfirmDialog'
+import CountrySelect from '../components/CountrySelect'
 import * as db from '../lib/db'
 import { supabaseEnabled } from '../lib/supabaseClient'
 
@@ -136,6 +137,10 @@ export default function SettingsScreen() {
     <div className="screen-settings flex flex-col min-h-[100svh] max-w-app mx-auto w-full">
       <TopBar title={t('settings.title')} />
       <div className="flex-1 px-4 py-4 space-y-3">
+
+        <Card className="!p-3.5">
+          <CountrySelect />
+        </Card>
 
         <Card className="!p-3.5 space-y-3">
           <p className="text-xs font-bold tracking-wide text-muted uppercase">{t('settings.profile')}</p>

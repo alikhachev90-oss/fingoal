@@ -1,6 +1,7 @@
 import * as db from './db'
 import { tr } from './tr.js'
 import { supabase, supabaseEnabled } from './supabaseClient'
+import { fmtMoney, getCurrency } from './money.js'
 
 // Reminders that arrive with the app closed. The browser can't schedule a
 // notification on its own, so the reminders (and this device's push address)
@@ -53,7 +54,7 @@ function collectReminders(userId, meta = {}) {
       if (key.startsWith(`fintrack_reminders_${userId}_`)) {
         for (const r of JSON.parse(localStorage.getItem(key)) || []) {
           if (r.fired || !r.when) continue
-          out.push({ id: r.id, kind: 'bill', when: r.when, title: r.label, body: r.amount ? `$${Math.round(r.amount)}` : '' })
+          out.push({ id: r.id, kind: 'bill', when: r.when, title: r.label, body: r.amount ? fmtMoney(r.amount) : '' })
         }
       } else if (key.startsWith(`fintera_goal_reminder_${userId}_`)) {
         const r = JSON.parse(localStorage.getItem(key))
@@ -64,7 +65,7 @@ function collectReminders(userId, meta = {}) {
         const r = JSON.parse(localStorage.getItem(key))
         if (!r?.enabled || !r.time || !(r.owed > 0)) continue
         const accountId = key.slice(`fintera_card_reminder_${userId}_`.length)
-        const owed = `$${Math.round(r.owed).toLocaleString('en-US')}`
+        const owed = fmtMoney(r.owed)
         out.push({
           id: `card_${accountId}`,
           kind: 'daily',
@@ -78,7 +79,7 @@ function collectReminders(userId, meta = {}) {
         if (!r?.enabled || !r.time || !r.snapshot) continue
         const goalId = key.slice(`fintera_vision_${userId}_`.length)
         const { name, target, saved } = r.snapshot
-        const left = Math.max(0, Math.round(target - saved))
+        const left = fmtMoney(Math.max(0, target - saved))
         const pct = target > 0 ? Math.min(100, Math.round((saved / target) * 100)) : 0
         const image = meta.goal_images?.[goalId]
         out.push({
@@ -87,7 +88,7 @@ function collectReminders(userId, meta = {}) {
           weekday: r.weekday || 1,
           time: r.time,
           title: `«${name}» · ${pct}%`,
-          body: L({ ru: `Осталось $${left}. Ещё один шаг на этой неделе.`, en: `$${left} to go. One more step this week.`, es: `Faltan $${left}. Un paso más esta semana.`, fr: `Encore $${left}. Un pas de plus cette semaine.` }),
+          body: L({ ru: `Осталось ${left}. Ещё один шаг на этой неделе.`, en: `${left} to go. One more step this week.`, es: `Faltan ${left}. Un paso más esta semana.`, fr: `Encore ${left}. Un pas de plus cette semaine.` }),
           url: '/goals',
           // Only a hosted photo can ride in a push, not an inline one.
           image: image && image.startsWith('https://') ? image : undefined,
@@ -121,6 +122,8 @@ export async function syncServerReminders(user) {
       push_subs: subs,
       push_reminders: collectReminders(user.id, current),
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      // The evening summary is written on the server, in the person's currency.
+      currency: getCurrency(),
       lang: (() => { try { return localStorage.getItem('fintrack_lang') || 'ru' } catch { return 'ru' } })(),
     })
   } catch {

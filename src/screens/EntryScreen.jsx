@@ -19,6 +19,7 @@ import { useDataVersion } from '../lib/useDataVersion'
 import TourGuide from '../components/TourGuide'
 import AccountPicker from '../components/AccountPicker'
 import { TOURS } from '../lib/tours'
+import { fmtMoney } from '../lib/money'
 
 // The default Cash account is created once, even if the screen loads twice
 // at the same moment (a reload right after the first write used to race it
@@ -424,7 +425,7 @@ export default function EntryScreen() {
         if (!user.user_metadata?.save_rate_at) {
           db.saveUserMeta(user.id, { save_rate: rate, save_rate_at: new Date().toISOString() }).then(setUser).catch(() => {})
         }
-        setRoundUpNote(t('entry.payFirstNote', { amt: `$${payFirstAmount.toFixed(2)}`, step: t(`path.step.${pathNow.key}`) }))
+        setRoundUpNote(t('entry.payFirstNote', { amt: fmtMoney(payFirstAmount, { decimals: true }), step: t(`path.step.${pathNow.key}`) }))
       }
       if (selected.group === 'savings' && selected.key === 'debt_extra') {
         // Extra paid on debt comes off the debt first in payoff order
@@ -468,7 +469,7 @@ export default function EntryScreen() {
           const newPct = topGoal.target_amount > 0 ? Math.min(100, Math.round(((updatedGoal?.saved_amount || 0) / topGoal.target_amount) * 100)) : 0
           const m = crossedMilestone(prevPct, newPct)
           if (m) setMilestoneHit({ pct: m, goalName: topGoal.name })
-          setRoundUpNote(t('entry.roundUpNote', { amt: diff.toFixed(2), name: topGoal.name }))
+          setRoundUpNote(t('entry.roundUpNote', { amt: fmtMoney(diff, { decimals: true }), name: topGoal.name }))
         }
       }
       setSaved(true)
@@ -581,7 +582,7 @@ export default function EntryScreen() {
             </div>
             {quickResult && (
               <p className="text-xs text-muted">
-                {quickResult.amount ? t('entry.quickResultAmount', { amt: quickResult.amount }) : t('entry.quickResultNoAmount')}
+                {quickResult.amount ? t('entry.quickResultAmount', { amt: fmtMoney(quickResult.amount, { decimals: true }) }) : t('entry.quickResultNoAmount')}
                 {quickResult.suggestion ? t('entry.quickResultCatFound') : t('entry.quickResultCatNotFound')}
               </p>
             )}
@@ -658,8 +659,8 @@ export default function EntryScreen() {
                     {Math.abs(splitLeft) < 0.005
                       ? t('entry.splitDone')
                       : splitLeft > 0
-                        ? t('entry.splitLeft', { amt: splitLeft.toFixed(2).replace(/\.00$/, '') })
-                        : t('entry.splitOver', { amt: (-splitLeft).toFixed(2).replace(/\.00$/, '') })}
+                        ? t('entry.splitLeft', { amt: fmtMoney(splitLeft, { decimals: true }) })
+                        : t('entry.splitOver', { amt: fmtMoney(-splitLeft, { decimals: true }) })}
                   </span>
                 )}
               </div>
@@ -680,7 +681,7 @@ export default function EntryScreen() {
           {type === 'income' && rate > 0 && (
             <label className="flex items-center justify-between gap-3 text-sm pt-1 cursor-pointer">
               <span className="text-muted">
-                {t('entry.payFirst', { rate, amt: `$${payFirstAmount.toFixed(2).replace(/\.00$/, '')}`, dest: t(`path.step.${pathNow.key}`) })}
+                {t('entry.payFirst', { rate, amt: fmtMoney(payFirstAmount, { decimals: true }), dest: t(`path.step.${pathNow.key}`) })}
               </span>
               <input type="checkbox" checked={payFirst} onChange={(e) => setPayFirst(e.target.checked)} className="w-4 h-4 accent-primary shrink-0" />
             </label>

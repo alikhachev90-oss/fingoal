@@ -10,6 +10,7 @@ import { tr } from './tr.js'
 import { suggestCategories, findCategory, pickLang } from './categories'
 import { deriveMonthlyIncome } from './finance'
 import { toDate } from './dates'
+import { fmtMoney } from './money.js'
 
 export function categoryLabel(group, key, lang = 'ru') {
   return pickLang(findCategory(group, key)?.label, lang) || key
@@ -47,7 +48,7 @@ export function parseQuickEntry(text, lang = 'ru') {
 
 // -------------------------------------------------------------------- format
 function fmt(n) {
-  return '$' + Math.round(n || 0).toLocaleString('en-US')
+  return fmtMoney(n)
 }
 
 function monthKey(d) {

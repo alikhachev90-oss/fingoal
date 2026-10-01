@@ -10,9 +10,10 @@ import { syncServerReminders } from '../lib/serverReminders'
 import { requestNotificationPermission } from '../lib/reminders'
 import { computeAccountBalance, computeUtilization, nextDateForDay, daysUntil, getCreditTips } from '../lib/creditCards'
 import { todayStr } from '../lib/dates'
+import { fmtMoney } from '../lib/money'
 
 function fmt(n) {
-  return '$' + Math.round(n || 0).toLocaleString('en-US')
+  return fmtMoney(n)
 }
 
 const emptyForm = { name: '', type: 'cash', credit_limit: '', statement_day: '', due_day: '' }

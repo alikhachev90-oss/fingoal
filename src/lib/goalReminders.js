@@ -8,6 +8,7 @@ import { translate } from '../i18n/strings'
 import { tr } from './tr.js'
 import { showLocalNotification } from './reminders'
 import { todayStr } from './dates'
+import { fmtMoney } from './money.js'
 
 function keyFor(userId, context, goalId) {
   return `fintera_goal_reminder_${userId}_${context}_${goalId}`
@@ -34,25 +35,25 @@ export function clearGoalReminder(userId, context, goalId) {
 }
 
 function buildMessage(goal, plan, checkedInToday, lang = 'ru') {
-  const remaining = Math.round(plan.remaining)
-  const perDay = Math.round(plan.perDay)
-  const perMonth = Math.round(plan.perMonth)
+  const remaining = fmtMoney(plan.remaining)
+  const perDay = fmtMoney(plan.perDay)
+  const perMonth = fmtMoney(plan.perMonth)
   const daysLeft = Math.max(0, Math.round(plan.daysLeft))
 
   if (checkedInToday) {
     return tr(lang, {
-      ru: `«${goal.name}»: сегодня уже отметили взнос. Осталось $${remaining} и ${daysLeft} дн. Так держать.`,
-      en: `"${goal.name}": you already logged a contribution today. $${remaining} and ${daysLeft} day(s) left. Keep it up.`,
-      es: `«${goal.name}»: hoy ya registraste un aporte. Faltan $${remaining} y ${daysLeft} día(s). Sigue así.`,
-      fr: `« ${goal.name} » : versement déjà noté aujourd’hui. Reste $${remaining} et ${daysLeft} jour(s). Continue comme ça.`,
+      ru: `«${goal.name}»: сегодня уже отметили взнос. Осталось ${remaining} и ${daysLeft} дн. Так держать.`,
+      en: `"${goal.name}": you already logged a contribution today. ${remaining} and ${daysLeft} day(s) left. Keep it up.`,
+      es: `«${goal.name}»: hoy ya registraste un aporte. Faltan ${remaining} y ${daysLeft} día(s). Sigue así.`,
+      fr: `« ${goal.name} » : versement déjà noté aujourd’hui. Reste ${remaining} et ${daysLeft} jour(s). Continue comme ça.`,
     })
   }
 
   return tr(lang, {
-    ru: `«${goal.name}»: сегодня ещё не откладывали. Осталось $${remaining} (${daysLeft} дн.). Лучше отложить ~$${perDay} сегодня, чем искать $${perMonth} в конце месяца.`,
-    en: `"${goal.name}": no contribution logged today yet. $${remaining} left (${daysLeft} days). Better to set aside ~$${perDay} today than scramble for $${perMonth} at month's end.`,
-    es: `«${goal.name}»: hoy aún no apartaste nada. Faltan $${remaining} (${daysLeft} días). Mejor apartar ~$${perDay} hoy que buscar $${perMonth} a fin de mes.`,
-    fr: `« ${goal.name} » : rien mis de côté aujourd’hui. Reste $${remaining} (${daysLeft} jours). Mieux vaut mettre ~$${perDay} de côté aujourd’hui que chercher $${perMonth} en fin de mois.`,
+    ru: `«${goal.name}»: сегодня ещё не откладывали. Осталось ${remaining} (${daysLeft} дн.). Лучше отложить ~${perDay} сегодня, чем искать ${perMonth} в конце месяца.`,
+    en: `"${goal.name}": no contribution logged today yet. ${remaining} left (${daysLeft} days). Better to set aside ~${perDay} today than scramble for ${perMonth} at month's end.`,
+    es: `«${goal.name}»: hoy aún no apartaste nada. Faltan ${remaining} (${daysLeft} días). Mejor apartar ~${perDay} hoy que buscar ${perMonth} a fin de mes.`,
+    fr: `« ${goal.name} » : rien mis de côté aujourd’hui. Reste ${remaining} (${daysLeft} jours). Mieux vaut mettre ~${perDay} de côté aujourd’hui que chercher ${perMonth} en fin de mois.`,
   })
 }
 

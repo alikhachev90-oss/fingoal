@@ -1,3 +1,4 @@
+import { fmtMoney } from './money.js'
 // Bill reminders, kept on the device. While the app is open they're checked
 // on an interval mounted at the app root; with it closed the server sends
 // them from the account copy (lib/serverReminders.js, api/push/tick.js).
@@ -77,7 +78,7 @@ export function checkDueReminders(userId, context) {
     r.fired = true
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
-        showLocalNotification(r.label, { body: r.amount ? `$${Math.round(r.amount)}` : undefined, tag: r.id })
+        showLocalNotification(r.label, { body: r.amount ? fmtMoney(r.amount) : undefined, tag: r.id })
       } catch {
         // Notification constructor can throw on some mobile browsers — ignore.
       }

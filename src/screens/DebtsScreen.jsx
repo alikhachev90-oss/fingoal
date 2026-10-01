@@ -11,9 +11,10 @@ import TourGuide from '../components/TourGuide'
 import AccountPicker from '../components/AccountPicker'
 import { getPayFrom, setPayFrom } from '../lib/payFrom'
 import { TOURS } from '../lib/tours'
+import { fmtMoney } from '../lib/money'
 
 function fmt(n) {
-  return '$' + Math.round(n || 0).toLocaleString('en-US')
+  return fmtMoney(n)
 }
 
 const emptyForm = { id: null, name: '', balance: '', rate: '', min_payment: '' }

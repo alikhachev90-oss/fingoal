@@ -13,9 +13,10 @@ import {
   yearsWithActivity,
   lastClosedMonth,
 } from '../lib/monthlyReport'
+import { fmtMoney } from '../lib/money'
 
 function fmt(n) {
-  return '$' + Math.round(n || 0).toLocaleString('en-US')
+  return fmtMoney(n)
 }
 
 const MONTH_FMT = { en: 'en-US', es: 'es-ES', fr: 'fr-FR', ru: 'ru-RU' }

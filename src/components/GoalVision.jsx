@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext'
 import { goalImage, setGoalImage, removeGoalImage, getVision, setVision, clearVision, goalSnapshot } from '../lib/goalVision'
 import { requestNotificationPermission } from '../lib/reminders'
 import { syncServerReminders } from '../lib/serverReminders'
+import { fmtMoney } from '../lib/money'
 
 const WEEKDAYS = {
   ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
@@ -154,7 +155,7 @@ export function GoalVisionBanner({ goal }) {
         <div className="mt-2 h-1.5 rounded-full bg-white/25 overflow-hidden">
           <div className="h-full bg-primary rounded-full" style={{ width: `${Math.max(2, pct)}%` }} />
         </div>
-        <p className="text-xs opacity-85 mt-1 font-num">{t('vision.bannerLeft', { pct, left: '$' + Math.max(0, Math.round(target - saved)).toLocaleString('en-US') })}</p>
+        <p className="text-xs opacity-85 mt-1 font-num">{t('vision.bannerLeft', { pct, left: fmtMoney(Math.max(0, target - saved)) })}</p>
       </div>
     </Link>
   )

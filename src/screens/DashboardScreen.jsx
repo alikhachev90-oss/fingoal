@@ -33,9 +33,10 @@ import { toDate, todayStr } from '../lib/dates'
 import { saveRate } from '../lib/path'
 import { daysWord } from '../i18n/strings'
 import { useDataVersion } from '../lib/useDataVersion'
+import { fmtMoney } from '../lib/money'
 
 function fmt(n) {
-  return '$' + Math.round(n || 0).toLocaleString('en-US')
+  return fmtMoney(n)
 }
 
 // Rank-based heat color (largest slice = red, smallest = green) instead of a

@@ -1,4 +1,5 @@
 import { tr } from './tr.js'
+import { fmtMoney } from './money.js'
 
 // A structured, source-cited course — distinct from the narrative "Истории"
 // in lessons.js. Every lesson here traces to a named primary source (a US
@@ -10,7 +11,7 @@ import { tr } from './tr.js'
 // the same body of knowledge, explained plainly, checked with a real exam.
 
 function fmt(n) {
-  return '$' + Math.round(n || 0).toLocaleString('en-US')
+  return fmtMoney(n)
 }
 
 export const TRACKS = [

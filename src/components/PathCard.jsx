@@ -7,9 +7,10 @@ import * as db from '../lib/db'
 import { computePath, saveRate, saveRateStepDue, SAVE_RATE_MAX, STEP_HELP } from '../lib/path'
 import { LESSONS } from '../lib/lessons'
 import { CHALLENGES, challengeTitle, getActiveChallenge, startChallenge } from '../lib/aiInsights'
+import { fmtMoney } from '../lib/money'
 
 function fmt(n) {
-  return '$' + Math.round(n || 0).toLocaleString('en-US')
+  return fmtMoney(n)
 }
 
 // The one line that says where you are on the way out of paycheck-to-paycheck

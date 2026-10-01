@@ -1,4 +1,5 @@
 import { toDate } from './dates'
+import { fromUsd, getCurrency } from './money.js'
 // "Путь" — one ladder from zero to financial freedom, so every screen answers
 // "what am I working on right now?". The order follows the research-backed
 // consensus (r/personalfinance flowchart, Money Guy's order of operations,
@@ -16,7 +17,8 @@ import { toDate } from './dates'
 // says isn't done yet.
 
 export const HIGH_RATE = 8 // % APR — above this, paying debt beats investing
-const STARTER = 500
+// $500, in the person's own currency (a round local equivalent).
+const starterAmount = () => fromUsd(500, getCurrency())
 const INVEST_TARGET = 0.15
 const DAY = 86400000
 
@@ -55,7 +57,7 @@ export function computePath({ transactions = [], settings, debts = [], goals = [
   const goal = goals[0]
 
   const steps = [
-    { key: 'starter', target: STARTER, current: Math.min(cushion, STARTER), saveTo: 'emergency' },
+    { key: 'starter', target: starterAmount(), current: Math.min(cushion, starterAmount()), saveTo: 'emergency' },
     { key: 'month', target: essentials, current: Math.min(cushion, essentials), saveTo: 'emergency' },
     { key: 'debt', target: debtLeft, current: 0, left: debtLeft, count: expensive.length, next: expensive[0] || null, saveTo: 'debt_extra', done: expensive.length === 0 },
     { key: 'threeMonths', target: essentials * 3, current: Math.min(cushion, essentials * 3), saveTo: 'emergency' },

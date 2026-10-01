@@ -1,3 +1,5 @@
+import { curSymbol, fmtMoney, fromUsd, getCurrency } from '../lib/money.js'
+
 // Interface chrome translations — navigation, buttons, field labels, section
 // titles. Deep personalized content (lesson/course narrative text, quiz
 // questions, daily quotes, the "🤖 explanation" insight sentences) stays
@@ -11,6 +13,8 @@ export const LANGUAGES = [
 ]
 
 const STRINGS = {
+  'settings.country': { ru: 'Страна проживания', en: 'Country of residence', es: 'País de residencia', fr: 'Pays de résidence' },
+  'settings.countryHint': { ru: 'От неё зависит валюта: все суммы вводятся и показываются в ней, без пересчёта в доллары.', en: 'This sets your currency: every amount is entered and shown in it, with no conversion to dollars.', es: 'Define tu moneda: todos los montos se ingresan y muestran en ella, sin convertir a dólares.', fr: 'Elle fixe ta devise : tous les montants sont saisis et affichés dans celle-ci, sans conversion en dollars.' },
   'onboarding.finishError': { ru: 'Не удалось завершить настройку. Попробуй ещё раз.', en: 'Could not finish setup. Try again.', es: 'No se pudo terminar la configuración. Inténtalo de nuevo.', fr: 'Impossible de terminer la configuration. Réessaie.' },
   'onboarding.readyTitle': { ru: 'Твоя финансовая система готова', en: 'Your financial system is ready', es: 'Tu sistema financiero está listo', fr: 'Ton système financier est prêt' },
   'onboarding.readyHeadline': { ru: 'Одно место для денег, целей и финансового роста.', en: 'One place for your money, goals and financial growth.', es: 'Un solo lugar para tu dinero, tus metas y tu crecimiento financiero.', fr: 'Un seul endroit pour ton argent, tes objectifs et ta progression financière.' },
@@ -36,7 +40,7 @@ const STRINGS = {
   // them the UI renders the raw key (e.g. "home.welcome") instead of text.
   'home.welcome': { ru: 'Привет,', en: 'Hi,', es: 'Hola,', fr: 'Bonjour,' },
   'home.tour': { ru: 'Короткая экскурсия по приложению', en: 'Quick tour of the app', es: 'Recorrido rápido por la app', fr: "Visite rapide de l'application" },
-  'dashboard.checkinAmountPlaceholder': { ru: 'Сколько отложил сегодня, $', en: 'How much did you set aside today, $', es: '¿Cuánto apartaste hoy, $', fr: 'Combien avez-vous mis de côté aujourd’hui, $' },
+  'dashboard.checkinAmountPlaceholder': { ru: 'Сколько отложил сегодня, {cur}', en: 'How much did you set aside today, {cur}', es: '¿Cuánto apartaste hoy, {cur}', fr: 'Combien avez-vous mis de côté aujourd’hui, {cur}' },
   'dashboard.checkinSkipAmount': { ru: 'Просто отметить', en: 'Just mark it', es: 'Solo marcar', fr: 'Juste marquer' },
   'dashboard.checkinComment': { ru: 'Отложил на цель', en: 'Set aside toward the goal', es: 'Apartado para la meta', fr: 'Mis de côté pour l’objectif' },
   'dashboard.checkinLater': { ru: 'Хорошо, спросим завтра', en: "Okay, we'll ask tomorrow", es: 'Vale, preguntamos mañana', fr: 'D’accord, on redemande demain' },
@@ -44,7 +48,7 @@ const STRINGS = {
   'bills.empty': { ru: 'Обязательные платежи пока не заданы', en: 'No essential payments yet', es: 'Aún no hay pagos esenciales', fr: 'Aucune dépense essentielle pour le moment' },
   'bills.add': { ru: 'Добавить платёж', en: 'Add payment', es: 'Añadir pago', fr: 'Ajouter un paiement' },
   'bills.name': { ru: 'Название', en: 'Name', es: 'Nombre', fr: 'Nom' },
-  'bills.monthly': { ru: 'В месяц, $', en: 'Per month, $', es: 'Al mes, $', fr: 'Par mois, $' },
+  'bills.monthly': { ru: 'В месяц, {cur}', en: 'Per month, {cur}', es: 'Al mes, {cur}', fr: 'Par mois, {cur}' },
   'bills.remove': { ru: 'Удалить', en: 'Remove', es: 'Eliminar', fr: 'Supprimer' },
   'bills.total': { ru: 'Итого в месяц', en: 'Monthly total', es: 'Total mensual', fr: 'Total mensuel' },
   'bills.editorNote': { ru: 'Это регулярные обязательные траты — жильё, транспорт, продукты, связь. Из них считается, сколько можно тратить в день.', en: 'These are your recurring essentials — housing, transport, groceries, phone. They set how much you can spend per day.', es: 'Son tus gastos esenciales recurrentes: vivienda, transporte, comida, teléfono. Definen cuánto puedes gastar al día.', fr: 'Ce sont vos dépenses essentielles récurrentes : logement, transport, courses, téléphone. Elles déterminent votre budget quotidien.' },
@@ -56,7 +60,7 @@ const STRINGS = {
   'goals.coachContributionTitle': { ru: 'Отложить на цель', en: 'Put money toward the goal', es: 'Aportar a la meta', fr: 'Alimenter l’objectif' },
   'goals.coachContributionSave': { ru: 'Отложить', en: 'Set aside', es: 'Apartar', fr: 'Mettre de côté' },
   'goals.coachContributionHint': { ru: 'Впишите сумму, которую откладываете прямо сейчас', en: 'Enter the amount you are setting aside right now', es: 'Introduce la cantidad que estás apartando ahora', fr: 'Indiquez le montant que vous mettez de côté maintenant' },
-  'goals.coachContributionAmount': { ru: 'Сумма, $', en: 'Amount, $', es: 'Importe, $', fr: 'Montant, $' },
+  'goals.coachContributionAmount': { ru: 'Сумма, {cur}', en: 'Amount, {cur}', es: 'Importe, {cur}', fr: 'Montant, {cur}' },
   // {amt} already arrives formatted with a currency sign — no extra $ here.
   'goals.contributionRecorded': { ru: 'Записали {amt} в «{name}»', en: 'Added {amt} to "{name}"', es: 'Añadido {amt} a "{name}"', fr: '{amt} ajoutés à « {name} »' },
   'dashboard.noIncomeYetHint': { ru: 'Запишите первый доход — и здесь появится, сколько можно тратить в день', en: 'Log your first income and this becomes how much you can spend per day', es: 'Registra tu primer ingreso y aquí verás cuánto puedes gastar al día', fr: 'Enregistrez votre premier revenu et vous verrez ici combien dépenser par jour' },
@@ -177,10 +181,10 @@ const STRINGS = {
   'onboarding.debtsHint': { ru: 'Это отдельно от трат — баланс, ставка и минимальный платёж по кредитам. Долги есть у большинства — это просто вводные для расчёта, а не повод для стресса.', en: "This is separate from expenses — balance, rate and minimum payment on loans. Most people have debt — it's just input for the math, not something to stress about.", es: 'Esto es aparte de los gastos — saldo, tasa y pago mínimo de tus préstamos. La mayoría tiene deudas — son solo datos para el cálculo, no un motivo de estrés.', fr: "C'est séparé des dépenses — solde, taux et paiement minimum de vos prêts. La plupart des gens ont des dettes — ce ne sont que des données pour le calcul, pas une raison de stresser." },
   'onboarding.addDebt': { ru: 'Ещё один долг', en: 'Add another debt', es: 'Añadir otra deuda', fr: 'Ajouter une autre dette' },
   'onboarding.debtName': { ru: 'Кредитная карта', en: 'Credit card', es: 'Tarjeta de crédito', fr: 'Carte de crédit' },
-  'onboarding.debtBalance': { ru: 'Баланс, $', en: 'Balance, $', es: 'Saldo, $', fr: 'Solde, $' },
+  'onboarding.debtBalance': { ru: 'Баланс, {cur}', en: 'Balance, {cur}', es: 'Saldo, {cur}', fr: 'Solde, {cur}' },
   'onboarding.debtRate': { ru: 'Ставка, % год', en: 'Rate, % / yr', es: 'Tasa, % anual', fr: 'Taux, % / an' },
   'onboarding.debtTerm': { ru: 'Срок, мес', en: 'Term, months', es: 'Plazo, meses', fr: 'Durée, mois' },
-  'onboarding.debtMinPayment': { ru: 'Мин. платёж, $', en: 'Min. payment, $', es: 'Pago mín., $', fr: 'Paiement min., $' },
+  'onboarding.debtMinPayment': { ru: 'Мин. платёж, {cur}', en: 'Min. payment, {cur}', es: 'Pago mín., {cur}', fr: 'Paiement min., {cur}' },
   'onboarding.needsFieldHousing': { ru: 'Жильё', en: 'Housing', es: 'Vivienda', fr: 'Logement' },
   'onboarding.needsFieldHousingHint': { ru: 'аренда, коммуналка, ремонт', en: 'rent, utilities, repairs', es: 'alquiler, servicios, reparaciones', fr: 'loyer, charges, réparations' },
   'onboarding.needsFieldTransport': { ru: 'Транспорт', en: 'Transport', es: 'Transporte', fr: 'Transport' },
@@ -228,7 +232,7 @@ const STRINGS = {
   'goals.editGoal': { ru: 'Изменить цель', en: 'Edit goal', es: 'Editar meta', fr: 'Modifier l’objectif' },
   'goals.createGoal': { ru: 'Новая цель', en: 'New goal', es: 'Nueva meta', fr: 'Nouvel objectif' },
   'goals.name': { ru: 'Название', en: 'Name', es: 'Nombre', fr: 'Nom' },
-  'goals.targetAmount': { ru: 'Сумма цели, $', en: 'Target amount, $', es: 'Monto objetivo, $', fr: 'Montant cible, $' },
+  'goals.targetAmount': { ru: 'Сумма цели, {cur}', en: 'Target amount, {cur}', es: 'Monto objetivo, {cur}', fr: 'Montant cible, {cur}' },
   'goals.deadline': { ru: 'Дедлайн', en: 'Deadline', es: 'Fecha límite', fr: 'Échéance' },
   'goals.submitCreate': { ru: 'Создать цель', en: 'Create goal', es: 'Crear meta', fr: "Créer l'objectif" },
   'goals.addSavingsToday': { ru: '+ Отложить сегодня', en: '+ Save today', es: '+ Ahorrar hoy', fr: "+ Épargner aujourd'hui" },
@@ -269,7 +273,7 @@ const STRINGS = {
   'entry.quickLabel': { ru: 'Быстрый ввод текстом', en: 'Quick text entry', es: 'Entrada rápida de texto', fr: 'Saisie rapide de texte' },
   'entry.quickPlaceholder': { ru: '«потратил 15 на кофе»', en: '"spent 15 on coffee"', es: '"gasté 15 en café"', fr: '« dépensé 15 en café »' },
   'entry.quickParse': { ru: 'Разобрать', en: 'Parse', es: 'Analizar', fr: 'Analyser' },
-  'entry.amount': { ru: 'Сумма, $', en: 'Amount, $', es: 'Monto, $', fr: 'Montant, $' },
+  'entry.amount': { ru: 'Сумма, {cur}', en: 'Amount, {cur}', es: 'Monto, {cur}', fr: 'Montant, {cur}' },
   'entry.date': { ru: 'Дата', en: 'Date', es: 'Fecha', fr: 'Date' },
   'entry.comment': { ru: 'Комментарий', en: 'Comment', es: 'Comentario', fr: 'Commentaire' },
   'entry.commentPlaceholder': { ru: 'Необязательно', en: 'Optional', es: 'Opcional', fr: 'Facultatif' },
@@ -288,8 +292,8 @@ const STRINGS = {
   'entry.saving': { ru: 'Сохраняем…', en: 'Saving…', es: 'Guardando…', fr: 'Enregistrement…' },
   'entry.roundUpLabel': { ru: '🪙 Округлять сдачу в цель «{name}»', en: '🪙 Round up spare change into "{name}"', es: '🪙 Redondear el cambio hacia "{name}"', fr: '🪙 Arrondir la monnaie vers « {name} »' },
   'entry.roundUpComment': { ru: 'Округление сдачи', en: 'Round-up change', es: 'Redondeo de cambio', fr: 'Arrondi de monnaie' },
-  'entry.roundUpNote': { ru: '+${amt} сдачи ушло в «{name}»', en: '+${amt} in change went to "{name}"', es: '+${amt} de cambio fue a "{name}"', fr: '+{amt} $ de monnaie envoyée à « {name} »' },
-  'entry.quickResultAmount': { ru: '🤖 Сумма: ${amt}. ', en: '🤖 Amount: ${amt}. ', es: '🤖 Monto: ${amt}. ', fr: '🤖 Montant : {amt} $. ' },
+  'entry.roundUpNote': { ru: '+{amt} сдачи ушло в «{name}»', en: '+{amt} in change went to "{name}"', es: '+{amt} de cambio fue a "{name}"', fr: '+{amt} de monnaie envoyée à « {name} »' },
+  'entry.quickResultAmount': { ru: '🤖 Сумма: {amt}. ', en: '🤖 Amount: {amt}. ', es: '🤖 Monto: {amt}. ', fr: '🤖 Montant : {amt}. ' },
   'entry.quickResultNoAmount': { ru: '🤖 Сумму не нашёл — впиши вручную. ', en: "🤖 Couldn't find an amount — enter it manually. ", es: '🤖 No encontré el monto — ingrésalo manualmente. ', fr: "🤖 Montant introuvable — saisissez-le manuellement. " },
   'entry.quickResultCatFound': { ru: 'Категория подставлена ниже — проверь и сохрани.', en: 'Category filled in below — check it and save.', es: 'Categoría completada abajo — revisa y guarda.', fr: 'Catégorie renseignée ci-dessous — vérifiez et enregistrez.' },
   'entry.quickResultCatNotFound': { ru: 'Категорию не удалось определить — выбери вручную.', en: "Couldn't determine the category — pick it manually.", es: 'No se pudo determinar la categoría — elígela manualmente.', fr: "Impossible de déterminer la catégorie — choisissez-la manuellement." },
@@ -318,7 +322,7 @@ const STRINGS = {
   'insights.challengeReset': { ru: 'Вернуть как было', en: 'Reset to default', es: 'Restaurar', fr: 'Réinitialiser' },
   'insights.startChallenge': { ru: 'Начать', en: 'Start', es: 'Empezar', fr: 'Commencer' },
   'insights.simulatorTitle': { ru: 'Симулятор будущего', en: 'Future simulator', es: 'Simulador de futuro', fr: 'Simulateur de futur' },
-  'insights.perMonth': { ru: 'В месяц, $', en: 'Per month, $', es: 'Por mes, $', fr: 'Par mois, $' },
+  'insights.perMonth': { ru: 'В месяц, {cur}', en: 'Per month, {cur}', es: 'Por mes, {cur}', fr: 'Par mois, {cur}' },
   'insights.annualRate': { ru: '% годовых', en: '% annual', es: '% anual', fr: '% annuel' },
   'insights.years': { ru: 'Лет', en: 'Years', es: 'Años', fr: 'Ans' },
   'insights.askSection': { ru: 'Спросить про свои финансы', en: 'Ask about your finances', es: 'Pregunta sobre tus finanzas', fr: 'Poser une question sur vos finances' },
@@ -380,7 +384,7 @@ const STRINGS = {
   'entry.deleteCategory': { ru: 'Удалить категорию', en: 'Delete category', es: 'Eliminar categoría', fr: 'Supprimer la catégorie' },
   // Путь — the savings ladder (lib/path.js)
   'path.stepOf': { ru: 'Путь · шаг {n} из {total}', en: 'Path · step {n} of {total}', es: 'Camino · paso {n} de {total}', fr: 'Parcours · étape {n} sur {total}' },
-  'path.step.starter': { ru: 'Стартовая подушка $500', en: '$500 starter cushion', es: 'Colchón inicial de $500', fr: 'Coussin de départ de 500 $' },
+  'path.step.starter': { ru: 'Стартовая подушка {starter}', en: '{starter} starter cushion', es: 'Colchón inicial de {starter}', fr: 'Coussin de départ de {starter}' },
   'path.step.month': { ru: 'Месяц жизни в запасе', en: 'One month of essentials saved', es: 'Un mes de gastos esenciales', fr: 'Un mois de dépenses essentielles' },
   'path.step.debt': { ru: 'Закрыть дорогие долги', en: 'Pay off expensive debt', es: 'Liquidar la deuda cara', fr: 'Rembourser les dettes chères' },
   'path.step.threeMonths': { ru: 'Подушка на 3 месяца', en: 'Three months of essentials', es: 'Tres meses de gastos esenciales', fr: 'Trois mois de dépenses essentielles' },
@@ -416,15 +420,15 @@ const STRINGS = {
   'debts.emptyTitle': { ru: 'Долгов нет — или ещё не внесены', en: 'No debts — or none added yet', es: 'Sin deudas, o aún no añadidas', fr: 'Aucune dette — ou pas encore ajoutée' },
   'debts.emptySubtitle': { ru: 'Добавь кредитки, займы, кредит за машину — приложение покажет, какой гасить первым.', en: 'Add cards, loans, a car loan — the app will show which to pay first.', es: 'Añade tarjetas, préstamos o el del coche: verás cuál pagar primero.', fr: 'Ajoutez cartes, prêts, crédit auto : l’app montre lequel rembourser d’abord.' },
   'debts.name': { ru: 'Название', en: 'Name', es: 'Nombre', fr: 'Nom' },
-  'debts.balance': { ru: 'Сколько осталось должен, $', en: 'Balance left, $', es: 'Saldo pendiente, $', fr: 'Solde restant, $' },
+  'debts.balance': { ru: 'Сколько осталось должен, {cur}', en: 'Balance left, {cur}', es: 'Saldo pendiente, {cur}', fr: 'Solde restant, {cur}' },
   'debts.rate': { ru: 'Ставка, % годовых (APR)', en: 'Rate, % APR', es: 'Interés, % anual (APR)', fr: 'Taux, % annuel (TAEG)' },
-  'debts.minPayment': { ru: 'Минимальный платёж в месяц, $', en: 'Minimum monthly payment, $', es: 'Pago mínimo mensual, $', fr: 'Paiement minimum mensuel, $' },
+  'debts.minPayment': { ru: 'Минимальный платёж в месяц, {cur}', en: 'Minimum monthly payment, {cur}', es: 'Pago mínimo mensual, {cur}', fr: 'Paiement minimum mensuel, {cur}' },
   'debts.rateShort': { ru: '{rate}% годовых', en: '{rate}% APR', es: '{rate}% anual', fr: '{rate} % par an' },
   'debts.rateUnknown': { ru: 'ставка не указана', en: 'rate not set', es: 'interés sin indicar', fr: 'taux non indiqué' },
   'debts.minShort': { ru: 'минимум {amt}', en: 'min {amt}', es: 'mínimo {amt}', fr: 'minimum {amt}' },
   'debts.focus': { ru: 'Сейчас весь лишний доллар — сюда.', en: 'Every spare dollar goes here right now.', es: 'Ahora cada dólar extra va aquí.', fr: 'Chaque dollar en plus va ici pour l’instant.' },
   'debts.pay': { ru: 'Внести платёж', en: 'Make a payment', es: 'Registrar pago', fr: 'Faire un paiement' },
-  'debts.payAmount': { ru: 'Сумма, $', en: 'Amount, $', es: 'Importe, $', fr: 'Montant, $' },
+  'debts.payAmount': { ru: 'Сумма, {cur}', en: 'Amount, {cur}', es: 'Importe, {cur}', fr: 'Montant, {cur}' },
   'debts.payConfirm': { ru: 'Готово', en: 'Done', es: 'Listo', fr: 'OK' },
   'debts.payComment': { ru: 'Платёж по долгу «{name}»', en: 'Payment on "{name}"', es: 'Pago de «{name}»', fr: 'Paiement sur « {name} »' },
   'debts.cleared': { ru: '«{name}» закрыт! Его платёж теперь идёт на следующий долг.', en: '"{name}" is paid off! Its payment now rolls to the next debt.', es: '¡«{name}» saldada! Su pago pasa a la siguiente.', fr: '« {name} » soldée ! Son paiement passe à la suivante.' },
@@ -511,8 +515,8 @@ const STRINGS = {
   'entry.splitOff': { ru: 'Один счёт', en: 'One account', es: 'Una cuenta', fr: 'Un seul compte' },
   'entry.splitTitle': { ru: 'Куда сколько пришло', en: 'How much went where', es: 'Cuánto fue a cada una', fr: 'Combien sur chaque compte' },
   'entry.splitAdd': { ru: 'Ещё счёт', en: 'Another account', es: 'Otra cuenta', fr: 'Un autre compte' },
-  'entry.splitLeft': { ru: 'Осталось распределить ${amt}', en: '${amt} left to assign', es: 'Faltan ${amt} por asignar', fr: 'Reste ${amt} à répartir' },
-  'entry.splitOver': { ru: 'Больше суммы на ${amt}', en: '${amt} over the total', es: '${amt} más que el total', fr: '${amt} de plus que le total' },
+  'entry.splitLeft': { ru: 'Осталось распределить {amt}', en: '{amt} left to assign', es: 'Faltan {amt} por asignar', fr: 'Reste {amt} à répartir' },
+  'entry.splitOver': { ru: 'Больше суммы на {amt}', en: '{amt} over the total', es: '{amt} más que el total', fr: '{amt} de plus que le total' },
   'entry.splitDone': { ru: 'Сходится ✓', en: 'Adds up ✓', es: 'Cuadra ✓', fr: 'Le compte est bon ✓' },
   'entry.incomeAccountHint': { ru: 'Куда пришли деньги — кэш или карта/счёт', en: 'Where the money landed — cash or a card/account', es: 'Dónde llegó el dinero — efectivo o tarjeta/cuenta', fr: "Où l'argent est arrivé — espèces ou carte/compte" },
   'bills.notifNote': { ru: 'Напоминание придёт браузерным уведомлением, только пока приложение открыто на этом устройстве — без интернет-соединения в фоне это не работает.', en: 'The reminder arrives as a browser notification, only while the app is open on this device — it can\'t fire in the background.', es: 'El recordatorio llega como notificación del navegador, solo mientras la app esté abierta en este dispositivo — no funciona en segundo plano.', fr: "Le rappel arrive sous forme de notification du navigateur, uniquement pendant que l'application est ouverte sur cet appareil — cela ne fonctionne pas en arrière-plan." },
@@ -618,6 +622,10 @@ const STRINGS = {
 export function translate(key, lang, params) {
   const entry = STRINGS[key]
   let str = entry ? (entry[lang] || entry.en || entry.ru || key) : key
+  // Money placeholders every string can use: the person's currency symbol,
+  // and the starter cushion in their currency.
+  if (str.includes('{cur}')) str = str.replace(/\{cur\}/g, curSymbol())
+  if (str.includes('{starter}')) str = str.replace(/\{starter\}/g, fmtMoney(fromUsd(500, getCurrency())))
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), v)

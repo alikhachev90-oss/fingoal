@@ -4,6 +4,7 @@ import { computePath, saveRate } from './path'
 import { computeAccountBalance } from './creditCards'
 import { deriveMonthlyIncome } from './finance'
 import { toDate } from './dates'
+import { fmtMoney, getCurrency } from './money.js'
 
 // Talking to the AI money friend (api/coach.js).
 //
@@ -38,7 +39,7 @@ export function clearConversation(userId) {
   }
 }
 
-const money = (n) => '$' + Math.round(Number(n) || 0).toLocaleString('en-US')
+const money = (n) => fmtMoney(n)
 
 // A plain-text picture of the person's money for the model, including the
 // phone's own date, time and time zone.
@@ -56,6 +57,7 @@ export async function buildSnapshot(user, context, lang) {
   const name = (user.user_metadata?.full_name || user.user_metadata?.name || '').trim()
   const lines = [
     `Their name: ${name || 'not given — you may ask once what to call them'}`,
+    `Currency: ${getCurrency()} — every amount here is in this currency; talk in it and never convert to dollars`,
     `Local date and time on their phone: ${now.toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { dateStyle: 'full', timeStyle: 'short' })} (${tz})`,
     `App language: ${lang}`,
     `Typical monthly income (from logged income): ${money(deriveMonthlyIncome(transactions))}`,

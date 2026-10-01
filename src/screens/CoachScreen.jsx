@@ -9,10 +9,11 @@ import { todayStr } from '../lib/dates'
 import { loadConversation, saveConversation, clearConversation, buildSnapshot, askCoach } from '../lib/coachClient'
 import TourGuide from '../components/TourGuide'
 import { TOURS } from '../lib/tours'
+import { fmtMoney } from '../lib/money'
 
 const SPEECH_LANG = { ru: 'ru-RU', en: 'en-US', es: 'es-US', fr: 'fr-FR' }
 
-const money = (n) => '$' + Math.round(Number(n) || 0).toLocaleString('en-US')
+const money = (n) => fmtMoney(n)
 
 // Text of a stored message, for display: user turns may be a string or blocks
 // (text + tool results); assistant turns are the raw API content blocks.

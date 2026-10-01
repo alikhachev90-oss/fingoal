@@ -1,7 +1,8 @@
 import { toDate } from './dates'
 import { tr } from './tr.js'
+import { fmtMoney } from './money.js'
 function fmt(n) {
-  return '$' + Math.round(n || 0).toLocaleString('en-US')
+  return fmtMoney(n)
 }
 
 export function getCoachAction({ settings, transactions = [], goals = [], debts = [], lang = 'ru', checkedInToday = false }) {

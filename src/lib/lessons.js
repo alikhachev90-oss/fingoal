@@ -5,9 +5,10 @@
 
 import { deriveMonthlyIncome } from './finance'
 import { toDate } from './dates'
+import { fmtMoney } from './money.js'
 
 function fmt(n) {
-  return '$' + Math.round(n || 0).toLocaleString('en-US')
+  return fmtMoney(n)
 }
 
 export const LESSONS = [
