@@ -233,10 +233,14 @@ export function categoryMonthOverMonth(transactions) {
   const now = new Date()
   const prevRef = new Date(now.getFullYear(), now.getMonth() - 1, 1)
 
+  // Spending only, and the same stretch of days in both months — comparing
+  // 1 Oct against all of September read as "salary dropped 100%".
+  const upToDay = now.getDate()
   const sums = (ref) => {
     const map = {}
     for (const t of transactions) {
-      if (!isSameMonth(t.date, ref) || t.group === 'transfer') continue
+      if (!isSameMonth(t.date, ref) || t.group === 'transfer' || t.group === 'income' || t.group === 'savings') continue
+      if (toDate(t.date).getDate() > upToDay) continue
       const k = `${t.group}:${t.category_key}`
       map[k] = (map[k] || 0) + t.amount
     }
@@ -291,7 +295,9 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
   }
 
   // 2. Month-over-month movers
-  const mom = categoryMonthOverMonth(transactions).filter((r) => r.pct !== null && Math.abs(r.pct) >= 20)
+  // Not in the first days of a month (too little to compare), and not over
+  // a few dollars' noise.
+  const mom = now.getDate() < 7 ? [] : categoryMonthOverMonth(transactions).filter((r) => r.pct !== null && Math.abs(r.pct) >= 20 && Math.abs(r.delta) >= 20)
   if (mom.length > 0) {
     const top = mom[0]
     const [group, key] = top.key.split(':')
@@ -312,8 +318,8 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
       id: 'recurring',
       tone: 'neutral',
       text: en
-        ? `Looks like a recurring charge: "${categoryLabel('wants', r.category_key, lang)}" for ~${fmt(r.amount)} shows up ${r.monthsCount} months in a row. If it's a forgotten subscription, now's a good time to cancel it.`
-        : `Похоже на регулярный платёж: «${categoryLabel('wants', r.category_key, lang)}» на ~${fmt(r.amount)} встречается ${r.monthsCount} мес. подряд. Если это забытая подписка — самое время её отменить.`,
+        ? `Looks like a recurring charge: "${categoryLabel(r.group || 'wants', r.category_key, lang)}" for ~${fmt(r.amount)} shows up ${r.monthsCount} months in a row. If it's a forgotten subscription, now's a good time to cancel it.`
+        : `Похоже на регулярный платёж: «${categoryLabel(r.group || 'wants', r.category_key, lang)}» на ~${fmt(r.amount)} встречается ${r.monthsCount} мес. подряд. Если это забытая подписка — самое время её отменить.`,
     })
   }
 
