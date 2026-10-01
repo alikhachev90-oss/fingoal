@@ -22,6 +22,8 @@ import { Card, Button, StatTile, IconCircle, EmptyState } from '../components/UI
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { findCategory, pickLang, subLabel, subHint } from '../lib/categories'
+import AccountPicker from '../components/AccountPicker'
+import { getPayFrom, setPayFrom } from '../lib/payFrom'
 import { carryoverFromPreviousMonths, computeGoalPlan, computeSafeToSpendToday, deriveMonthlyIncome } from '../lib/finance'
 import { detectHabitTip, dismissHabitTip } from '../lib/habitTips'
 import { TOURS } from '../lib/tours'
@@ -60,6 +62,8 @@ export default function DashboardScreen() {
   const [checkinSkipped, setCheckinSkipped] = useState(false)
   const [checkinAsking, setCheckinAsking] = useState(false)
   const [checkinAmount, setCheckinAmount] = useState('')
+  // null = the default (last used, else the first cash/debit account).
+  const [checkinFrom, setCheckinFrom] = useState(null)
   const [checkinBusy, setCheckinBusy] = useState(false)
   const [habitTip, setHabitTip] = useState(null)
   const [tourActive, setTourActive] = useState(false)
@@ -108,6 +112,7 @@ export default function DashboardScreen() {
     const amount = parseFloat(String(checkinAmount).replace(',', '.'))
     if (!Number.isFinite(amount) || amount <= 0) return
     setCheckinBusy(true)
+    const fromId = checkinFrom ?? getPayFrom(user.id, context, accounts || [])
     try {
       await db.addTransaction(user.id, context, {
         amount,
@@ -116,8 +121,9 @@ export default function DashboardScreen() {
         group: 'savings',
         category_key: 'emergency',
         sub: null,
-        account_id: null,
+        account_id: fromId || null,
       })
+      if (fromId) setPayFrom(user.id, context, fromId)
       if (topGoal) await db.addToGoalSavings(user.id, topGoal.id, amount)
       await db.checkInToday(user.id, context)
       const txs = await db.listTransactions(user.id, context).catch(() => null)
@@ -465,6 +471,9 @@ export default function DashboardScreen() {
                   placeholder={t('dashboard.checkinAmountPlaceholder')}
                   className="w-full bg-surface2 border border-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-primary"
                 />
+                {accounts?.length > 0 && (
+                  <AccountPicker label={t('entry.accountLabelFrom')} emptyLabel={t('entry.accountNone')} accounts={accounts} value={checkinFrom ?? getPayFrom(user.id, context, accounts)} onChange={setCheckinFrom} t={t} />
+                )}
                 <div className="flex gap-1.5">
                   <Button type="button" disabled={checkinBusy || !(parseFloat(checkinAmount) > 0)} onClick={handleCheckIn}>
                     {checkinBusy ? t('common.saving') : t('common.save')}

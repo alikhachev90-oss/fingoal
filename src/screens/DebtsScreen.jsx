@@ -8,6 +8,8 @@ import * as db from '../lib/db'
 import { HIGH_RATE } from '../lib/path'
 import { todayStr } from '../lib/dates'
 import TourGuide from '../components/TourGuide'
+import AccountPicker from '../components/AccountPicker'
+import { getPayFrom, setPayFrom } from '../lib/payFrom'
 import { TOURS } from '../lib/tours'
 
 function fmt(n) {
@@ -29,6 +31,9 @@ export default function DebtsScreen() {
   const [deleting, setDeleting] = useState(null)
   const [error, setError] = useState('')
   const [cleared, setCleared] = useState('')
+  // Which account the payment leaves, so that account's balance drops too.
+  const [accounts, setAccounts] = useState([])
+  const [payFrom, setPayFromState] = useState('')
 
   function refresh() {
     return db.listDebts(user.id, context).then(setDebts).catch(() => setDebts([]))
@@ -37,6 +42,14 @@ export default function DebtsScreen() {
   useEffect(() => {
     if (user) refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, context])
+
+  useEffect(() => {
+    if (!user) return
+    db.listAccounts(user.id, context).then((list) => {
+      setAccounts(list || [])
+      setPayFromState(getPayFrom(user.id, context, list || []))
+    }).catch(() => setAccounts([]))
   }, [user, context])
 
   const open = debts.filter((d) => Number(d.balance) > 0)
@@ -87,8 +100,9 @@ export default function DebtsScreen() {
         group: 'savings',
         category_key: 'debt_extra',
         sub: null,
-        account_id: null,
+        account_id: payFrom || null,
       })
+      if (payFrom) setPayFrom(user.id, context, payFrom)
       const left = await db.payDownDebt(user.id, debt.id, amount)
       await db.checkInToday(user.id, context)
       if (left <= 0) setCleared(debt.name)
@@ -172,6 +186,10 @@ export default function DebtsScreen() {
               </div>
               {i === 0 && <p className="text-xs text-primary">{t('debts.focus')}</p>}
               {payingId === d.id ? (
+                <div className="space-y-2">
+                {accounts.length > 0 && (
+                  <AccountPicker label={t('entry.accountLabelFrom')} emptyLabel={t('entry.accountNone')} accounts={accounts} value={payFrom} onChange={setPayFromState} t={t} />
+                )}
                 <div className="flex gap-1.5">
                   <input
                     type="number"
@@ -184,6 +202,7 @@ export default function DebtsScreen() {
                   />
                   <Button className="!w-auto px-3 text-xs" disabled={saving || !(parseFloat(payAmount) > 0)} onClick={() => pay(d)} type="button">{t('debts.payConfirm')}</Button>
                   <Button variant="secondary" className="!w-auto px-3 text-xs" onClick={() => setPayingId(null)} type="button">{t('common.cancel')}</Button>
+                </div>
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
