@@ -531,20 +531,42 @@ async function completeLessonImpl(userId, context, lessonKey) {
   }
 }
 
-export function computeStreak(checkins) {
+// Days in a row with a check-in. Forgiving on purpose: one missed day doesn't
+// wipe the streak (at most once a week), and today still being open doesn't
+// count as a miss — a reset over one slip is what makes people quit.
+export function computeStreak(checkins, today = new Date()) {
   const dates = new Set(checkins.map((c) => c.date))
+  const d = new Date(today)
+  if (!dates.has(todayStr(d))) d.setDate(d.getDate() - 1)
   let streak = 0
-  const d = new Date()
-  while (true) {
-    const key = todayStr(d)
-    if (dates.has(key)) {
+  let lastForgiven = null // how many checked days ago the last miss was forgiven
+  let missRun = 0
+  for (let guard = 0; guard < 3660; guard++) {
+    if (dates.has(todayStr(d))) {
       streak += 1
-      d.setDate(d.getDate() - 1)
+      missRun = 0
+      if (lastForgiven !== null) lastForgiven += 1
     } else {
-      break
+      missRun += 1
+      const canForgive = missRun === 1 && streak > 0 && (lastForgiven === null || lastForgiven >= 6)
+      if (!canForgive) break
+      lastForgiven = 0
     }
+    d.setDate(d.getDate() - 1)
   }
   return streak
+}
+
+// Check-ins in the last 7 days, today included.
+export function checkinsLast7(checkins, today = new Date()) {
+  const dates = new Set(checkins.map((c) => c.date))
+  const d = new Date(today)
+  let n = 0
+  for (let i = 0; i < 7; i++) {
+    if (dates.has(todayStr(d))) n += 1
+    d.setDate(d.getDate() - 1)
+  }
+  return n
 }
 
 export async function saveSettings(...args) {

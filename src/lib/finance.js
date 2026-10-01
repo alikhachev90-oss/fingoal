@@ -116,17 +116,19 @@ export function crossedMilestone(prevPct, newPct) {
 // left of this month's discretionary money evenly across the days remaining.
 // How much is safe to spend on wants today.
 // - Essentials count at whichever is larger: the budget set for them, or what
-//   was actually spent on them this month (no budget set used to mean $0).
+//   was actually spent on them this month plus bills still due.
 // - The pay-yourself-first share of income is set aside first.
 // - The day's limit never grows past an even share of the month: money not
 //   spent earlier rolls into what's left over (and savings), not into one big
 //   "spend it all" day at the end of the month. Overspending still lowers the
 //   limit for the days that remain.
 // `wantsSpentThisMonth` is wants logged before today.
-export function computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, wantsSpentThisMonth, today = new Date(), { needsSpent = 0, savingsReserve = 0 } = {}) {
+export function computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, wantsSpentThisMonth, today = new Date(), { needsSpent = 0, savingsReserve = 0, upcomingBills = 0 } = {}) {
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
   const daysRemaining = daysInMonth - today.getDate() + 1
-  const needs = Math.max(monthlyNeedsBudget || 0, needsSpent || 0)
+  // Bills still due this month (from reminders) are set aside too, unless the
+  // essentials budget already covers them.
+  const needs = Math.max(monthlyNeedsBudget || 0, (needsSpent || 0) + (upcomingBills || 0))
   const monthlyFree = (monthlyIncome || 0) - needs - Math.max(0, savingsReserve || 0)
   const freeMoney = monthlyFree - (wantsSpentThisMonth || 0)
   const evenShare = monthlyFree / daysInMonth

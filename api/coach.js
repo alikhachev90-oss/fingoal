@@ -54,9 +54,9 @@ const TOOLS = [
             type: 'object',
             properties: {
               name: { type: 'string', description: 'Short label, e.g. "Chase card" or "Car loan"' },
-              balance: { type: 'number', description: 'Amount still owed, USD' },
+              balance: { type: 'number', description: 'Amount still owed, in the person’s currency' },
               rate: { type: 'number', description: 'APR in percent, if known' },
-              min_payment: { type: 'number', description: 'Minimum monthly payment, USD, if known' },
+              min_payment: { type: 'number', description: 'Minimum monthly payment, in the person’s currency, if known' },
             },
             required: ['name', 'balance'],
           },
@@ -72,7 +72,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         name: { type: 'string' },
-        target_amount: { type: 'number', description: 'USD' },
+        target_amount: { type: 'number', description: 'In the person’s currency' },
         deadline: { type: 'string', description: 'Target date, YYYY-MM-DD' },
         why: { type: 'string', description: 'The person’s own reason, in their words, one line' },
       },

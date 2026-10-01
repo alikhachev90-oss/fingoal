@@ -31,6 +31,7 @@ import { computeAccountBalance, nextDateForDay, daysUntil } from '../lib/creditC
 import { getCoachAction } from '../lib/coach'
 import { toDate, todayStr } from '../lib/dates'
 import { saveRate } from '../lib/path'
+import { getReminders, upcomingBillsThisMonth } from '../lib/reminders'
 import { daysWord } from '../i18n/strings'
 import { useDataVersion } from '../lib/useDataVersion'
 import { fmtMoney } from '../lib/money'
@@ -61,6 +62,7 @@ export default function DashboardScreen() {
   const [debts, setDebts] = useState([])
   const [accounts, setAccounts] = useState([])
   const [streak, setStreak] = useState(0)
+  const [last7, setLast7] = useState(0)
   const [checkedInToday, setCheckedInToday] = useState(false)
   const [checkinSkipped, setCheckinSkipped] = useState(false)
   const [checkinAsking, setCheckinAsking] = useState(false)
@@ -99,6 +101,7 @@ export default function DashboardScreen() {
   function refreshCheckins() {
     db.getCheckins(user.id, context).then((c) => {
       setStreak(db.computeStreak(c))
+      setLast7(db.checkinsLast7(c))
       const today = todayStr()
       setCheckedInToday(c.some((x) => x.date === today))
     })
@@ -313,6 +316,8 @@ export default function DashboardScreen() {
   const wantsToday = monthTx.filter((tx) => tx.group === 'wants' && tx.date === todayKey && !tx.is_payment).reduce((s, tx) => s + Number(tx.amount || 0), 0)
   const safeStart = computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, byGroup.wants - wantsToday, new Date(), {
     needsSpent: byGroup.needs,
+    // Rent, a card payment… due later this month with a reminder set.
+    upcomingBills: upcomingBillsThisMonth(getReminders(user.id, context)),
     // Pay-yourself-first comes off the top — or what was actually set aside, if more.
     savingsReserve: Math.max((monthlyIncome * saveRate(user)) / 100, byGroup.savings),
   })
@@ -464,7 +469,7 @@ export default function DashboardScreen() {
         <Card className="home-habit" data-tour="dash-streak">
           <div className="home-habit-stat">
             <Flame size={23} strokeWidth={1.5} />
-            <div><p className="home-streak-number">{streak} {daysWord(streak, lang)}</p><p className="home-caption">{t('dashboard.streakLabel')} <InfoTag>{t('dashboard.streakInfo')}</InfoTag></p></div>
+            <div><p className="home-streak-number">{streak} {daysWord(streak, lang)}</p><p className="home-caption">{t('dashboard.streakLabel')} <InfoTag>{t('dashboard.streakInfo')}</InfoTag></p>{last7 > 0 && <p className="home-caption">{t('dashboard.last7', { n: last7 })}</p>}</div>
           </div>
           <div className="home-checkin">
             <p>{t('dashboard.checkinPrompt')}</p>

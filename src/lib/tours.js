@@ -137,10 +137,10 @@ export const TOURS = {
       id: 'dash-streak',
       title: { ru: 'Серия дней подряд', en: 'Daily streak', es: "Racha de días", fr: "Série de jours" },
       body: {
-        ru: 'Каждый день отмечайте, откладывали ли вы деньги. Это не про суммы — это про привычку. Пропустили день — серия обнулится, но начать заново можно в любой момент.',
-        en: "Mark each day whether you set money aside. It's not about the amount — it's about the habit. Miss a day and the streak resets, but you can always start again.",
-        es: "Marca cada día si apartaste dinero. No se trata del monto, sino del hábito. Si te saltas un día, la racha se reinicia, pero siempre puedes volver a empezar.",
-        fr: "Note chaque jour si tu as mis de l’argent de côté. Ce n’est pas le montant qui compte, c’est l’habitude. Un jour manqué remet la série à zéro, mais tu peux toujours recommencer.",
+        ru: 'Каждый день отмечайте, откладывали ли вы деньги. Это не про суммы — это про привычку. Один пропущенный день серию не обнулит, а если и сорвёшься — начать заново можно в любой момент.',
+        en: "Mark each day whether you set money aside. It's not about the amount — it's about the habit. One missed day won’t reset the streak — and if it does break, you can always start again.",
+        es: "Marca cada día si apartaste dinero. No se trata del monto, sino del hábito. Un día perdido no reinicia la racha, y si se rompe, siempre puedes volver a empezar.",
+        fr: "Note chaque jour si tu as mis de l’argent de côté. Ce n’est pas le montant qui compte, c’est l’habitude. Un jour manqué ne remet pas la série à zéro — et si elle casse, tu peux toujours recommencer.",
       },
     },
     {

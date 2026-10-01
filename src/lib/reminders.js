@@ -39,6 +39,15 @@ function saveReminders(userId, context, list) {
   return list
 }
 
+// Bills with an amount still to be paid between now and the end of this month.
+export function upcomingBillsThisMonth(list, now = new Date()) {
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime()
+  return (list || [])
+    .filter((r) => !r.fired && Number(r.amount) > 0 && r.when)
+    .filter((r) => { const at = new Date(r.when).getTime(); return at >= now.getTime() - 86400000 && at < end })
+    .reduce((s, r) => s + Number(r.amount), 0)
+}
+
 export function getReminderFor(userId, context, billId) {
   return getReminders(userId, context).find((r) => r.billId === billId) || null
 }

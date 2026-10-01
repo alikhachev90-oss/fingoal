@@ -92,12 +92,31 @@ export function saveRate(user) {
   return Number.isFinite(r) && r >= 0 ? r : SAVE_RATE_DEFAULT
 }
 
-// True once a month has passed since the rate last changed and it's still
-// below the ceiling — time to offer the next +1%.
-export function saveRateStepDue(user, today = new Date()) {
+// Typical monthly income: the average of the 3 full months before `ref`
+// (months with no income logged are left out).
+function incomeLevel(transactions = [], ref = new Date()) {
+  const totals = []
+  for (let back = 1; back <= 3; back++) {
+    const m = new Date(ref.getFullYear(), ref.getMonth() - back, 1)
+    const key = `${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, '0')}`
+    const sum = transactions.filter((t) => t.group === 'income' && String(t.date).startsWith(key)).reduce((s, t) => s + Number(t.amount || 0), 0)
+    if (sum > 0) totals.push(sum)
+  }
+  return totals.length ? totals.reduce((s, v) => s + v, 0) / totals.length : 0
+}
+
+// Time to offer the next +1%: a month has passed since the rate last changed,
+// it's below the ceiling, AND income has grown since then. Like Save More
+// Tomorrow, the step only comes out of a raise — so what's left to live on
+// never shrinks.
+export function saveRateStepDue(user, transactions = [], today = new Date()) {
   const rate = saveRate(user)
   if (rate >= SAVE_RATE_MAX) return false
   const at = user?.user_metadata?.save_rate_at
   if (!at) return false
-  return today.getTime() - new Date(at).getTime() >= 30 * DAY
+  const since = new Date(at)
+  if (today.getTime() - since.getTime() < 30 * DAY) return false
+  const before = incomeLevel(transactions, since)
+  const now = incomeLevel(transactions, today)
+  return before > 0 && now >= before * 1.03
 }

@@ -22,6 +22,15 @@ function localParts(tz, date) {
   }
 }
 
+// Bill reminders (with an amount) still due from `day` to the end of that month.
+function upcomingBills(reminders, day) {
+  const monthEnd = `${day.slice(0, 7)}-31`
+  return (reminders || [])
+    .filter((r) => r.kind === 'bill' && Number(r.amount) > 0 && r.when)
+    .filter((r) => { const d = String(r.when).slice(0, 10); return d >= day && d <= monthEnd })
+    .reduce((s, r) => s + Number(r.amount), 0)
+}
+
 export default async function handler(req, res) {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(500).json({ error: 'push_backend_not_configured' })
@@ -100,7 +109,7 @@ export default async function handler(req, res) {
             supabase.from('context_settings').select('*').eq('user_id', user.id).eq('context', 'personal').maybeSingle(),
             supabase.from('goals').select('*').eq('user_id', user.id).eq('context', 'personal').order('priority'),
           ])
-          const { title, body } = buildDigest({ transactions: tx || [], settings, goals: goals || [], day: local.day, lang: meta.lang, saveRate: Number.isFinite(Number(meta.save_rate)) ? Number(meta.save_rate) : 5, currency: meta.currency || 'USD' })
+          const { title, body } = buildDigest({ transactions: tx || [], settings, goals: goals || [], day: local.day, lang: meta.lang, saveRate: Number.isFinite(Number(meta.save_rate)) ? Number(meta.save_rate) : 5, currency: meta.currency || 'USD', upcomingBills: upcomingBills(meta.push_reminders, local.day) })
           due.push({ id: 'digest', title, body, url: '/dashboard' })
           goalLast.digest = local.day
         }

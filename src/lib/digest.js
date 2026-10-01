@@ -9,7 +9,7 @@ import { formatMoney } from './money.js'
 
 const counts = (t) => t.group !== 'transfer' && !t.is_payment
 
-export function buildDigest({ transactions = [], settings, goals = [], day, lang = 'ru', saveRate = 5, currency = 'USD' }) {
+export function buildDigest({ transactions = [], settings, goals = [], day, lang = 'ru', saveRate = 5, currency = 'USD', upcomingBills = 0 }) {
   const money = (n) => formatMoney(Math.abs(n), currency, lang)
   const L = (texts) => tr(lang, texts)
   const [y, m, d] = day.split('-').map(Number)
@@ -31,7 +31,7 @@ export function buildDigest({ transactions = [], settings, goals = [], day, lang
   // pay-yourself-first share (or what was actually saved, if more).
   const needsSpent = sum(monthTx.filter((t) => t.group === 'needs'))
   const savedMonth = sum(monthTx.filter((t) => t.group === 'savings'))
-  const opts = { needsSpent, savingsReserve: Math.max((income * (Number(saveRate) || 0)) / 100, savedMonth) }
+  const opts = { needsSpent, upcomingBills, savingsReserve: Math.max((income * (Number(saveRate) || 0)) / 100, savedMonth) }
   const needs = Object.values(settings?.needs_budget || {}).reduce((s, v) => s + (Number(v) || 0), 0)
   const lines = []
 

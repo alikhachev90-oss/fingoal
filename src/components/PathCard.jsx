@@ -24,7 +24,7 @@ export default function PathCard({ transactions, settings, debts, goals }) {
   const step = path.current
   const total = path.steps.length
   const rate = saveRate(user)
-  const offerRaise = saveRateStepDue(user)
+  const offerRaise = saveRateStepDue(user, transactions)
   const help = STEP_HELP[step.key] || {}
   const lesson = LESSONS.find((l) => l.key === help.lesson)
   const challenge = CHALLENGES.find((c) => c.key === help.challenge)

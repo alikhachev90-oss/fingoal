@@ -54,7 +54,7 @@ function collectReminders(userId, meta = {}) {
       if (key.startsWith(`fintrack_reminders_${userId}_`)) {
         for (const r of JSON.parse(localStorage.getItem(key)) || []) {
           if (r.fired || !r.when) continue
-          out.push({ id: r.id, kind: 'bill', when: r.when, title: r.label, body: r.amount ? fmtMoney(r.amount) : '' })
+          out.push({ id: r.id, kind: 'bill', when: r.when, title: r.label, body: r.amount ? fmtMoney(r.amount) : '', amount: Number(r.amount) || 0 })
         }
       } else if (key.startsWith(`fintera_goal_reminder_${userId}_`)) {
         const r = JSON.parse(localStorage.getItem(key))
