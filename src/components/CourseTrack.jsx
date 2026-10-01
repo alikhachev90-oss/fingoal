@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Lock, Check, Clock, GraduationCap, ChevronRight, ExternalLink } from 'lucide-react'
 import { Card, Button, IconCircle } from './UI'
 import { useApp } from '../context/AppContext'
 import { getExamResult, saveExamResult, getCompletedLessons, markLessonDone } from '../lib/course'
+import { moneyTokens } from '../lib/money'
 
 function pick(field, lang) {
-  if (field && typeof field === 'object' && !Array.isArray(field)) return field[lang] || field.en || field.ru
+  if (field && typeof field === 'object' && !Array.isArray(field)) return moneyTokens(field[lang] || field.en || field.ru)
   return field
 }
 
@@ -82,11 +83,14 @@ function ExamView({ track, userId, context, lang, onDone }) {
   )
 }
 
-export default function CourseTrack({ track, unlocked, userId, context, settings, debts }) {
+export default function CourseTrack({ track, unlocked, userId, context, settings, debts, suggested }) {
   const { t, lang } = useApp()
-  // The "why" track starts open until its first lesson is read — it's the
-  // first thing a newcomer should see on this tab.
-  const [open, setOpen] = useState(() => track.key === 'why_control' && getCompletedLessons(userId, context, track.key).length === 0)
+  // The module for where you are now (the "why" first, then your Path step)
+  // opens by itself; the rest stay folded until tapped.
+  const [open, setOpen] = useState(Boolean(suggested))
+  useEffect(() => {
+    if (suggested) setOpen(true)
+  }, [suggested])
   const [openLesson, setOpenLesson] = useState(null)
   const [showExam, setShowExam] = useState(false)
   const [completed, setCompleted] = useState(() => getCompletedLessons(userId, context, track.key))

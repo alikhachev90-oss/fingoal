@@ -122,3 +122,12 @@ export function fmtMoney(n, opts) {
 export function curSymbol() {
   return currencySymbol(current.currency, current.lang)
 }
+
+// Fills {starter} (the $500 cushion) and {usd:N} (a dollar amount) with round
+// local amounts in the person's currency — for lesson texts and titles.
+export function moneyTokens(text) {
+  if (typeof text !== 'string' || !text.includes('{')) return text
+  return text
+    .replace(/\{starter\}/g, () => fmtMoney(fromUsd(500, current.currency)))
+    .replace(/\{usd:(\d+(?:\.\d+)?)\}/g, (_, n) => fmtMoney(fromUsd(Number(n), current.currency)))
+}

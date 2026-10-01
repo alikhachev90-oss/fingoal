@@ -8,10 +8,14 @@ import { getLessonsWithStatus } from '../lib/lessons'
 import { getRecommendedLesson } from '../lib/coach'
 import { useSearchParams } from 'react-router-dom'
 import { TRACKS, isTrackUnlocked, getCompletedLessons } from '../lib/course'
+import { computePath } from '../lib/path'
 import CourseTrack from '../components/CourseTrack'
 import { useDataVersion } from '../lib/useDataVersion'
 import TourGuide from '../components/TourGuide'
 import { TOURS } from '../lib/tours'
+
+// Path step → the course module that goes with it.
+const STEP_TRACK = { starter: 'cushion', month: 'cushion', debt: 'debt_track', threeMonths: 'protection', invest: 'invest_track', goals: 'freedom' }
 
 export default function LessonsScreen() {
   const { user, context, t, lang } = useApp()
@@ -73,6 +77,11 @@ export default function LessonsScreen() {
   const unlockedCount = lessons.filter((l) => l.unlocked).length + trackTotal
   const doneCount = lessons.filter((l) => l.unlocked && completed.includes(l.key)).length + trackDone
   const recommended = getRecommendedLesson(lessons, completed, focusKey)
+  // The module to open: the "why" first, then the one for your Path step.
+  const pathKey = computePath({ transactions, settings, debts, goals }).current?.key
+  const suggestedTrack = getCompletedLessons(user.id, context, 'why_control').length === 0
+    ? 'why_control'
+    : STEP_TRACK[pathKey] || null
   const progressPct = unlockedCount > 0 ? Math.round((doneCount / unlockedCount) * 100) : 0
   const orderedLessons = recommended ? [recommended, ...lessons.filter((lesson) => lesson.key !== recommended.key)] : lessons
 
@@ -104,6 +113,7 @@ export default function LessonsScreen() {
             <CourseTrack
               key={track.key}
               track={track}
+              suggested={track.key === suggestedTrack}
               unlocked={isTrackUnlocked(track, user.id, context)}
               userId={user.id}
               context={context}

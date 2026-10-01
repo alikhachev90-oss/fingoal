@@ -32,18 +32,6 @@ export const QUOTES = [
     source: { ru: 'по мотивам «Самого богатого человека в Вавилоне»', en: 'inspired by "The Richest Man in Babylon"', es: "inspirado en «El hombre más rico de Babilonia»", fr: "inspiré de « L’Homme le plus riche de Babylone »" },
   },
   {
-    text: { ru: 'Мысль, удерживаемая с верой и подкреплённая действием, рано или поздно находит свой путь в реальность.', en: 'A thought held with belief and backed by action sooner or later finds its way into reality.', es: "Una idea sostenida con fe y respaldada con acción, tarde o temprano se hace realidad.", fr: "Une idée portée avec conviction et soutenue par l’action finit toujours par devenir réalité." },
-    source: { ru: 'по мотивам «Думай и богатей»', en: 'inspired by "Think and Grow Rich"', es: "inspirado en «Piense y hágase rico»", fr: "inspiré de « Réfléchissez et devenez riche »" },
-  },
-  {
-    text: { ru: 'Чёткая цель с дедлайном стоит больше, чем сотня расплывчатых желаний.', en: 'One clear goal with a deadline is worth more than a hundred vague wishes.', es: "Una meta clara con fecha vale más que cien deseos vagos.", fr: "Un objectif clair avec une date vaut plus que cent vagues envies." },
-    source: { ru: 'по мотивам «Думай и богатей»', en: 'inspired by "Think and Grow Rich"', es: "inspirado en «Piense y hágase rico»", fr: "inspiré de « Réfléchissez et devenez riche »" },
-  },
-  {
-    text: { ru: 'Привычка откладывать решения — самый дорогой из всех финансовых навыков.', en: 'The habit of putting off decisions is the most expensive financial "skill" there is.', es: "El hábito de posponer decisiones es la «habilidad» financiera más cara que existe.", fr: "L’habitude de repousser les décisions est la « compétence » financière la plus coûteuse qui soit." },
-    source: { ru: 'по мотивам «Думай и богатей»', en: 'inspired by "Think and Grow Rich"', es: "inspirado en «Piense y hágase rico»", fr: "inspiré de « Réfléchissez et devenez riche »" },
-  },
-  {
     text: { ru: 'Люди, которые управляют своими финансами, рано или поздно начинают управлять своим временем.', en: 'People who manage their finances eventually end up managing their time.', es: "Quien maneja sus finanzas termina manejando su tiempo.", fr: "Ceux qui gèrent leurs finances finissent par gérer leur temps." },
     source: { ru: 'по мотивам «Богатый папа, бедный папа»', en: 'inspired by "Rich Dad Poor Dad"', es: "inspirado en «Padre rico, padre pobre»", fr: "inspiré de « Père riche, père pauvre »" },
   },
@@ -193,24 +181,30 @@ export const STATS = [
   },
   {
     text: {
-      ru: '79% миллионеров в США не получили никакого наследства — они собрали состояние сами.',
-      en: '79% of US millionaires received no inheritance at all — they built it themselves.', es: "El 79% de los millonarios de EE. UU. no recibió ninguna herencia: lo construyó por su cuenta.", fr: "79 % des millionnaires américains n’ont reçu aucun héritage — ils l’ont bâti eux-mêmes.",
+      ru: "Наследство когда-либо получали лишь около 1 из 5 американских семей. Большинство состояний строится из обычного дохода — того, что удалось не потратить.",
+      en: "Only about 1 in 5 American households ever receive an inheritance. Most wealth is built from ordinary income — the part that didn’t get spent.",
+      es: "Solo cerca de 1 de cada 5 hogares estadounidenses recibe alguna vez una herencia. La mayor parte de la riqueza se construye con ingresos normales: lo que no se gastó.",
+      fr: "Seul environ 1 foyer américain sur 5 reçoit un jour un héritage. La plupart des patrimoines se construisent avec des revenus ordinaires — la part qui n’a pas été dépensée.",
     },
-    source: { ru: 'Ramsey, National Study of Millionaires (10,000+ people)', en: 'Ramsey, National Study of Millionaires (10,000+ people)', es: "Ramsey, National Study of Millionaires (más de 10,000 personas)", fr: "Ramsey, National Study of Millionaires (plus de 10 000 personnes)" },
+    source: {"ru": "Wolff & Gittleman (NBER); Federal Reserve SCF", "en": "Wolff & Gittleman (NBER); Federal Reserve SCF", "es": "Wolff & Gittleman (NBER); Federal Reserve SCF", "fr": "Wolff & Gittleman (NBER) ; Federal Reserve SCF"},
   },
   {
     text: {
-      ru: 'Треть миллионеров ни разу за карьеру не зарабатывала больше $100,000 в год.',
-      en: 'A third of millionaires never earned six figures in any single year of their career.', es: "Un tercio de los millonarios nunca ganó seis cifras en ningún año de su carrera.", fr: "Un tiers des millionnaires n’a jamais gagné six chiffres en une seule année de carrière.",
+      ru: "Около 4 из 10 американцев с доходом выше $100 000 в год живут от зарплаты до зарплаты. Высокий доход сам по себе не делает богатым — решает то, что остаётся.",
+      en: "About 4 in 10 Americans earning over $100,000 a year live paycheck to paycheck. A high income alone doesn’t make you wealthy — what’s left over does.",
+      es: "Cerca de 4 de cada 10 estadounidenses que ganan más de $100,000 al año viven al día. Un ingreso alto por sí solo no hace rico: decide lo que queda.",
+      fr: "Environ 4 Américains sur 10 gagnant plus de 100 000 $ par an vivent d’une paie à l’autre. Un gros revenu ne rend pas riche à lui seul — c’est ce qui reste qui compte.",
     },
-    source: { ru: 'Ramsey, National Study of Millionaires', en: 'Ramsey, National Study of Millionaires' , es: 'Ramsey, National Study of Millionaires', fr: 'Ramsey, National Study of Millionaires' },
+    source: {"ru": "LendingClub / PYMNTS", "en": "LendingClub / PYMNTS", "es": "LendingClub / PYMNTS", "fr": "LendingClub / PYMNTS"},
   },
   {
     text: {
-      ru: '8 из 10 миллионеров назвали регулярные вложения в пенсионный план на работе главным фактором своего богатства.',
-      en: '8 in 10 millionaires named steady investing in their workplace retirement plan as the key to their wealth.', es: "8 de cada 10 millonarios dijeron que la clave de su riqueza fue invertir con constancia en el plan de jubilación de su trabajo.", fr: "8 millionnaires sur 10 citent l’investissement régulier dans le plan retraite de leur employeur comme clé de leur richesse.",
+      ru: "Когда компания сама записывает сотрудников в пенсионный план, участие растёт с 37% до 86%. Самое мощное решение о деньгах — то, которое принимается один раз.",
+      en: "When a company enrolls employees in its retirement plan automatically, participation jumps from 37% to 86%. The most powerful money decision is the one you make once.",
+      es: "Cuando una empresa inscribe automáticamente a sus empleados en el plan de jubilación, la participación sube del 37% al 86%. La decisión de dinero más poderosa es la que tomas una sola vez.",
+      fr: "Quand une entreprise inscrit automatiquement ses salariés au plan retraite, la participation passe de 37 % à 86 %. La décision financière la plus puissante est celle qu’on prend une seule fois.",
     },
-    source: { ru: 'Ramsey, National Study of Millionaires', en: 'Ramsey, National Study of Millionaires' , es: 'Ramsey, National Study of Millionaires', fr: 'Ramsey, National Study of Millionaires' },
+    source: {"ru": "Madrian & Shea, Harvard / QJE (2001)", "en": "Madrian & Shea, Harvard / QJE (2001)", "es": "Madrian & Shea, Harvard / QJE (2001)", "fr": "Madrian & Shea, Harvard / QJE (2001)"},
   },
   {
     text: {
