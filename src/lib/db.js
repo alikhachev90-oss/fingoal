@@ -347,6 +347,11 @@ export async function deleteAllUserData(userId) {
   localStorage.removeItem(LS_KEY)
   localStorage.removeItem(LOCAL_LESSONS_KEY)
   if (!supabaseEnabled) return
+  // Account-level copies too: without this, pushes for deleted goals and cards
+  // kept coming and goal photos stayed online.
+  const { deleteStoredGoalImages } = await import('./goalVision')
+  await deleteStoredGoalImages({ all: true })
+  await saveUserMeta(userId, { push_reminders: [], goal_images: {}, custom_categories: null, save_rate: null, save_rate_at: null, push_goal_last: null, push_fired: null }).catch(() => {})
   const tables = ['transactions', 'goals', 'debts', 'accounts', 'checkins', 'context_settings', 'user_lessons', 'insights']
   for (const table of tables) {
     const { error } = await supabase.from(table).delete().eq('user_id', userId)

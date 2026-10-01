@@ -3,12 +3,13 @@ import { createClient } from '@supabase/supabase-js'
 // Stores a goal's photo in Supabase Storage and returns its public URL.
 // The browser sends an already-shrunk JPEG as a data URL plus the person's
 // access token; the token is checked, so only a signed-in user can upload,
-// and only into their own folder.
+// and only into their own folder. DELETE removes one goal's photos
+// ({ goalId }) or all of the person's ({ all: true }).
 const BUCKET = 'goal-images'
 const MAX_BYTES = 1.5 * 1024 * 1024
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' })
+  if (req.method !== 'POST' && req.method !== 'DELETE') return res.status(405).json({ error: 'method_not_allowed' })
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(500).json({ error: 'storage_not_configured' })
   }
@@ -20,6 +21,15 @@ export default async function handler(req, res) {
   if (!user) return res.status(401).json({ error: 'unauthorized' })
 
   const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {}
+
+  if (req.method === 'DELETE') {
+    const only = body.all ? null : String(body.goalId || '').replace(/[^a-zA-Z0-9-]/g, '')
+    if (!body.all && !only) return res.status(400).json({ error: 'bad_request' })
+    const { data: files } = await supabase.storage.from(BUCKET).list(user.id)
+    const paths = (files || []).map((f) => `${user.id}/${f.name}`).filter((p) => !only || p.startsWith(`${user.id}/${only}-`))
+    if (paths.length) await supabase.storage.from(BUCKET).remove(paths)
+    return res.status(200).json({ removed: paths.length })
+  }
   const match = /^data:image\/(jpeg|png|webp);base64,(.+)$/.exec(body.dataUrl || '')
   const goalId = String(body.goalId || '').replace(/[^a-zA-Z0-9-]/g, '')
   if (!match || !goalId) return res.status(400).json({ error: 'bad_request' })

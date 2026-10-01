@@ -6,6 +6,7 @@ import { Button, Input, Card, Pill, IconCircle } from '../components/UI'
 import BatteryProgress from '../components/BatteryProgress'
 import GoalReminderButton from '../components/GoalReminderButton'
 import { GoalPhoto, VisionPush } from '../components/GoalVision'
+import { goalImage, removeGoalImage } from '../lib/goalVision'
 import TourGuide from '../components/TourGuide'
 import InfoTag from '../components/InfoTag'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -42,7 +43,7 @@ function futureDate(months) {
 
 
 export default function GoalsScreen() {
-  const { user, context, t, lang } = useApp()
+  const { user, setUser, context, t, lang } = useApp()
   // Reload when something is logged on another tab (they stay mounted).
   const dataVersion = useDataVersion()
   const [settings, setSettings] = useState(null)
@@ -186,6 +187,8 @@ export default function GoalsScreen() {
   async function removeGoal(id) {
     setDeletingGoal(null)
     await db.deleteGoal(user.id, id).catch(() => setSaveError(t('goals.saveError')))
+    // Its photo goes too, files included.
+    if (goalImage(user, id)) removeGoalImage(user, id).then(setUser).catch(() => {})
     refresh()
   }
 

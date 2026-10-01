@@ -52,7 +52,24 @@ export async function setGoalImage(user, goalId, file) {
   return db.saveUserMeta(user.id, { goal_images: images })
 }
 
+// Deletes the stored photo files too — a photo of family shouldn't stay
+// reachable by its link after it's removed.
+export async function deleteStoredGoalImages(body) {
+  if (!supabaseEnabled) return
+  try {
+    const { data } = await supabase.auth.getSession()
+    await fetch('/api/goal-image', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data?.session?.access_token || ''}` },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    // Offline: the link stays dead in the app either way.
+  }
+}
+
 export async function removeGoalImage(user, goalId) {
+  await deleteStoredGoalImages({ goalId })
   const images = { ...(user.user_metadata?.goal_images || {}) }
   delete images[goalId]
   return db.saveUserMeta(user.id, { goal_images: images })
