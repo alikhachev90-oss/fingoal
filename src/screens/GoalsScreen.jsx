@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { getPayFrom } from '../lib/payFrom'
 import TopBar from '../components/TopBar'
 import { Button, Input, Card, Pill, IconCircle } from '../components/UI'
 import BatteryProgress from '../components/BatteryProgress'
@@ -123,6 +124,19 @@ export default function GoalsScreen() {
     setContributionMessage('')
     try {
     const prevPct = goal.target_amount > 0 ? Math.min(100, Math.round(((goal.saved_amount || 0) / goal.target_amount) * 100)) : 0
+    // Filed as savings too — same as "set aside today" on Home — so it comes
+    // off an account, shows in the month's numbers, and the coach and the
+    // evening summary know it happened instead of asking for it again.
+    const accounts = await db.listAccounts(user.id, context).catch(() => [])
+    await db.addTransaction(user.id, context, {
+      amount: num,
+      date: todayStr(),
+      comment: `${t('dashboard.checkinComment')}: ${goal.name}`,
+      group: 'savings',
+      category_key: 'emergency',
+      sub: null,
+      account_id: getPayFrom(user.id, context, accounts || []) || null,
+    })
     const updated = await db.addToGoalSavings(user.id, goal.id, num)
     const newPct = goal.target_amount > 0 ? Math.min(100, Math.round(((updated?.saved_amount || 0) / goal.target_amount) * 100)) : 0
     const milestone = crossedMilestone(prevPct, newPct)

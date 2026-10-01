@@ -26,11 +26,12 @@ import { todayStr } from './lib/dates'
 // and copied to the account so the server can push them with the app closed
 // (lib/serverReminders.js).
 function ReminderWatcher() {
-  const { user, context } = useApp()
-  // Keep the account's copy (what the closed-app push works from) current.
+  const { user, context, lang } = useApp()
+  // Keep the account's copy (what the closed-app push works from) current —
+  // including after a language switch, so pushes arrive in the new language.
   useEffect(() => {
     if (user) syncServerReminders(user)
-  }, [user])
+  }, [user, lang])
   useEffect(() => {
     if (!user) return
     checkDueReminders(user.id, context)
