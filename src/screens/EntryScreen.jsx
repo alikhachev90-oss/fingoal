@@ -436,7 +436,9 @@ export default function EntryScreen() {
       }
       if (selected.group === 'savings') {
         // Putting money toward savings is what the daily check-in/streak tracks.
-        if (topGoal && (selected.key === 'emergency' || selected.key === 'investments' || selected.key === 'debt_extra')) {
+        // Paying down debt isn't progress toward a goal like a trip — only
+        // money actually put aside counts there.
+        if (topGoal && (selected.key === 'emergency' || selected.key === 'investments')) {
           const prevPct = goalPlan?.progressPct || 0
           const updatedGoal = await db.addToGoalSavings(user.id, topGoal.id, parseFloat(amount))
           const newPct = topGoal.target_amount > 0 ? Math.min(100, Math.round(((updatedGoal?.saved_amount || 0) / topGoal.target_amount) * 100)) : 0
