@@ -157,7 +157,7 @@ export default function LessonsScreen() {
               {isOpen && lesson.unlocked && (
                 <div className="px-4 pb-4 space-y-3 animate-slide-up">
                   {lesson.body.split('\n\n').map((para, i) => {
-                    const isPersonal = /^(Твои цифры|Заполни|Создай|Добавь|Your numbers|Fill in|Create|Add|Tus números|Completa|Crea|Añade|Tes chiffres|Remplis|Crée|Ajoute)/.test(para)
+                    const isPersonal = /^(Твои цифры|Заполни|Создай|Добавь|Your numbers|Fill in|Create|Add|Tus números|Completa|Crea|Añade|Tes chiffres|Remplis|Crée|Ajoute|Agrega)/.test(para)
                     return isPersonal ? (
                       <p key={i} className="text-sm font-medium bg-surface2 border-l-[3px] border-primary rounded-r-lg pl-3 pr-2 py-2 leading-relaxed">
                         {para}
