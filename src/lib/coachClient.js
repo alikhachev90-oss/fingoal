@@ -5,6 +5,7 @@ import { computeAccountBalance } from './creditCards'
 import { deriveMonthlyIncome } from './finance'
 import { toDate } from './dates'
 import { fmtMoney, getCurrency } from './money.js'
+import { getDebtKind } from './debtKinds.js'
 
 // Talking to the AI money friend (api/coach.js).
 //
@@ -68,7 +69,7 @@ export async function buildSnapshot(user, context, lang) {
   ]
   const open = debts.filter((d) => Number(d.balance) > 0)
   lines.push(open.length
-    ? `Debts: ${open.map((d) => `${d.name} ${money(d.balance)}${Number(d.rate) ? ` at ${d.rate}% APR` : ''}${Number(d.min_payment) ? `, min ${money(d.min_payment)}/mo` : ''}`).join('; ')}`
+    ? `Debts: ${open.map((d) => `${d.name}${getDebtKind(user, d.id) ? ` [${getDebtKind(user, d.id)}]` : ''} ${money(d.balance)}${Number(d.rate) ? ` at ${d.rate}% APR` : ''}${Number(d.min_payment) ? `, min ${money(d.min_payment)}/mo` : ''}`).join('; ')}`
     : 'Debts: none recorded in the app')
   if (accounts.length) {
     lines.push(`Accounts: ${accounts.map((a) => `${a.name} (${a.type}) ${money(computeAccountBalance(a, transactions))}${a.type === 'credit' ? ' owed' : ''}`).join('; ')}`)

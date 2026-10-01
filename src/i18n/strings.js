@@ -13,6 +13,7 @@ export const LANGUAGES = [
 ]
 
 const STRINGS = {
+  'debts.kind': { ru: 'Что это за долг', en: 'Type of debt', es: 'Tipo de deuda', fr: 'Type de dette' },
   'settings.country': { ru: 'Страна проживания', en: 'Country of residence', es: 'País de residencia', fr: 'Pays de résidence' },
   'settings.countryHint': { ru: 'От неё зависит валюта: все суммы вводятся и показываются в ней, без пересчёта в доллары.', en: 'This sets your currency: every amount is entered and shown in it, with no conversion to dollars.', es: 'Define tu moneda: todos los montos se ingresan y muestran en ella, sin convertir a dólares.', fr: 'Elle fixe ta devise : tous les montants sont saisis et affichés dans celle-ci, sans conversion en dollars.' },
   'onboarding.finishError': { ru: 'Не удалось завершить настройку. Попробуй ещё раз.', en: 'Could not finish setup. Try again.', es: 'No se pudo terminar la configuración. Inténtalo de nuevo.', fr: 'Impossible de terminer la configuration. Réessaie.' },
@@ -180,7 +181,7 @@ const STRINGS = {
   'onboarding.totalNeeds': { ru: 'Итого Needs / мес', en: 'Total essentials / mo', es: 'Total esenciales / mes', fr: 'Total essentiel / mois' },
   'onboarding.debtsHint': { ru: 'Это отдельно от трат — баланс, ставка и минимальный платёж по кредитам. Долги есть у большинства — это просто вводные для расчёта, а не повод для стресса.', en: "This is separate from expenses — balance, rate and minimum payment on loans. Most people have debt — it's just input for the math, not something to stress about.", es: 'Esto es aparte de los gastos — saldo, tasa y pago mínimo de tus préstamos. La mayoría tiene deudas — son solo datos para el cálculo, no un motivo de estrés.', fr: "C'est séparé des dépenses — solde, taux et paiement minimum de vos prêts. La plupart des gens ont des dettes — ce ne sont que des données pour le calcul, pas une raison de stresser." },
   'onboarding.addDebt': { ru: 'Ещё один долг', en: 'Add another debt', es: 'Añadir otra deuda', fr: 'Ajouter une autre dette' },
-  'onboarding.debtName': { ru: 'Кредитная карта', en: 'Credit card', es: 'Tarjeta de crédito', fr: 'Carte de crédit' },
+  'onboarding.debtName': { ru: 'Название (например, Visa или «Брату»)', en: 'Name (e.g. Visa or “My brother”)', es: 'Nombre (p. ej., Visa o «Mi hermano»)', fr: 'Nom (ex. Visa ou « Mon frère »)' },
   'onboarding.debtBalance': { ru: 'Баланс, {cur}', en: 'Balance, {cur}', es: 'Saldo, {cur}', fr: 'Solde, {cur}' },
   'onboarding.debtRate': { ru: 'Ставка, % год', en: 'Rate, % / yr', es: 'Tasa, % anual', fr: 'Taux, % / an' },
   'onboarding.debtTerm': { ru: 'Срок, мес', en: 'Term, months', es: 'Plazo, meses', fr: 'Durée, mois' },

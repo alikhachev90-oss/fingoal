@@ -23,7 +23,12 @@ function iosTick() {
     }
     document.body.append(input, iosLabel)
   }
+  // Flipping the switch must not steal focus from a field being typed in.
+  const active = document.activeElement
   iosLabel.click()
+  if (active && active !== document.body && active !== iosLabel && typeof active.focus === 'function') {
+    active.focus({ preventScroll: true })
+  }
 }
 
 let last = 0
@@ -46,8 +51,12 @@ export function installHaptics() {
     (e) => {
       // Our own hidden switch clicking itself must not tick again.
       if (!e.isTrusted) return
+      // Tapping into a text field is not a button press — and on iOS the
+      // hidden switch would take focus away, so the keyboard never opened.
+      if (e.target?.closest?.('input, textarea, select, [contenteditable]')) return
       const el = e.target?.closest?.(TARGET)
       if (!el || el.disabled || el.getAttribute('aria-disabled') === 'true') return
+      if (el.tagName === 'LABEL' && el.querySelector('input:not([type=checkbox]):not([type=radio]), textarea, select')) return
       if (el.closest('[data-no-haptic]')) return
       haptic()
     },

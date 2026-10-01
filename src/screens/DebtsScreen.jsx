@@ -12,18 +12,20 @@ import AccountPicker from '../components/AccountPicker'
 import { getPayFrom, setPayFrom } from '../lib/payFrom'
 import { TOURS } from '../lib/tours'
 import { fmtMoney } from '../lib/money'
+import DebtKindSelect from '../components/DebtKindSelect'
+import { debtKindLabel, getDebtKind, saveDebtKinds } from '../lib/debtKinds'
 
 function fmt(n) {
   return fmtMoney(n)
 }
 
-const emptyForm = { id: null, name: '', balance: '', rate: '', min_payment: '' }
+const emptyForm = { id: null, kind: '', name: '', balance: '', rate: '', min_payment: '' }
 
 // Every debt in one list, in the order to kill them: expensive ones first,
 // smallest balance first among those (Gal & McShane — each account that
 // disappears is what keeps people going until they're debt-free).
 export default function DebtsScreen() {
-  const { user, context, t, lang } = useApp()
+  const { user, setUser, context, t, lang } = useApp()
   const [debts, setDebts] = useState([])
   const [form, setForm] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -69,14 +71,18 @@ export default function DebtsScreen() {
     setSaving(true)
     setError('')
     const row = {
-      name: form.name.trim(),
+      name: form.name.trim() || debtKindLabel(form.kind, lang),
       balance: parseFloat(form.balance) || 0,
       rate: parseFloat(form.rate) || 0,
       min_payment: parseFloat(form.min_payment) || 0,
     }
     try {
-      if (form.id) await db.updateDebt(user.id, form.id, row)
-      else await db.addDebt(user.id, context, row)
+      const saved = form.id ? await db.updateDebt(user.id, form.id, row) : await db.addDebt(user.id, context, row)
+      const id = form.id || saved?.id
+      if (id && form.kind !== getDebtKind(user, id)) {
+        const updated = await saveDebtKinds(user, { [id]: form.kind }).catch(() => null)
+        if (updated) setUser(updated)
+      }
       setForm(null)
       await refresh()
     } catch {
@@ -131,7 +137,8 @@ export default function DebtsScreen() {
     return (
       <Card>
         <form onSubmit={save} className="space-y-3">
-          <Input label={t('debts.name')} required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Visa, Car loan…" />
+          <DebtKindSelect value={form.kind} onChange={(v) => setForm((f) => ({ ...f, kind: v }))} />
+          <Input label={t('debts.name')} required={!form.kind} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Visa, Car loan…" />
           <Input label={t('debts.balance')} type="number" inputMode="decimal" min="0" step="0.01" required value={form.balance} onChange={(e) => setForm((f) => ({ ...f, balance: e.target.value }))} />
           <Input label={t('debts.rate')} type="number" inputMode="decimal" min="0" step="0.01" value={form.rate} onChange={(e) => setForm((f) => ({ ...f, rate: e.target.value }))} placeholder="24" />
           <Input label={t('debts.minPayment')} type="number" inputMode="decimal" min="0" step="0.01" value={form.min_payment} onChange={(e) => setForm((f) => ({ ...f, min_payment: e.target.value }))} />
@@ -178,6 +185,7 @@ export default function DebtsScreen() {
                   <div className="min-w-0">
                     <p className="font-semibold text-sm truncate">{i + 1}. {d.name}</p>
                     <p className="text-xs text-muted">
+                      {getDebtKind(user, d.id) ? `${debtKindLabel(getDebtKind(user, d.id), lang)} · ` : ''}
                       {Number(d.rate) > 0 ? t('debts.rateShort', { rate: d.rate }) : t('debts.rateUnknown')}
                       {Number(d.min_payment) > 0 ? ` · ${t('debts.minShort', { amt: fmt(d.min_payment) })}` : ''}
                     </p>
@@ -208,7 +216,7 @@ export default function DebtsScreen() {
               ) : (
                 <div className="flex items-center gap-3">
                   <Button variant={i === 0 ? 'primary' : 'secondary'} className="flex-1" type="button" onClick={() => { setPayingId(d.id); setPayAmount(''); setCleared('') }}>{t('debts.pay')}</Button>
-                  <button type="button" className="text-xs text-primary py-2" onClick={() => setForm({ id: d.id, name: d.name, balance: String(d.balance), rate: String(d.rate || ''), min_payment: String(d.min_payment || '') })}>{t('goals.edit')}</button>
+                  <button type="button" className="text-xs text-primary py-2" onClick={() => setForm({ id: d.id, kind: getDebtKind(user, d.id), name: d.name, balance: String(d.balance), rate: String(d.rate || ''), min_payment: String(d.min_payment || '') })}>{t('goals.edit')}</button>
                   <button type="button" className="text-xs text-muted py-2" onClick={() => setDeleting(d)} aria-label={t('common.delete')}>✕</button>
                 </div>
               )}

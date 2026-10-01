@@ -6,11 +6,13 @@ import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import CountrySelect from '../components/CountrySelect'
 import { fmtMoney } from '../lib/money'
+import DebtKindSelect from '../components/DebtKindSelect'
+import { debtKindLabel, saveDebtKinds } from '../lib/debtKinds'
 
-const emptyDebt = { name: '', balance: '', rate: '', termMonths: '', minPayment: '' }
+const emptyDebt = { kind: '', name: '', balance: '', rate: '', termMonths: '', minPayment: '' }
 
 export default function OnboardingScreen() {
-  const { user, context, t } = useApp()
+  const { user, setUser, context, t, lang } = useApp()
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [needs, setNeeds] = useState({ housing: '', transport: '', groceries: '', health: '' })
@@ -42,16 +44,20 @@ export default function OnboardingScreen() {
         onboarded: true,
       })
       if (hasDebts === 'yes') {
+        const kinds = {}
         for (const d of debts) {
           if (!d.name && !d.balance) continue
-          await db.addDebt(user.id, context, {
-            name: d.name || 'Credit',
+          const row = await db.addDebt(user.id, context, {
+            name: d.name || debtKindLabel(d.kind, lang) || 'Credit',
             balance: parseFloat(d.balance) || 0,
             rate: parseFloat(d.rate) || 0,
             term_months: parseInt(d.termMonths) || 0,
             min_payment: parseFloat(d.minPayment) || 0,
           })
+          if (row?.id && d.kind) kinds[row.id] = d.kind
         }
+        const updated = await saveDebtKinds(user, kinds).catch(() => null)
+        if (updated) setUser(updated)
       }
       navigate('/dashboard', { replace: true })
     } catch (err) {
@@ -108,6 +114,7 @@ export default function OnboardingScreen() {
         <div className="space-y-4 mt-2">
           {debts.map((d, i) => (
             <Card key={i} className="space-y-3">
+              <DebtKindSelect value={d.kind} onChange={(v) => updateDebt(i, 'kind', v)} />
               <div className="flex items-center gap-2.5">
                 <IconCircle icon={CreditCard} className="bg-danger/10 text-danger" size={32} iconSize={15} />
                 <Input label="" value={d.name} onChange={(e) => updateDebt(i, 'name', e.target.value)} placeholder={t('onboarding.debtName')} className="!py-2" />
