@@ -1,7 +1,8 @@
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
 
-// Fired once a day by Vercel Cron (see vercel.json). Sends the same short
+// No longer scheduled: the evening summary (api/push/tick.js) replaced this
+// one-size nudge. Kept for manual use. Sends the same short
 // "did you log today?" nudge to every device that turned push on in Settings.
 // Personal reminders (bills, goals) go out separately via api/push/tick.js.
 export default async function handler(req, res) {

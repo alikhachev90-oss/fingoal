@@ -87,7 +87,7 @@ export default function PathCard({ transactions, settings, debts, goals }) {
         {lesson && (
           <Link to={`/lessons?focus=${lesson.key}`} replace className="flex items-center gap-2 text-xs text-muted">
             <BookOpen size={13} className="text-primary shrink-0" />
-            <span className="truncate min-w-0">{t('path.lesson')}: <span className="text-text">{lesson.title[lang] || lesson.title.ru}</span></span>
+            <span className="truncate min-w-0">{t('path.lesson')}: <span className="text-text">{lesson.title[lang] || lesson.title.en || lesson.title.ru}</span></span>
           </Link>
         )}
         {challenge && (

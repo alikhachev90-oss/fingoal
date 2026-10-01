@@ -77,9 +77,9 @@ function GoalReminderWatcher() {
 }
 
 function RequireAuth({ children }) {
-  const { user } = useApp()
+  const { user, t } = useApp()
   if (user === undefined) {
-    return <div className="min-h-[100svh] flex items-center justify-center text-muted">Загрузка…</div>
+    return <div className="min-h-[100svh] flex items-center justify-center text-muted">{t('common.loading')}</div>
   }
   if (!user) return <Navigate to="/auth" replace />
   return children

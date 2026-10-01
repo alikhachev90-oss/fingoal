@@ -465,7 +465,7 @@ export const CHALLENGES = [
 
 export function challengeTitle(def, lang = 'ru') {
   if (typeof def?.title === 'string') return def.title // custom ones carry a plain name
-  return def?.title?.[lang] || def?.title?.ru || ''
+  return def?.title?.[lang] || def?.title?.en || def?.title?.ru || ''
 }
 
 // ------------------------------------------------- editable / custom challenges

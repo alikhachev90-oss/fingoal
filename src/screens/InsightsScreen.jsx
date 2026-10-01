@@ -100,7 +100,7 @@ export default function InsightsScreen() {
   )
 
   if (settings === undefined) {
-    return <div className="min-h-[100svh] flex items-center justify-center text-muted">Загрузка…</div>
+    return <div className="min-h-[100svh] flex items-center justify-center text-muted">{t('common.loading')}</div>
   }
 
   if (!settings) {
@@ -175,7 +175,7 @@ export default function InsightsScreen() {
     const keys = def.categoryKeys || []
     // A built-in that matches on text carries its own wording.
     if (!keys.length && def.rule) {
-      const template = def.rule[lang] || def.rule.ru
+      const template = def.rule[lang] || def.rule.en || def.rule.ru
       return template.replace('{days}', def.days)
     }
     if (!keys.length) return t('insights.challengeRuleAny', { days: def.days })

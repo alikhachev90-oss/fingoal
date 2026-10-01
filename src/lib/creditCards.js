@@ -104,5 +104,5 @@ export function getCreditTips(lang = 'ru') {
       },
     },
   ]
-  return tips.map((t) => ({ title: t.title[lang] || t.title.ru, body: t.body[lang] || t.body.ru }))
+  return tips.map((t) => ({ title: t.title[lang] || t.title.en || t.title.ru, body: t.body[lang] || t.body.en || t.body.ru }))
 }

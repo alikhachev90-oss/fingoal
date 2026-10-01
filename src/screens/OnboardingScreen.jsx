@@ -8,7 +8,7 @@ import * as db from '../lib/db'
 const emptyDebt = { name: '', balance: '', rate: '', termMonths: '', minPayment: '' }
 
 export default function OnboardingScreen() {
-  const { user, context, t, lang } = useApp()
+  const { user, context, t } = useApp()
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [needs, setNeeds] = useState({ housing: '', transport: '', groceries: '', health: '' })
@@ -53,7 +53,7 @@ export default function OnboardingScreen() {
       }
       navigate('/dashboard', { replace: true })
     } catch (err) {
-      setError(err?.message || (lang === 'en' ? 'Could not finish setup. Try again.' : 'Не удалось завершить настройку. Попробуй ещё раз.'))
+      setError(err?.message || t('onboarding.finishError'))
     } finally {
       setSaving(false)
     }
@@ -62,7 +62,7 @@ export default function OnboardingScreen() {
   const stepMeta = [
     { title: t('onboarding.step1Title'), icon: Home },
     { title: t('onboarding.step2Title'), icon: CreditCard },
-    { title: lang === 'en' ? 'Your financial system is ready' : 'Твоя финансовая система готова', icon: Sparkles },
+    { title: t('onboarding.readyTitle'), icon: Sparkles },
   ]
 
   const steps = [
@@ -128,20 +128,18 @@ export default function OnboardingScreen() {
       <div className="glass rounded-[28px] p-5 border-primary/20 gold-glow">
         <p className="text-[10px] uppercase tracking-[.18em] text-primary font-bold">FINTERA SYSTEM</p>
         <p className="font-display text-[24px] leading-tight mt-2">
-          {lang === 'en' ? 'One place for your money, goals and financial growth.' : 'Одно место для денег, целей и финансового роста.'}
+          {t('onboarding.readyHeadline')}
         </p>
         <p className="text-sm text-muted leading-relaxed mt-3">
-          {lang === 'en'
-            ? 'You do not need to learn the whole app today. Open it, follow the prompts, and Fintera will guide you step by step.'
-            : 'Не нужно изучать всё приложение сразу. Открывай, следуй подсказкам — Fintera будет вести тебя шаг за шагом.'}
+          {t('onboarding.readyBody')}
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {[
-          { icon: LayoutGrid, title: lang === 'en' ? 'Overview' : 'Главная', text: lang === 'en' ? 'See the whole picture' : 'Вся картина в одном месте' },
-          { icon: PlusCircle, title: lang === 'en' ? 'Money' : 'Деньги', text: lang === 'en' ? 'Log income and spending' : 'Доходы и расходы' },
-          { icon: Target, title: lang === 'en' ? 'Goals' : 'Цели', text: lang === 'en' ? 'Turn plans into numbers' : 'Планы превращаются в цифры' },
-          { icon: Sparkles, title: lang === 'en' ? 'Insights' : 'Аналитика', text: lang === 'en' ? 'Understand what to do next' : 'Понимай, что делать дальше' },
+          { icon: LayoutGrid, title: t('onboarding.mapOverview'), text: t('onboarding.mapOverviewText') },
+          { icon: PlusCircle, title: t('onboarding.mapMoney'), text: t('onboarding.mapMoneyText') },
+          { icon: Target, title: t('onboarding.mapGoals'), text: t('onboarding.mapGoalsText') },
+          { icon: Sparkles, title: t('onboarding.mapInsights'), text: t('onboarding.mapInsightsText') },
         ].map(({ icon: Icon, title, text }) => (
           <div key={title} className="glass rounded-2xl p-3.5 min-h-[118px]">
             <IconCircle icon={Icon} className="bg-primary/10 text-primary" size={36} iconSize={16} />
@@ -153,12 +151,12 @@ export default function OnboardingScreen() {
       <div className="glass rounded-2xl p-4 flex items-start gap-3">
         <IconCircle icon={GraduationCap} className="bg-savings/10 text-savings" size={38} iconSize={17} />
         <div>
-          <p className="text-sm font-semibold">{lang === 'en' ? 'Learn instead of scrolling' : 'Учись вместо бесконечного скролла'}</p>
-          <p className="text-xs text-muted leading-relaxed mt-1">{lang === 'en' ? 'Short lessons are matched to your real financial situation.' : 'Короткие уроки подбираются под твою реальную финансовую ситуацию.'}</p>
+          <p className="text-sm font-semibold">{t('onboarding.learnTitle')}</p>
+          <p className="text-xs text-muted leading-relaxed mt-1">{t('onboarding.learnText')}</p>
         </div>
       </div>
       <p className="text-xs text-muted text-center px-3">
-        {lang === 'en' ? 'On your first visit to each section, interactive hints will explain the key controls.' : 'При первом входе в каждый раздел интерактивные подсказки объяснят ключевые элементы.'}
+        {t('onboarding.hintsNote')}
       </p>
     </div>,
   ]

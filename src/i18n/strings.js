@@ -11,6 +11,27 @@ export const LANGUAGES = [
 ]
 
 const STRINGS = {
+  'onboarding.finishError': { ru: 'Не удалось завершить настройку. Попробуй ещё раз.', en: 'Could not finish setup. Try again.', es: 'No se pudo terminar la configuración. Inténtalo de nuevo.', fr: 'Impossible de terminer la configuration. Réessaie.' },
+  'onboarding.readyTitle': { ru: 'Твоя финансовая система готова', en: 'Your financial system is ready', es: 'Tu sistema financiero está listo', fr: 'Ton système financier est prêt' },
+  'onboarding.readyHeadline': { ru: 'Одно место для денег, целей и финансового роста.', en: 'One place for your money, goals and financial growth.', es: 'Un solo lugar para tu dinero, tus metas y tu crecimiento financiero.', fr: 'Un seul endroit pour ton argent, tes objectifs et ta progression financière.' },
+  'onboarding.readyBody': { ru: 'Не нужно изучать всё приложение сразу. Открывай, следуй подсказкам — приложение будет вести тебя шаг за шагом.', en: 'You do not need to learn the whole app today. Open it, follow the prompts, and the app will guide you step by step.', es: 'No hace falta aprender toda la app hoy. Ábrela, sigue las indicaciones y te guiará paso a paso.', fr: 'Pas besoin d’apprendre toute l’app aujourd’hui. Ouvre-la, suis les indications : elle te guidera pas à pas.' },
+  'onboarding.mapOverview': { ru: 'Главная', en: 'Overview', es: 'Inicio', fr: 'Accueil' },
+  'onboarding.mapOverviewText': { ru: 'Вся картина в одном месте', en: 'See the whole picture', es: 'Todo el panorama en un lugar', fr: 'Toute la vue d’ensemble' },
+  'onboarding.mapMoney': { ru: 'Деньги', en: 'Money', es: 'Dinero', fr: 'Argent' },
+  'onboarding.mapMoneyText': { ru: 'Доходы и расходы', en: 'Log income and spending', es: 'Ingresos y gastos', fr: 'Revenus et dépenses' },
+  'onboarding.mapGoals': { ru: 'Цели', en: 'Goals', es: 'Metas', fr: 'Objectifs' },
+  'onboarding.mapGoalsText': { ru: 'Планы превращаются в цифры', en: 'Turn plans into numbers', es: 'Los planes se vuelven números', fr: 'Les projets deviennent des chiffres' },
+  'onboarding.mapInsights': { ru: 'Аналитика', en: 'Insights', es: 'Análisis', fr: 'Analyses' },
+  'onboarding.mapInsightsText': { ru: 'Понимай, что делать дальше', en: 'Understand what to do next', es: 'Entiende qué hacer después', fr: 'Comprends quoi faire ensuite' },
+  'onboarding.learnTitle': { ru: 'Учись вместо бесконечного скролла', en: 'Learn instead of scrolling', es: 'Aprende en vez de hacer scroll', fr: 'Apprends au lieu de scroller' },
+  'onboarding.learnText': { ru: 'Короткие уроки подбираются под твою реальную финансовую ситуацию.', en: 'Short lessons are matched to your real financial situation.', es: 'Lecciones cortas adaptadas a tu situación financiera real.', fr: 'De courtes leçons adaptées à ta situation financière réelle.' },
+  'onboarding.hintsNote': { ru: 'При первом входе в каждый раздел интерактивные подсказки объяснят ключевые элементы.', en: 'On your first visit to each section, interactive hints will explain the key controls.', es: 'La primera vez que entres a cada sección, unas pistas interactivas te explicarán lo principal.', fr: 'À ta première visite de chaque section, des bulles interactives expliqueront l’essentiel.' },
+  'common.loading': { ru: 'Загрузка…', en: 'Loading…', es: 'Cargando…', fr: 'Chargement…' },
+  'common.whatThisMeans': { ru: 'Что это значит', en: 'What this means', es: 'Qué significa', fr: 'Ce que ça veut dire' },
+  'common.genericError': { ru: 'Что-то пошло не так', en: 'Something went wrong', es: 'Algo salió mal', fr: 'Une erreur s’est produite' },
+  'common.screenErrorTitle': { ru: 'Не удалось открыть экран', en: 'Couldn’t open this screen', es: 'No se pudo abrir la pantalla', fr: 'Impossible d’ouvrir cet écran' },
+  'common.screenErrorBody': { ru: 'Вернись на Главную и попробуй ещё раз.', en: 'Go back to Home and try again.', es: 'Vuelve al inicio e inténtalo de nuevo.', fr: 'Reviens à l’accueil et réessaie.' },
+  'goals.reminderTitle': { ru: 'Напоминание о цели', en: 'Goal check-in', es: 'Recordatorio de meta', fr: 'Rappel d’objectif' },
   // Keys the newer screens reference but that were never added here — without
   // them the UI renders the raw key (e.g. "home.welcome") instead of text.
   'home.welcome': { ru: 'Привет,', en: 'Hi,', es: 'Hola,', fr: 'Bonjour,' },
@@ -231,9 +252,9 @@ const STRINGS = {
   'goals.guideToggle': { ru: 'Прочитать (2 мин)', en: 'Read this (2 min)', es: 'Leer (2 min)', fr: 'Lire (2 min)' },
   'goals.why': { ru: 'Зачем вам эта цель? (необязательно)', en: 'Why does this goal matter to you? (optional)', es: '¿Por qué te importa esta meta? (opcional)', fr: 'Pourquoi cet objectif compte pour vous ? (facultatif)' },
   'goals.whyPlaceholder': { ru: 'Что изменится в жизни, когда достигну этого?', en: "What changes in my life once I have this?", es: '¿Qué cambia en mi vida al lograrlo?', fr: 'Qu\'est-ce qui change dans ma vie une fois cela atteint ?' },
-  'goals.whyHint': { ru: 'Цели, за которыми стоит личная причина, а не просто «хочу», доводят до конца чаще (исследования мотивации Деси и Райана). Одно предложение — уже полезно.', en: 'Goals with a personal reason behind them — not just "I want it" — get followed through on more (Deci & Ryan\'s motivation research). One sentence already helps.' },
-  'goals.nameHint': { ru: 'Конкретное название и точная сумма работают лучше, чем расплывчатое «накопить побольше» — так однажды доказали Локк и Латэм в своих исследованиях постановки целей.', en: 'A specific name and exact amount beat a vague "save more" — this is one of the most-replicated findings in Locke & Latham\'s goal-setting research.' },
-  'goals.deadlineHint': { ru: 'Дата — это то, из чего можно посчитать план по дням. Без даты цель легко откладывается бесконечно.', en: "A date is what lets a day-by-day plan get calculated at all. Without one, a goal is easy to postpone forever." },
+  'goals.whyHint': { ru: 'Цели, за которыми стоит личная причина, а не просто «хочу», доводят до конца чаще (исследования мотивации Деси и Райана). Одно предложение — уже полезно.', en: 'Goals with a personal reason behind them — not just "I want it" — get followed through on more (Deci & Ryan\'s motivation research). One sentence already helps.', es: 'Las metas con una razón personal detrás — no solo «lo quiero» — se cumplen más a menudo (investigación sobre motivación de Deci y Ryan). Una frase ya ayuda.', fr: 'Les objectifs portés par une raison personnelle — pas juste « j’en ai envie » — sont plus souvent atteints (recherches de Deci et Ryan sur la motivation). Une phrase suffit déjà.' },
+  'goals.nameHint': { ru: 'Конкретное название и точная сумма работают лучше, чем расплывчатое «накопить побольше» — так однажды доказали Локк и Латэм в своих исследованиях постановки целей.', en: 'A specific name and exact amount beat a vague "save more" — this is one of the most-replicated findings in Locke & Latham\'s goal-setting research.', es: 'Un nombre concreto y un monto exacto funcionan mejor que un vago «ahorrar más» — uno de los hallazgos más replicados de Locke y Latham sobre metas.', fr: 'Un nom précis et un montant exact battent un vague « épargner plus » — l’un des résultats les plus répliqués des recherches de Locke et Latham.' },
+  'goals.deadlineHint': { ru: 'Дата — это то, из чего можно посчитать план по дням. Без даты цель легко откладывается бесконечно.', en: "A date is what lets a day-by-day plan get calculated at all. Without one, a goal is easy to postpone forever.", es: 'La fecha es lo que permite calcular un plan día a día. Sin ella, una meta se pospone para siempre.', fr: 'La date permet de calculer un plan jour par jour. Sans elle, un objectif se repousse à l’infini.' },
 
   'entry.title': { ru: 'Новая запись', en: 'New entry', es: 'Nuevo registro', fr: 'Nouvelle saisie' },
   'entry.typeIncome': { ru: 'Доход', en: 'Income', es: 'Ingreso', fr: 'Revenu' },
@@ -596,7 +617,7 @@ const STRINGS = {
 
 export function translate(key, lang, params) {
   const entry = STRINGS[key]
-  let str = entry ? (entry[lang] || entry.ru || key) : key
+  let str = entry ? (entry[lang] || entry.en || entry.ru || key) : key
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), v)

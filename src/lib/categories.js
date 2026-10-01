@@ -105,7 +105,7 @@ export const CATEGORY_TREE = {
 
 // Resolve a bilingual {ru,en} field (or a plain string, for backward compat) to one language.
 export function pickLang(field, lang = 'ru') {
-  if (field && typeof field === 'object' && !Array.isArray(field)) return field[lang] || field.ru
+  if (field && typeof field === 'object' && !Array.isArray(field)) return field[lang] || field.en || field.ru
   return field
 }
 

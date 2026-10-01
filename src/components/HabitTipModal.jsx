@@ -3,8 +3,8 @@ import { Card, Button } from './UI'
 
 export default function HabitTipModal({ tip, lang, onClose }) {
   if (!tip) return null
-  const title = tip.title[lang] || tip.title.ru
-  const body = tip.body[lang] || tip.body.ru
+  const title = tip.title[lang] || tip.title.en || tip.title.ru
+  const body = tip.body[lang] || tip.body.en || tip.body.ru
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-4 sm:pb-0">
       <Card className="!p-4 max-w-app w-full space-y-3 relative">

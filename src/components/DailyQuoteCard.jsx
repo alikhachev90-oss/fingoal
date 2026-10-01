@@ -6,8 +6,8 @@ import { useApp } from '../context/AppContext'
 export default function DailyQuoteCard({ inline = false }) {
   const { lang } = useApp()
   const quote = getQuoteOfDay()
-  const text = quote.text[lang] || quote.text.ru
-  const source = quote.source[lang] || quote.source.ru
+  const text = quote.text[lang] || quote.text.en || quote.text.ru
+  const source = quote.source[lang] || quote.source.en || quote.source.ru
   const isStat = quote.type === 'stat'
   const Icon = isStat ? BarChart3 : BookOpen
   // Right under the greeting: the line you read the moment the app opens,

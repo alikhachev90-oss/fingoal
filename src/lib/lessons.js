@@ -177,7 +177,7 @@ export function getLessonsWithStatus({ settings, debts = [], goals = [], transac
 
   return LESSONS.map((lesson) => ({
     ...lesson,
-    title: lesson.title[lang] || lesson.title.ru,
+    title: lesson.title[lang] || lesson.title.en || lesson.title.ru,
     unlocked: Boolean(lesson.unlock(ctx)),
     body: lesson.body(ctx, lang),
   }))

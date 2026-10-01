@@ -5,12 +5,6 @@
       "destination": "/index.html"
     }
   ],
-  "crons": [
-    {
-      "path": "/api/push/send-daily",
-      "schedule": "0 3 * * *"
-    }
-  ],
   "headers": [
     {
       "source": "/((?!api/|assets/).*)",

@@ -149,8 +149,8 @@ export default function TourGuide({ userId, context, screenKey, steps, lang, act
   // effect below has a chance to call finish()/clear rect, so bail out here
   // too instead of crashing on step.title.
   if (!step) return null
-  const title = step.title[lang] || step.title.ru
-  const body = step.body[lang] || step.body.ru
+  const title = step.title[lang] || step.title.en || step.title.ru
+  const body = step.body[lang] || step.body.en || step.body.ru
 
   // visualViewport reflects the space actually visible above the mobile
   // browser's collapsing address bar / gesture nav — window.innerHeight can

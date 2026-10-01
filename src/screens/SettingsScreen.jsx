@@ -209,7 +209,7 @@ export default function SettingsScreen() {
                   key={b.id}
                   type="button"
                   onClick={() => setBackground(b.id)}
-                  aria-label={b.label[lang] || b.label.ru}
+                  aria-label={b.label[lang] || b.label.en || b.label.ru}
                   aria-pressed={background === b.id}
                   className={`relative aspect-square rounded-xl border-2 overflow-hidden transition-all ${
                     background === b.id ? 'border-primary scale-[1.03]' : 'border-border/60'
@@ -220,7 +220,7 @@ export default function SettingsScreen() {
                   <span className="absolute left-3 right-3 top-3 h-8 rounded-lg border border-white/20 bg-white/10" />
                   <span className="absolute left-3 top-14 w-8 h-2 rounded-full" style={{ background: b.accent }} />
                   <span className="absolute inset-x-0 bottom-0 px-1 py-2 text-[11px] font-medium bg-black/25 text-center leading-tight" style={{ color: '#fff' }}>
-                    {b.label[lang] || b.label.ru}
+                    {b.label[lang] || b.label.en || b.label.ru}
                   </span>
                 </button>
               ))}

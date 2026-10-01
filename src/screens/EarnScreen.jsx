@@ -5,7 +5,7 @@ import { Card } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import { EARN_MORE } from '../lib/earnMore'
 
-const pick = (field, lang) => field?.[lang] || field?.ru || ''
+const pick = (field, lang) => field?.[lang] || field?.en || field?.ru || ''
 
 // The income half of the Path: spending cuts have a floor, income doesn't.
 export default function EarnScreen() {

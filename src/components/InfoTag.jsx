@@ -1,4 +1,5 @@
 import { useRef, useState, useLayoutEffect } from 'react'
+import { useApp } from '../context/AppContext'
 import { createPortal } from 'react-dom'
 import { Info } from 'lucide-react'
 
@@ -21,6 +22,7 @@ import { Info } from 'lucide-react'
 let currentCloser = null
 
 export default function InfoTag({ children }) {
+  const { t } = useApp()
   const btnRef = useRef(null)
   const [pos, setPos] = useState(null) // {top,left,width} in fixed/viewport coords, or null = closed
 
@@ -79,7 +81,7 @@ export default function InfoTag({ children }) {
         type="button"
         onClick={toggle}
         className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-surface2 text-muted hover:text-primary shrink-0"
-        aria-label="Что это значит"
+        aria-label={t('common.whatThisMeans')}
       >
         <Info size={11} strokeWidth={2.4} />
       </button>

@@ -34,7 +34,7 @@ export default function GoalReminderButton({ goalId, goalName }) {
     clear: { ru: 'Убрать напоминание', en: 'Remove reminder', es: 'Quitar recordatorio', fr: 'Supprimer le rappel' },
     at: { ru: 'В', en: 'At', es: 'A las', fr: 'À' },
   }
-  const L = (k) => labels[k][lang] || labels[k].ru
+  const L = (k) => labels[k][lang] || labels[k].en || labels[k].ru
 
   if (reminder && reminder.enabled) {
     return (

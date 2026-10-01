@@ -334,10 +334,10 @@ export default function DashboardScreen() {
 
   const coachAction = getCoachAction({ settings, transactions, goals, debts, lang, checkedInToday })
 
-  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Александр'
+  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || ''
 
   if (settings === undefined) {
-    return <div className="min-h-[100svh] flex items-center justify-center text-muted">Загрузка…</div>
+    return <div className="min-h-[100svh] flex items-center justify-center text-muted">{t('common.loading')}</div>
   }
 
   if (!settings) {

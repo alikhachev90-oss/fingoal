@@ -1,4 +1,5 @@
 import * as db from './db'
+import { tr } from './tr.js'
 import { supabase, supabaseEnabled } from './supabaseClient'
 
 // Reminders that arrive with the app closed. The browser can't schedule a
@@ -42,7 +43,8 @@ async function deviceSubscription() {
 }
 
 function collectReminders(userId, meta = {}) {
-  const en = (localStorage.getItem('fintrack_lang') || 'ru') === 'en'
+  const lang = localStorage.getItem('fintrack_lang') || 'ru'
+  const L = (texts) => tr(lang, texts)
   const out = []
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
@@ -57,7 +59,7 @@ function collectReminders(userId, meta = {}) {
         const r = JSON.parse(localStorage.getItem(key))
         if (!r?.enabled || !r.time) continue
         const goalId = key.split('_').pop()
-        out.push({ id: `goal_${goalId}`, kind: 'goal', time: r.time, title: r.name ? `«${r.name}»` : 'Цель', body: 'Пора отложить на цель сегодня.' })
+        out.push({ id: `goal_${goalId}`, kind: 'goal', time: r.time, title: r.name ? `«${r.name}»` : L({ ru: 'Цель', en: 'Goal', es: 'Meta', fr: 'Objectif' }), body: L({ ru: 'Пора отложить на цель сегодня.', en: 'Time to set something aside for your goal today.', es: 'Hoy toca apartar algo para tu meta.', fr: 'C’est le moment de mettre de côté pour ton objectif aujourd’hui.' }) })
       } else if (key.startsWith(`fintera_card_reminder_${userId}_`)) {
         const r = JSON.parse(localStorage.getItem(key))
         if (!r?.enabled || !r.time || !(r.owed > 0)) continue
@@ -67,8 +69,8 @@ function collectReminders(userId, meta = {}) {
           id: `card_${accountId}`,
           kind: 'daily',
           time: r.time,
-          title: en ? `Pay off "${r.name}"` : `Погаси «${r.name}»`,
-          body: en ? `${owed} on the card. Pay it in full before the due date — no interest.` : `На карте долг ${owed}. Закрой полностью до даты платежа — и никаких процентов.`,
+          title: L({ ru: `Погаси «${r.name}»`, en: `Pay off "${r.name}"`, es: `Paga «${r.name}»`, fr: `Rembourse « ${r.name} »` }),
+          body: L({ ru: `На карте долг ${owed}. Закрой полностью до даты платежа — и никаких процентов.`, en: `${owed} on the card. Pay it in full before the due date — no interest.`, es: `${owed} en la tarjeta. Págala completa antes de la fecha límite — sin intereses.`, fr: `${owed} sur la carte. Rembourse tout avant l’échéance — zéro intérêt.` }),
           url: '/accounts',
         })
       } else if (key.startsWith(`fintera_vision_${userId}_`)) {
@@ -85,7 +87,7 @@ function collectReminders(userId, meta = {}) {
           weekday: r.weekday || 1,
           time: r.time,
           title: `«${name}» · ${pct}%`,
-          body: en ? `$${left} to go. One more step this week.` : `Осталось $${left}. Ещё один шаг на этой неделе.`,
+          body: L({ ru: `Осталось $${left}. Ещё один шаг на этой неделе.`, en: `$${left} to go. One more step this week.`, es: `Faltan $${left}. Un paso más esta semana.`, fr: `Encore $${left}. Un pas de plus cette semaine.` }),
           url: '/goals',
           // Only a hosted photo can ride in a push, not an inline one.
           image: image && image.startsWith('https://') ? image : undefined,

@@ -22,7 +22,7 @@ function fmt(n) {
 }
 
 function pickLang(obj, lang) {
-  return obj?.[lang] || obj?.ru || ''
+  return obj?.[lang] || obj?.en || obj?.ru || ''
 }
 
 const emptyForm = { name: '', targetAmount: '', deadline: '', why: '' }

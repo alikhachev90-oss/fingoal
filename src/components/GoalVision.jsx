@@ -9,6 +9,8 @@ import { syncServerReminders } from '../lib/serverReminders'
 const WEEKDAYS = {
   ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
   en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  es: ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'],
+  fr: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
 }
 
 // The photo on top of a goal card, with its own "add / change / remove".
@@ -80,7 +82,7 @@ export function GoalPhoto({ goal, pct }) {
 export function VisionPush({ goal }) {
   const { user, lang, t } = useApp()
   const [state, setState] = useState(() => getVision(user.id, goal.id))
-  const days = WEEKDAYS[lang] || WEEKDAYS.ru
+  const days = WEEKDAYS[lang] || WEEKDAYS.en || WEEKDAYS.ru
 
   // Every visit refreshes the numbers the Monday message will quote.
   useEffect(() => {

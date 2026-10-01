@@ -5,7 +5,7 @@ import { useApp } from '../context/AppContext'
 import { getExamResult, saveExamResult, getCompletedLessons, markLessonDone } from '../lib/course'
 
 function pick(field, lang) {
-  if (field && typeof field === 'object' && !Array.isArray(field)) return field[lang] || field.ru
+  if (field && typeof field === 'object' && !Array.isArray(field)) return field[lang] || field.en || field.ru
   return field
 }
 

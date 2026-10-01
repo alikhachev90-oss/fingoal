@@ -63,7 +63,7 @@ export default function AuthScreen() {
       const settings = await db.getSettings(loggedInUser.id, 'personal')
       navigate(settings?.onboarded ? '/dashboard' : '/onboarding', { replace: true })
     } catch (err) {
-      setError(err.message || 'Что-то пошло не так')
+      setError(err.message || t('common.genericError'))
     } finally {
       setLoading(false)
     }
