@@ -84,7 +84,9 @@ function ExamView({ track, userId, context, lang, onDone }) {
 
 export default function CourseTrack({ track, unlocked, userId, context, settings, debts }) {
   const { t, lang } = useApp()
-  const [open, setOpen] = useState(false)
+  // The "why" track starts open until its first lesson is read — it's the
+  // first thing a newcomer should see on this tab.
+  const [open, setOpen] = useState(() => track.key === 'why_control' && getCompletedLessons(userId, context, track.key).length === 0)
   const [openLesson, setOpenLesson] = useState(null)
   const [showExam, setShowExam] = useState(false)
   const [completed, setCompleted] = useState(() => getCompletedLessons(userId, context, track.key))
