@@ -91,7 +91,7 @@ export function getCoachAction({ settings, transactions = [], goals = [], debts 
       text: L({
         ru: `Wants уже составляют ${pct}% месячного дохода (${w}). Это не обязательно плохо, но именно сюда стоит посмотреть до того, как месяц уйдёт из-под контроля.`,
         en: `Wants are already ${pct}% of monthly income (${w}). That is not automatically bad, but it is the first place to check before the month gets away from you.`,
-        es: `Los gustos ya son el ${pct}% del ingreso mensual (${w}). No es malo por sí mismo, pero es lo primero que conviene revisar antes de que el mes se te escape.`,
+        es: `Los deseos ya son el ${pct}% del ingreso mensual (${w}). No es malo por sí mismo, pero es lo primero que conviene revisar antes de que el mes se te escape.`,
         fr: `Les envies représentent déjà ${pct} % du revenu mensuel (${w}). Ce n’est pas forcément grave, mais c’est le premier endroit à vérifier avant que le mois ne t’échappe.`,
       }),
       action: L({ ru: 'Прочитать урок на 3 минуты', en: 'Read the 3-minute lesson', es: 'Leer la lección de 3 minutos', fr: 'Lire la leçon de 3 minutes' }),

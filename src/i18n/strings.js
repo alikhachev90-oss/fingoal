@@ -581,7 +581,7 @@ const STRINGS = {
   'common.savedOfTarget': { ru: '{saved} из {target}', en: '{saved} of {target}', es: '{saved} de {target}', fr: '{saved} sur {target}' },
   'dashboard.gapAmount': { ru: 'не хватает {amt}/день', en: 'short {amt}/day', es: 'faltan {amt}/día', fr: 'manque {amt}/jour' },
 
-  'group.needs': { ru: 'Обязательное', en: 'Needs', es: 'Necesario', fr: 'Nécessaire' },
+  'group.needs': { ru: 'Обязательное', en: 'Needs', es: 'Necesidades', fr: 'Essentiel' },
   'group.wants': { ru: 'Необязательное', en: 'Wants', es: 'Deseos', fr: 'Envies' },
   'group.savings': { ru: 'Накопления', en: 'Savings', es: 'Ahorros', fr: 'Épargne' },
 'group.income': { ru: 'Доход', en: 'Income', es: 'Ingreso', fr: 'Revenu' },

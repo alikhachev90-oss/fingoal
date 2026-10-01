@@ -169,7 +169,7 @@ export const TOURS = {
       body: {
         ru: 'Каждый сектор — отдельная категория (Жильё, Транспорт и т.д.), а не просто «Обязательное/Необязательное». Нажмите на сектор или на его название в списке ниже — увидите, из чего конкретно она состоит (например, в Жильё: аренда, коммуналка, быт).',
         en: "Each slice is one category (Housing, Transport, etc.), not just a broad Needs/Wants split. Tap a slice or its name in the list below to see exactly what makes it up (e.g. Housing breaks into rent, utilities, household).",
-        es: "Cada porción es una categoría (Vivienda, Transporte, etc.), no solo Necesidades/Gustos. Toca una porción o su nombre en la lista para ver de qué se compone (p. ej., Vivienda: renta, servicios, hogar).",
+        es: "Cada porción es una categoría (Vivienda, Transporte, etc.), no solo Necesidades/Deseos. Toca una porción o su nombre en la lista para ver de qué se compone (p. ej., Vivienda: renta, servicios, hogar).",
         fr: "Chaque part est une catégorie (Logement, Transport, etc.), pas seulement Besoins/Envies. Touche une part ou son nom dans la liste pour voir son détail (ex. Logement : loyer, charges, maison).",
       },
     },
@@ -253,7 +253,7 @@ export const TOURS = {
       body: {
         ru: 'Замечает повторяющиеся траты — если видит одинаковую сумму в Wants 2+ месяца подряд, спрашивает: это ещё нужная подписка или забытая? Работает по вручную введённым тратам; после привязки карты будет точнее и автоматически.',
         en: 'Spots repeating charges — if it sees the same amount in Wants for 2+ months running, it asks: still a subscription you want, or one you forgot about? Runs on manually logged spending for now; once card-linking ships it\'ll be automatic and more precise.',
-        es: "Detecta cargos que se repiten — si ve el mismo monto en Gustos 2+ meses seguidos, te pregunta: ¿sigue siendo una suscripción que quieres o una que olvidaste? Por ahora funciona con gastos registrados a mano; cuando se vinculen las tarjetas será automático y más preciso.",
+        es: "Detecta cargos que se repiten — si ve el mismo monto en Deseos 2+ meses seguidos, te pregunta: ¿sigue siendo una suscripción que quieres o una que olvidaste? Por ahora funciona con gastos registrados a mano; cuando se vinculen las tarjetas será automático y más preciso.",
         fr: "Repère les débits qui se répètent — même montant en Envies 2 mois de suite ou plus ? Il demande : abonnement voulu ou oublié ? Pour l’instant, sur les dépenses saisies à la main ; avec les cartes liées, ce sera automatique et plus précis.",
       },
     },
@@ -263,7 +263,7 @@ export const TOURS = {
       body: {
         ru: 'Короткие вызовы вроде «3 дня без Wants-трат» — тренируют самоконтроль на практике, а не в теории.',
         en: 'Short challenges like "3 days with zero Wants spending" — training self-control in practice, not just in theory.',
-        es: "Retos cortos como «3 días sin gastos en Gustos» — entrenan el autocontrol en la práctica, no solo en teoría.",
+        es: "Retos cortos como «3 días sin gastos en Deseos» — entrenan el autocontrol en la práctica, no solo en teoría.",
         fr: "De petits défis comme « 3 jours sans dépenses Envies » — pour entraîner la maîtrise de soi en pratique, pas seulement en théorie.",
       },
     },

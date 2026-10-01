@@ -292,20 +292,20 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
         ? L({
           ru: `В этом месяце Wants — ${fmt(monthWantsTotal)}, это ${pct}% от дохода. Выше стандартных 30% — стоит посмотреть, что растёт.`,
           en: `Wants this month — ${fmt(monthWantsTotal)}, that's ${pct}% of income. Above the usual 30% — worth checking what's growing.`,
-          es: `Gustos este mes: ${fmt(monthWantsTotal)}, el ${pct}% del ingreso. Más del 30% habitual — conviene ver qué está creciendo.`,
+          es: `Deseos este mes: ${fmt(monthWantsTotal)}, el ${pct}% del ingreso. Más del 30% habitual — conviene ver qué está creciendo.`,
           fr: `Envies ce mois-ci : ${fmt(monthWantsTotal)}, soit ${pct} % du revenu. Au-dessus des 30 % habituels — à surveiller.`,
         })
         : monthWantsTotal > 0
           ? L({
             ru: `Wants в этом месяце — ${fmt(monthWantsTotal)}, это ${pct}% от дохода — в пределах нормы.`,
             en: `Wants this month — ${fmt(monthWantsTotal)}, that's ${pct}% of income — within the normal range.`,
-            es: `Gustos este mes: ${fmt(monthWantsTotal)}, el ${pct}% del ingreso — dentro de lo normal.`,
+            es: `Deseos este mes: ${fmt(monthWantsTotal)}, el ${pct}% del ingreso — dentro de lo normal.`,
             fr: `Envies ce mois-ci : ${fmt(monthWantsTotal)}, soit ${pct} % du revenu — dans la norme.`,
           })
           : L({
             ru: 'В этом месяце пока нет трат по Wants — самое время внести первую и посмотреть на разбивку.',
             en: 'No Wants spending yet this month — a good time to log the first one and see the breakdown.',
-            es: 'Aún no hay gastos en Gustos este mes — buen momento para registrar el primero y ver el desglose.',
+            es: 'Aún no hay gastos en Deseos este mes — buen momento para registrar el primero y ver el desglose.',
             fr: 'Pas encore de dépenses Envies ce mois-ci — le bon moment pour noter la première et voir la répartition.',
           }),
     })
@@ -441,13 +441,13 @@ export function answerQuestion(question, ctx) {
     })
   }
 
-  if (/wants|дискреционн|развлечен|gustos|envies|loisirs/.test(q)) {
+  if (/wants|дискреционн|развлечен|gustos|deseos|envies|loisirs/.test(q)) {
     const total = fmt(monthTx.filter((t) => t.group === 'wants').reduce((s, t) => s + t.amount, 0))
     const derivedIncome = deriveMonthlyIncome(transactions)
     const pct = derivedIncome > 0 ? Math.round((monthTx.filter((t) => t.group === 'wants').reduce((s, t) => s + t.amount, 0) / derivedIncome) * 100) : null
     return pct !== null
-      ? L({ ru: `Wants в этом месяце — ${total} (${pct}% от дохода).`, en: `Wants this month — ${total} (${pct}% of income).`, es: `Gustos este mes: ${total} (${pct}% del ingreso).`, fr: `Envies ce mois-ci : ${total} (${pct} % du revenu).` })
-      : L({ ru: `Wants в этом месяце — ${total}.`, en: `Wants this month — ${total}.`, es: `Gustos este mes: ${total}.`, fr: `Envies ce mois-ci : ${total}.` })
+      ? L({ ru: `Wants в этом месяце — ${total} (${pct}% от дохода).`, en: `Wants this month — ${total} (${pct}% of income).`, es: `Deseos este mes: ${total} (${pct}% del ingreso).`, fr: `Envies ce mois-ci : ${total} (${pct} % du revenu).` })
+      : L({ ru: `Wants в этом месяце — ${total}.`, en: `Wants this month — ${total}.`, es: `Deseos este mes: ${total}.`, fr: `Envies ce mois-ci : ${total}.` })
   }
 
   if (/доход|зарплат|income|salary|ingreso|sueldo|salario|revenu|salaire/.test(q)) {
@@ -460,7 +460,7 @@ export function answerQuestion(question, ctx) {
   return L({
     ru: 'Могу ответить на вопросы про цель ("успею ли к дедлайну"), про то, на что уходит больше всего денег, и про Wants/доход. Попробуй переформулировать.',
     en: 'I can answer questions about your goal ("will I make the deadline"), what you’re spending the most on, and Wants/income. Try rephrasing.',
-    es: 'Puedo responder sobre tu meta («¿llegaré a la fecha?»), en qué gastas más, y sobre Gustos/ingresos. Intenta reformular.',
+    es: 'Puedo responder sobre tu meta («¿llegaré a la fecha?»), en qué gastas más, y sobre Deseos/ingresos. Intenta reformular.',
     fr: 'Je peux répondre sur ton objectif (« vais-je tenir l’échéance ? »), sur ta plus grosse dépense, et sur Envies/revenus. Essaie de reformuler.',
   })
 }
@@ -486,7 +486,7 @@ export const CHALLENGES = [
   },
   {
     key: 'zero_wants_3',
-    title: { ru: '3 дня нулевых трат по Wants', en: '3 days of zero Wants spending', es: "3 días sin gastos en Gustos", fr: "3 jours sans dépenses Envies" },
+    title: { ru: '3 дня нулевых трат по Wants', en: '3 days of zero Wants spending', es: "3 días sin gastos en Deseos", fr: "3 jours sans dépenses Envies" },
     days: 3,
     match: (t) => t.group === 'wants',
   },
