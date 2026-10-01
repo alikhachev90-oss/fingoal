@@ -32,6 +32,22 @@ export function deriveMonthlyIncome(transactions, today = new Date()) {
   return Math.round(avg * 100) / 100
 }
 
+// What was left over from every month before this one: income in, minus
+// spending and money set aside. Spending starts from zero each month, but
+// the money that wasn't spent rolls into the next one. Transfers between
+// own accounts and card payments (spending already counted) are skipped.
+export function carryoverFromPreviousMonths(transactions, today = new Date()) {
+  const monthStart = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`
+  let total = 0
+  for (const t of transactions || []) {
+    if (String(t.date) >= monthStart || t.group === 'transfer' || t.is_payment) continue
+    const amount = Number(t.amount || 0)
+    if (t.group === 'income') total += amount
+    else if (t.group === 'needs' || t.group === 'wants' || t.group === 'savings') total -= amount
+  }
+  return Math.round(total * 100) / 100
+}
+
 export function daysBetween(from, to) {
   const ms = toDate(to).setHours(0, 0, 0, 0) - toDate(from).setHours(0, 0, 0, 0)
   return Math.max(1, Math.round(ms / 86400000))

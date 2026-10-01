@@ -22,7 +22,7 @@ import { Card, Button, StatTile, IconCircle, EmptyState } from '../components/UI
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { findCategory, pickLang, subLabel, subHint } from '../lib/categories'
-import { computeGoalPlan, computeSafeToSpendToday, deriveMonthlyIncome } from '../lib/finance'
+import { carryoverFromPreviousMonths, computeGoalPlan, computeSafeToSpendToday, deriveMonthlyIncome } from '../lib/finance'
 import { detectHabitTip, dismissHabitTip } from '../lib/habitTips'
 import { TOURS } from '../lib/tours'
 import { computeAccountBalance, nextDateForDay, daysUntil } from '../lib/creditCards'
@@ -270,6 +270,9 @@ export default function DashboardScreen() {
   // of account balances, which stayed at $0 while income read $5,000 — money
   // logged without picking an account simply never reached it.
   const netThisMonth = realIncomeThisMonth - realExpenseThisMonth - byGroup.savings
+  // Spending resets each month; what's left over from earlier months rolls in.
+  const carryover = carryoverFromPreviousMonths(transactions)
+  const moneyLeftTotal = carryover + netThisMonth
   const totalBalance = (accounts || [])
     .filter((a) => a.type !== 'credit')
     .reduce((s, a) => s + computeAccountBalance(a, transactions), 0)
@@ -413,7 +416,8 @@ export default function DashboardScreen() {
             </div>
             <div>
               <p className="text-[10px] text-muted uppercase tracking-wide">{t('dashboard.moneyLeft')}</p>
-              <p className={`text-lg font-bold font-num mt-1 truncate ${netThisMonth < 0 ? 'text-wants' : 'text-text'}`}>{fmt(netThisMonth)}</p>
+              <p className={`text-lg font-bold font-num mt-1 truncate ${moneyLeftTotal < 0 ? 'text-wants' : 'text-text'}`}>{fmt(moneyLeftTotal)}</p>
+              {carryover !== 0 && <p className="text-[10px] text-muted mt-0.5 truncate">{t('dashboard.carryover', { amount: fmt(carryover) })}</p>}
             </div>
           </div>
         </Card>

@@ -168,6 +168,7 @@ const STRINGS = {
   'dashboard.moneyIn': { ru: 'Доход', en: 'Income', es: 'Ingresos', fr: 'Revenus' },
   'dashboard.moneyOut': { ru: 'Расход', en: 'Expenses', es: 'Gastos', fr: 'Dépenses' },
   'dashboard.moneyLeft': { ru: 'Остаток', en: 'Balance', es: 'Saldo', fr: 'Solde' },
+  'dashboard.carryover': { ru: 'вкл. {amount} с прошлых мес.', en: 'incl. {amount} carried over', es: 'incl. {amount} del mes anterior', fr: 'dont {amount} reportés' },
   'dashboard.streakLabel': { ru: 'стрик по накоплениям', en: 'savings streak', es: 'racha de ahorro', fr: "série d'épargne" },
   'dashboard.streakInfo': { ru: 'Пропустил(а) день — не страшно, стрик просто начнётся заново. Это счётчик привычки, а не экзамен.', en: "Missed a day? No big deal, the streak just restarts. It's a habit tracker, not a test.", es: '¿Te saltaste un día? No pasa nada, la racha simplemente reinicia. Es un contador de hábito, no un examen.', fr: "Un jour manqué ? Pas grave, la série repart simplement à zéro. C'est un compteur d'habitude, pas un examen." },
   'dashboard.checkinPrompt': { ru: 'Отложил(а) сегодня на цель?', en: 'Saved toward your goal today?', es: '¿Ahorraste hoy para tu meta?', fr: "Épargné aujourd'hui pour votre objectif ?" },
