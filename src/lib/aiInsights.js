@@ -6,6 +6,7 @@
 // are the natural place to swap a rule-based result for a model call — the
 // call sites (EntryScreen, InsightsScreen) don't need to change.
 
+import { tr } from './tr.js'
 import { suggestCategories, findCategory, pickLang } from './categories'
 import { deriveMonthlyIncome } from './finance'
 import { toDate } from './dates'
@@ -16,8 +17,8 @@ export function categoryLabel(group, key, lang = 'ru') {
 
 // ---------------------------------------------------------------- quick entry
 // "потратил 15 баксов на кофе" -> { amount, suggestion, restText }
-const CURRENCY_WORDS = /\b(баксов|баксы|бакс|доллар(?:ов|а)?|usd|дол\.?|у\.е\.?|dollars?|bucks?)\b/gi
-const FILLER_WORDS = /\b(потратил[а]?|заплатил[а]?|купил[а]?|взял[а]?|отдал[а]?|на|за|потратила|потратили|spent|paid|bought|got|for|on)\b/gi
+const CURRENCY_WORDS = /\b(баксов|баксы|бакс|доллар(?:ов|а)?|usd|дол\.?|у\.е\.?|dollars?|bucks?|dólares|dolares|dollars)\b/gi
+const FILLER_WORDS = /\b(потратил[а]?|заплатил[а]?|купил[а]?|взял[а]?|отдал[а]?|на|за|потратила|потратили|spent|paid|bought|got|for|on|gasté|pagué|compré|en|para|dépensé|payé|acheté|pour)\b/gi
 
 export function parseQuickEntry(text, lang = 'ru') {
   const raw = text.trim()
@@ -75,10 +76,12 @@ export function forecastGoal(goal, goalPlan, transactions, windowDays = 30, lang
     return {
       actualPerDay: 0,
       onTrack: false,
-      message:
-        lang === 'en'
-          ? `No contributions to this goal in the last ${windowDays} days — at this pace the deadline won't be reached at all.`
-          : `За последние ${windowDays} дней пополнений цели не было — при таком темпе дедлайн не будет достигнут вообще.`,
+      message: tr(lang, {
+        ru: `За последние ${windowDays} дней пополнений цели не было — при таком темпе дедлайн не будет достигнут вообще.`,
+        en: `No contributions to this goal in the last ${windowDays} days — at this pace the deadline won't be reached at all.`,
+        es: `No hubo aportes a esta meta en los últimos ${windowDays} días — a este ritmo no se llegará a la fecha.`,
+        fr: `Aucun versement sur cet objectif ces ${windowDays} derniers jours — à ce rythme, l’échéance ne sera jamais atteinte.`,
+      }),
     }
   }
 
@@ -94,14 +97,19 @@ export function forecastGoal(goal, goalPlan, transactions, windowDays = 30, lang
     projectedDate,
     onTrack,
     diffDays: Math.abs(diffDays),
-    message:
-      lang === 'en'
-        ? onTrack
-          ? `At your actual pace over the last ${windowDays} days (${fmt(actualPerDay)}/day), the goal will be reached about ${Math.abs(diffDays)} day(s) before the deadline.`
-          : `At your actual pace over the last ${windowDays} days (${fmt(actualPerDay)}/day), the goal will miss the deadline by about ${diffDays} day(s) — the plan needs ${fmt(goalPlan.perDay)}/day.`
-        : onTrack
-          ? `При фактическом темпе последних ${windowDays} дней (${fmt(actualPerDay)}/день) цель будет закрыта примерно на ${Math.abs(diffDays)} дн. раньше дедлайна.`
-          : `При фактическом темпе последних ${windowDays} дней (${fmt(actualPerDay)}/день) цель придёт к дедлайну с опозданием примерно на ${diffDays} дн. — план требует ${fmt(goalPlan.perDay)}/день.`,
+    message: onTrack
+      ? tr(lang, {
+        ru: `При фактическом темпе последних ${windowDays} дней (${fmt(actualPerDay)}/день) цель будет закрыта примерно на ${Math.abs(diffDays)} дн. раньше дедлайна.`,
+        en: `At your actual pace over the last ${windowDays} days (${fmt(actualPerDay)}/day), the goal will be reached about ${Math.abs(diffDays)} day(s) before the deadline.`,
+        es: `Con tu ritmo real de los últimos ${windowDays} días (${fmt(actualPerDay)}/día), llegarás a la meta unos ${Math.abs(diffDays)} día(s) antes de la fecha.`,
+        fr: `À ton rythme réel des ${windowDays} derniers jours (${fmt(actualPerDay)}/jour), l’objectif sera atteint environ ${Math.abs(diffDays)} jour(s) avant l’échéance.`,
+      })
+      : tr(lang, {
+        ru: `При фактическом темпе последних ${windowDays} дней (${fmt(actualPerDay)}/день) цель придёт к дедлайну с опозданием примерно на ${diffDays} дн. — план требует ${fmt(goalPlan.perDay)}/день.`,
+        en: `At your actual pace over the last ${windowDays} days (${fmt(actualPerDay)}/day), the goal will miss the deadline by about ${diffDays} day(s) — the plan needs ${fmt(goalPlan.perDay)}/day.`,
+        es: `Con tu ritmo real de los últimos ${windowDays} días (${fmt(actualPerDay)}/día), llegarás a la meta unos ${diffDays} día(s) tarde — el plan pide ${fmt(goalPlan.perDay)}/día.`,
+        fr: `À ton rythme réel des ${windowDays} derniers jours (${fmt(actualPerDay)}/jour), l’objectif sera atteint avec environ ${diffDays} jour(s) de retard — le plan demande ${fmt(goalPlan.perDay)}/jour.`,
+      }),
   }
 }
 
@@ -272,7 +280,7 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
   const monthWantsTotal = monthWants.reduce((s, t) => s + t.amount, 0)
   // Income comes from logged transactions now, not from a signup figure.
   const income = deriveMonthlyIncome(transactions, now)
-  const en = lang === 'en'
+  const L = (texts) => tr(lang, texts)
 
   // 1. Wants vs income this month
   if (income > 0) {
@@ -280,17 +288,26 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
     cards.push({
       id: 'wants-pct',
       tone: pct > 35 ? 'warn' : 'good',
-      text: en
-        ? pct > 35
-          ? `Wants this month — ${fmt(monthWantsTotal)}, that's ${pct}% of income. Above the usual 30% — worth checking what's growing.`
-          : monthWantsTotal > 0
-            ? `Wants this month — ${fmt(monthWantsTotal)}, that's ${pct}% of income — within the normal range.`
-            : `No Wants spending yet this month — a good time to log the first one and see the breakdown.`
-        : pct > 35
-          ? `В этом месяце Wants — ${fmt(monthWantsTotal)}, это ${pct}% от дохода. Выше стандартных 30% — стоит посмотреть, что растёт.`
-          : monthWantsTotal > 0
-            ? `Wants в этом месяце — ${fmt(monthWantsTotal)}, это ${pct}% от дохода — в пределах нормы.`
-            : `В этом месяце пока нет трат по Wants — самое время внести первую и посмотреть на разбивку.`,
+      text: pct > 35
+        ? L({
+          ru: `В этом месяце Wants — ${fmt(monthWantsTotal)}, это ${pct}% от дохода. Выше стандартных 30% — стоит посмотреть, что растёт.`,
+          en: `Wants this month — ${fmt(monthWantsTotal)}, that's ${pct}% of income. Above the usual 30% — worth checking what's growing.`,
+          es: `Gustos este mes: ${fmt(monthWantsTotal)}, el ${pct}% del ingreso. Más del 30% habitual — conviene ver qué está creciendo.`,
+          fr: `Envies ce mois-ci : ${fmt(monthWantsTotal)}, soit ${pct} % du revenu. Au-dessus des 30 % habituels — à surveiller.`,
+        })
+        : monthWantsTotal > 0
+          ? L({
+            ru: `Wants в этом месяце — ${fmt(monthWantsTotal)}, это ${pct}% от дохода — в пределах нормы.`,
+            en: `Wants this month — ${fmt(monthWantsTotal)}, that's ${pct}% of income — within the normal range.`,
+            es: `Gustos este mes: ${fmt(monthWantsTotal)}, el ${pct}% del ingreso — dentro de lo normal.`,
+            fr: `Envies ce mois-ci : ${fmt(monthWantsTotal)}, soit ${pct} % du revenu — dans la norme.`,
+          })
+          : L({
+            ru: 'В этом месяце пока нет трат по Wants — самое время внести первую и посмотреть на разбивку.',
+            en: 'No Wants spending yet this month — a good time to log the first one and see the breakdown.',
+            es: 'Aún no hay gastos en Gustos este mes — buen momento para registrar el primero y ver el desglose.',
+            fr: 'Pas encore de dépenses Envies ce mois-ci — le bon moment pour noter la première et voir la répartition.',
+          }),
     })
   }
 
@@ -304,9 +321,14 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
     cards.push({
       id: 'mom-' + top.key,
       tone: top.delta > 0 ? 'warn' : 'good',
-      text: en
-        ? `Category "${categoryLabel(group, key, lang)}" ${top.delta > 0 ? 'grew' : 'dropped'} by ${Math.abs(top.pct)}% vs last month (${fmt(top.prevV)} → ${fmt(top.curV)}).`
-        : `Категория «${categoryLabel(group, key, lang)}» ${top.delta > 0 ? 'выросла' : 'снизилась'} на ${Math.abs(top.pct)}% по сравнению с прошлым месяцем (${fmt(top.prevV)} → ${fmt(top.curV)}).`,
+      text: (() => {
+        const name = categoryLabel(group, key, lang)
+        const pctAbs = Math.abs(top.pct)
+        const span = `${fmt(top.prevV)} → ${fmt(top.curV)}`
+        return top.delta > 0
+          ? L({ ru: `Категория «${name}» выросла на ${pctAbs}% по сравнению с прошлым месяцем (${span}).`, en: `Category "${name}" grew by ${pctAbs}% vs last month (${span}).`, es: `La categoría «${name}» subió un ${pctAbs}% frente al mes pasado (${span}).`, fr: `La catégorie « ${name} » a augmenté de ${pctAbs} % par rapport au mois dernier (${span}).` })
+          : L({ ru: `Категория «${name}» снизилась на ${pctAbs}% по сравнению с прошлым месяцем (${span}).`, en: `Category "${name}" dropped by ${pctAbs}% vs last month (${span}).`, es: `La categoría «${name}» bajó un ${pctAbs}% frente al mes pasado (${span}).`, fr: `La catégorie « ${name} » a baissé de ${pctAbs} % par rapport au mois dernier (${span}).` })
+      })(),
     })
   }
 
@@ -317,9 +339,15 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
     cards.push({
       id: 'recurring',
       tone: 'neutral',
-      text: en
-        ? `Looks like a recurring charge: "${categoryLabel(r.group || 'wants', r.category_key, lang)}" for ~${fmt(r.amount)} shows up ${r.monthsCount} months in a row. If it's a forgotten subscription, now's a good time to cancel it.`
-        : `Похоже на регулярный платёж: «${categoryLabel(r.group || 'wants', r.category_key, lang)}» на ~${fmt(r.amount)} встречается ${r.monthsCount} мес. подряд. Если это забытая подписка — самое время её отменить.`,
+      text: (() => {
+        const name = categoryLabel(r.group || 'wants', r.category_key, lang)
+        return L({
+          ru: `Похоже на регулярный платёж: «${name}» на ~${fmt(r.amount)} встречается ${r.monthsCount} мес. подряд. Если это забытая подписка — самое время её отменить.`,
+          en: `Looks like a recurring charge: "${name}" for ~${fmt(r.amount)} shows up ${r.monthsCount} months in a row. If it's a forgotten subscription, now's a good time to cancel it.`,
+          es: `Parece un cargo recurrente: «${name}» por ~${fmt(r.amount)} aparece ${r.monthsCount} meses seguidos. Si es una suscripción olvidada, es buen momento para cancelarla.`,
+          fr: `Ça ressemble à un prélèvement récurrent : « ${name} » d’environ ${fmt(r.amount)} revient ${r.monthsCount} mois de suite. Si c’est un abonnement oublié, c’est le moment de l’annuler.`,
+        })
+      })(),
     })
   }
 
@@ -345,9 +373,12 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
       cards.push({
         id: 'debt',
         tone: 'neutral',
-        text: en
-          ? `Your priciest rate among current debts is "${worst.name}" at ${worst.rate}%. Any dollar above minimum payments makes the most sense going there.`
-          : `Самая дорогая ставка среди твоих долгов — «${worst.name}» под ${worst.rate}%. Любой доллар сверх минимальных платежей логичнее всего направить туда.`,
+        text: L({
+          ru: `Самая дорогая ставка среди твоих долгов — «${worst.name}» под ${worst.rate}%. Любой доллар сверх минимальных платежей логичнее всего направить туда.`,
+          en: `Your priciest rate among current debts is "${worst.name}" at ${worst.rate}%. Any dollar above minimum payments makes the most sense going there.`,
+          es: `La tasa más cara de tus deudas es «${worst.name}» al ${worst.rate}%. Cualquier dólar por encima de los mínimos conviene mandarlo ahí.`,
+          fr: `Le taux le plus cher de tes dettes est « ${worst.name} » à ${worst.rate} %. Chaque dollar au-delà des minimums est le plus utile là.`,
+        }),
       })
     }
   }
@@ -361,67 +392,77 @@ export function computeInsights({ settings, transactions, goals, debts, lang = '
 export function answerQuestion(question, ctx) {
   const q = question.toLowerCase()
   const { transactions, goals, lang = 'ru' } = ctx
-  const en = lang === 'en'
+  const L = (texts) => tr(lang, texts)
   const now = new Date()
   const monthTx = transactions.filter((t) => isSameMonth(t.date, now))
 
   const goal = goals?.[0]
 
-  if (/цел[ьи]|успею|хватит|дедлайн|goal|deadline|make it|enough/.test(q) && goal) {
+  if (/цел[ьи]|успею|хватит|дедлайн|goal|deadline|make it|enough|meta|llegar|alcanz|objectif|échéance|atteindr/.test(q) && goal) {
     const remaining = Math.max(0, goal.target_amount - (goal.saved_amount || 0))
     const daysLeft = Math.max(1, Math.round((toDate(goal.deadline) - now) / 86400000))
     const perDay = remaining / daysLeft
     const forecast = forecastGoal(goal, { perDay }, transactions, 30, lang)
     return (
       forecast?.message ||
-      (en
-        ? `Remaining until goal "${goal.name}" — ${fmt(remaining)}, needs ${fmt(perDay)}/day saved until the deadline.`
-        : `Остаток до цели «${goal.name}» — ${fmt(remaining)}, нужно откладывать ${fmt(perDay)}/день до дедлайна.`)
+      L({
+        ru: `Остаток до цели «${goal.name}» — ${fmt(remaining)}, нужно откладывать ${fmt(perDay)}/день до дедлайна.`,
+        en: `Remaining until goal "${goal.name}" — ${fmt(remaining)}, needs ${fmt(perDay)}/day saved until the deadline.`,
+        es: `Faltan ${fmt(remaining)} para la meta «${goal.name}»: hay que apartar ${fmt(perDay)}/día hasta la fecha.`,
+        fr: `Il reste ${fmt(remaining)} pour l’objectif « ${goal.name} » : il faut mettre ${fmt(perDay)}/jour de côté jusqu’à l’échéance.`,
+      })
     )
   }
 
-  if (/самая большая категория|на что трачу|больше всего|biggest category|spend the most|what am i spending/.test(q)) {
+  if (/самая большая категория|на что трачу|больше всего|biggest category|spend the most|what am i spending|en qué gasto|gasto más|más gasto|je dépense le plus|où va mon argent|plus grosse/.test(q)) {
     const byCat = {}
     for (const t of monthTx) {
-      if (t.group === 'transfer') continue
+      if (t.group === 'transfer' || t.group === 'income' || t.is_payment) continue
       const k = `${t.group}:${t.category_key}`
       byCat[k] = (byCat[k] || 0) + t.amount
     }
     const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1])
-    if (entries.length === 0) return en ? 'No spending logged this month yet — add the first one on the "Entry" tab.' : 'В этом месяце пока нет трат — добавь первую на вкладке «Трата».'
+    if (entries.length === 0) {
+      return L({
+        ru: 'В этом месяце пока нет трат — добавь первую на вкладке «Запись».',
+        en: 'No spending logged this month yet — add the first one on the "Entry" tab.',
+        es: 'Aún no hay gastos este mes — agrega el primero en la pestaña «Registro».',
+        fr: 'Aucune dépense ce mois-ci — ajoute la première dans l’onglet « Saisie ».',
+      })
+    }
     const [group, key] = entries[0][0].split(':')
-    return en
-      ? `The biggest spend this month is "${categoryLabel(group, key, lang)}" — ${fmt(entries[0][1])}.`
-      : `Больше всего в этом месяце ушло на «${categoryLabel(group, key, lang)}» — ${fmt(entries[0][1])}.`
+    const name = categoryLabel(group, key, lang)
+    const amt = fmt(entries[0][1])
+    return L({
+      ru: `Больше всего в этом месяце ушло на «${name}» — ${amt}.`,
+      en: `The biggest spend this month is "${name}" — ${amt}.`,
+      es: `Lo que más gastaste este mes: «${name}» — ${amt}.`,
+      fr: `Ta plus grosse dépense ce mois-ci : « ${name} » — ${amt}.`,
+    })
   }
 
-  if (/wants|дискреционн|развлечен/.test(q)) {
-    const total = monthTx.filter((t) => t.group === 'wants').reduce((s, t) => s + t.amount, 0)
+  if (/wants|дискреционн|развлечен|gustos|envies|loisirs/.test(q)) {
+    const total = fmt(monthTx.filter((t) => t.group === 'wants').reduce((s, t) => s + t.amount, 0))
     const derivedIncome = deriveMonthlyIncome(transactions)
-    const pct = derivedIncome > 0 ? Math.round((total / derivedIncome) * 100) : null
-    return en
-      ? pct !== null
-        ? `Wants this month — ${fmt(total)} (${pct}% of income).`
-        : `Wants this month — ${fmt(total)}.`
-      : pct !== null
-        ? `Wants в этом месяце — ${fmt(total)} (${pct}% от дохода).`
-        : `Wants в этом месяце — ${fmt(total)}.`
+    const pct = derivedIncome > 0 ? Math.round((monthTx.filter((t) => t.group === 'wants').reduce((s, t) => s + t.amount, 0) / derivedIncome) * 100) : null
+    return pct !== null
+      ? L({ ru: `Wants в этом месяце — ${total} (${pct}% от дохода).`, en: `Wants this month — ${total} (${pct}% of income).`, es: `Gustos este mes: ${total} (${pct}% del ingreso).`, fr: `Envies ce mois-ci : ${total} (${pct} % du revenu).` })
+      : L({ ru: `Wants в этом месяце — ${total}.`, en: `Wants this month — ${total}.`, es: `Gustos este mes: ${total}.`, fr: `Envies ce mois-ci : ${total}.` })
   }
 
-  if (/доход|зарплат|income|salary/.test(q)) {
+  if (/доход|зарплат|income|salary|ingreso|sueldo|salario|revenu|salaire/.test(q)) {
     const loggedIncome = deriveMonthlyIncome(transactions)
     return loggedIncome > 0
-      ? en
-        ? `Your logged monthly income is ${fmt(loggedIncome)}.`
-        : `Записанный доход за месяц — ${fmt(loggedIncome)}.`
-      : en
-        ? 'No income logged yet — add one on the Entry screen.'
-        : 'Доход ещё не записан — добавьте его на экране «Запись».'
+      ? L({ ru: `Записанный доход за месяц — ${fmt(loggedIncome)}.`, en: `Your logged monthly income is ${fmt(loggedIncome)}.`, es: `Tu ingreso mensual registrado es ${fmt(loggedIncome)}.`, fr: `Ton revenu mensuel enregistré est de ${fmt(loggedIncome)}.` })
+      : L({ ru: 'Доход ещё не записан — добавьте его на экране «Запись».', en: 'No income logged yet — add one on the Entry screen.', es: 'Aún no hay ingresos registrados — agrégalos en la pantalla «Registro».', fr: 'Aucun revenu enregistré — ajoute-le dans l’écran « Saisie ».' })
   }
 
-  return en
-    ? 'I can answer questions about your goal ("will I make the deadline"), what you’re spending the most on, and Wants/income. Try rephrasing.'
-    : 'Могу ответить на вопросы про цель ("успею ли к дедлайну"), про то, на что уходит больше всего денег, и про Wants/доход. Попробуй переформулировать.'
+  return L({
+    ru: 'Могу ответить на вопросы про цель ("успею ли к дедлайну"), про то, на что уходит больше всего денег, и про Wants/доход. Попробуй переформулировать.',
+    en: 'I can answer questions about your goal ("will I make the deadline"), what you’re spending the most on, and Wants/income. Try rephrasing.',
+    es: 'Puedo responder sobre tu meta («¿llegaré a la fecha?»), en qué gastas más, y sobre Gustos/ingresos. Intenta reformular.',
+    fr: 'Je peux répondre sur ton objectif (« vais-je tenir l’échéance ? »), sur ta plus grosse dépense, et sur Envies/revenus. Essaie de reformuler.',
+  })
 }
 
 // ------------------------------------------------------------------ challenges
@@ -430,7 +471,7 @@ export function answerQuestion(question, ctx) {
 export const CHALLENGES = [
   {
     key: 'no_delivery_week',
-    title: { ru: 'Неделя без доставки еды', en: 'A week without food delivery' },
+    title: { ru: 'Неделя без доставки еды', en: 'A week without food delivery', es: "Una semana sin comida a domicilio", fr: "Une semaine sans livraison de repas" },
     // `rule` spells out what actually breaks it. The built-ins match on text,
     // not on a category, so the generic "any discretionary spending" line the
     // editor shows for category-based challenges would be a lie here.
@@ -441,17 +482,17 @@ export const CHALLENGES = [
       fr: '{days} jours sans livraison de repas',
     },
     days: 7,
-    match: (t) => /достав|delivery|doordash|uber eats/i.test(`${t.category_key} ${t.comment || ''}`),
+    match: (t) => /достав|delivery|doordash|uber ?eats|grubhub|domicilio|livraison/i.test(`${t.category_key} ${t.comment || ''}`),
   },
   {
     key: 'zero_wants_3',
-    title: { ru: '3 дня нулевых трат по Wants', en: '3 days of zero Wants spending' },
+    title: { ru: '3 дня нулевых трат по Wants', en: '3 days of zero Wants spending', es: "3 días sin gastos en Gustos", fr: "3 jours sans dépenses Envies" },
     days: 3,
     match: (t) => t.group === 'wants',
   },
   {
     key: 'no_coffee_week',
-    title: { ru: 'Неделя без кофе на вынос', en: 'A week without takeout coffee' },
+    title: { ru: 'Неделя без кофе на вынос', en: 'A week without takeout coffee', es: "Una semana sin café para llevar", fr: "Une semaine sans café à emporter" },
     rule: {
       ru: '{days} дн. без трат: Кофе на вынос',
       en: '{days} days with no spending on: Coffee to go',

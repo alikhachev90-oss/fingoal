@@ -1,3 +1,4 @@
+import { tr } from './tr.js'
 // Educational US federal tax estimator — NOT tax preparation, NOT filing, NOT
 // personalized advice. Figures are the official 2026 IRS federal brackets and
 // standard deductions (Tax Foundation, citing IRS Rev. Proc. 2025-32) and the
@@ -95,44 +96,59 @@ export function estimateFederalTax({ filingStatus = 'single', wages = 0, selfEmp
 }
 
 export function getTaxRecommendations(result, { selfEmploymentIncome = 0 }, lang = 'ru') {
-  const en = lang === 'en'
+  const L = (texts) => tr(lang, texts)
   const fmt = (n) => '$' + Math.round(n || 0).toLocaleString('en-US')
   const recs = []
 
   if (selfEmploymentIncome > 0) {
     recs.push(
-      en
-        ? `As self-employed, the IRS generally expects quarterly estimated payments (Apr 15, Jun 15, Sep 15, and Jan 15 of the following year) rather than one lump sum — paying only at filing time can trigger an underpayment penalty. Rough amount per quarter: ${fmt(result.quarterlyPayment)}.`
-        : `Как self-employed, IRS обычно ожидает квартальные авансовые платежи (15 апреля, 15 июня, 15 сентября и 15 января следующего года), а не один платёж в конце года — иначе возможен штраф за недоплату. Ориентир на квартал: ${fmt(result.quarterlyPayment)}.`,
+      L({
+        ru: `Как self-employed, IRS обычно ожидает квартальные авансовые платежи (15 апреля, 15 июня, 15 сентября и 15 января следующего года), а не один платёж в конце года — иначе возможен штраф за недоплату. Ориентир на квартал: ${fmt(result.quarterlyPayment)}.`,
+        en: `As self-employed, the IRS generally expects quarterly estimated payments (Apr 15, Jun 15, Sep 15, and Jan 15 of the following year) rather than one lump sum — paying only at filing time can trigger an underpayment penalty. Rough amount per quarter: ${fmt(result.quarterlyPayment)}.`,
+        es: `Como trabajador independiente, el IRS suele esperar pagos estimados trimestrales (15 de abril, 15 de junio, 15 de septiembre y 15 de enero del año siguiente) en lugar de un solo pago — pagar todo al declarar puede generar una multa por pago insuficiente. Monto aproximado por trimestre: ${fmt(result.quarterlyPayment)}.`,
+        fr: `En tant qu’indépendant, l’IRS attend en général des acomptes trimestriels (15 avril, 15 juin, 15 septembre et 15 janvier de l’année suivante) plutôt qu’un seul paiement — tout payer à la déclaration peut entraîner une pénalité pour sous-paiement. Montant indicatif par trimestre : ${fmt(result.quarterlyPayment)}.`,
+      }),
     )
     recs.push(
-      en
-        ? "A SEP-IRA or Solo 401(k) can shelter a meaningful share of self-employment profit from income tax — worth modeling with a CPA before year-end, especially if profit is trending up."
-        : "SEP-IRA или Solo 401(k) позволяют увести существенную часть прибыли self-employment от подоходного налога — стоит просчитать с бухгалтером до конца года, особенно если прибыль растёт.",
+      L({
+        ru: "SEP-IRA или Solo 401(k) позволяют увести существенную часть прибыли self-employment от подоходного налога — стоит просчитать с бухгалтером до конца года, особенно если прибыль растёт.",
+        en: "A SEP-IRA or Solo 401(k) can shelter a meaningful share of self-employment profit from income tax — worth modeling with a CPA before year-end, especially if profit is trending up.",
+        es: `Un SEP-IRA o un Solo 401(k) pueden proteger una parte importante de la ganancia como independiente del impuesto sobre la renta — vale la pena calcularlo con un contador antes de fin de año, sobre todo si la ganancia va en aumento.`,
+        fr: `Un SEP-IRA ou un Solo 401(k) peut mettre à l’abri de l’impôt une part importante du bénéfice d’indépendant — à simuler avec un comptable avant la fin de l’année, surtout si le bénéfice augmente.`,
+      }),
     )
   }
 
   if (result.seTax > 0) {
     recs.push(
-      en
-        ? "Every documented, deductible business expense lowers both income tax and self-employment tax at once — keeping receipts and mileage logs current through the year beats reconstructing them in April."
-        : "Каждый документированный бизнес-расход снижает сразу и подоходный налог, и self-employment tax — веди чеки и учёт пробега по ходу года, а не восстанавливай их в апреле.",
+      L({
+        ru: "Каждый документированный бизнес-расход снижает сразу и подоходный налог, и self-employment tax — веди чеки и учёт пробега по ходу года, а не восстанавливай их в апреле.",
+        en: "Every documented, deductible business expense lowers both income tax and self-employment tax at once — keeping receipts and mileage logs current through the year beats reconstructing them in April.",
+        es: `Cada gasto de negocio documentado y deducible reduce a la vez el impuesto sobre la renta y el de trabajo independiente — llevar recibos y registro de millas durante el año es mejor que reconstruirlos en abril.`,
+        fr: `Chaque dépense professionnelle justifiée et déductible réduit à la fois l’impôt sur le revenu et la taxe d’indépendant — tenir reçus et kilométrage à jour toute l’année vaut mieux que tout reconstituer en avril.`,
+      }),
     )
   }
 
   if (result.additionalMedicareTax > 0) {
     recs.push(
-      en
-        ? "Income is above the Additional Medicare Tax threshold — an extra 0.9% applies on the excess. Check that enough is being withheld or set aside so it isn't a surprise at filing time."
-        : "Доход выше порога Additional Medicare Tax — на превышение начисляется ещё 0.9%. Проверь, откладывается ли эта сумма заранее, чтобы не столкнуться с сюрпризом при подаче.",
+      L({
+        ru: "Доход выше порога Additional Medicare Tax — на превышение начисляется ещё 0.9%. Проверь, откладывается ли эта сумма заранее, чтобы не столкнуться с сюрпризом при подаче.",
+        en: "Income is above the Additional Medicare Tax threshold — an extra 0.9% applies on the excess. Check that enough is being withheld or set aside so it isn't a surprise at filing time.",
+        es: `Tu ingreso supera el umbral del Additional Medicare Tax — se aplica un 0.9% extra sobre el excedente. Revisa que se esté reteniendo o apartando lo suficiente para que no sea una sorpresa al declarar.`,
+        fr: `Ton revenu dépasse le seuil de l’Additional Medicare Tax — 0,9 % de plus s’applique sur l’excédent. Vérifie qu’assez est retenu ou mis de côté pour éviter une surprise à la déclaration.`,
+      }),
     )
   }
 
   if (result.taxableIncome === 0) {
     recs.push(
-      en
-        ? "Taxable income comes out to zero at the standard deduction — double-check the numbers above reflect your full-year income, not just what's logged so far."
-        : "При стандартном вычете налогооблагаемый доход выходит в ноль — проверь, что цифры выше отражают доход за весь год, а не только то, что уже внесено в приложение.",
+      L({
+        ru: "При стандартном вычете налогооблагаемый доход выходит в ноль — проверь, что цифры выше отражают доход за весь год, а не только то, что уже внесено в приложение.",
+        en: "Taxable income comes out to zero at the standard deduction — double-check the numbers above reflect your full-year income, not just what's logged so far.",
+        es: `Con la deducción estándar, el ingreso gravable sale en cero — revisa que las cifras de arriba reflejen tu ingreso de todo el año, no solo lo registrado hasta ahora.`,
+        fr: `Avec la déduction standard, le revenu imposable tombe à zéro — vérifie que les chiffres ci-dessus reflètent ton revenu de toute l’année, pas seulement ce qui est déjà saisi.`,
+      }),
     )
   }
 

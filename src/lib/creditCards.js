@@ -69,38 +69,38 @@ export function daysUntil(date, today = new Date()) {
 export function getCreditTips(lang = 'ru') {
   const tips = [
     {
-      title: { ru: 'Дата закрытия выписки vs дата платежа — это разное', en: 'Statement close date vs. due date — not the same thing' },
+      title: { ru: 'Дата закрытия выписки vs дата платежа — это разное', en: 'Statement close date vs. due date — not the same thing', es: "Fecha de cierre vs. fecha de pago: no son lo mismo", fr: "Date de clôture vs date d’échéance — pas la même chose" },
       body: {
         ru: 'Выписка закрывается в один день — с этого момента считается баланс к оплате. Платить нужно позже, обычно есть минимум 21 день на это (так требует закон). Это и есть грейс-период.',
-        en: 'The statement closes on one date — that\'s the balance you owe. You pay later, usually with at least 21 days in between (required by law). That gap is the grace period.',
+        en: 'The statement closes on one date — that\'s the balance you owe. You pay later, usually with at least 21 days in between (required by law). That gap is the grace period.', es: "El estado de cuenta cierra en una fecha: ese es el saldo que debes. Pagas después, normalmente con al menos 21 días de diferencia (lo exige la ley). Ese intervalo es el período de gracia.", fr: "Le relevé se clôture à une date — c’est le solde dû. Tu paies plus tard, en général au moins 21 jours après (c’est la loi). Cet écart, c’est le délai de grâce.",
       },
     },
     {
-      title: { ru: 'Платите весь баланс — не минимум', en: 'Pay the full balance — not the minimum' },
+      title: { ru: 'Платите весь баланс — не минимум', en: 'Pay the full balance — not the minimum', es: "Paga el saldo completo, no el mínimo", fr: "Paie le solde total — pas le minimum" },
       body: {
         ru: 'Если оплатить весь баланс до due date — проценты не начисляются вообще. Оплатите хотя бы на доллар меньше — грейс-период пропадает, и проценты начинают капать на всё, часто задним числом с даты покупки.',
-        en: "Pay the full statement balance by the due date and you owe zero interest. Pay even a dollar less and you lose the grace period — interest starts accruing on everything, often backdated to the purchase date.",
+        en: "Pay the full statement balance by the due date and you owe zero interest. Pay even a dollar less and you lose the grace period — interest starts accruing on everything, often backdated to the purchase date.", es: "Paga el saldo completo del estado de cuenta antes de la fecha y no pagas intereses. Paga aunque sea un dólar menos y pierdes el período de gracia: los intereses corren sobre todo, a menudo desde la fecha de compra.", fr: "Paie le solde total du relevé avant l’échéance et tu ne paies aucun intérêt. Un dollar de moins et tu perds le délai de grâce — les intérêts courent sur tout, souvent depuis la date d’achat.",
       },
     },
     {
-      title: { ru: 'Минимальный платёж — ловушка', en: 'The minimum payment is a trap' },
+      title: { ru: 'Минимальный платёж — ловушка', en: 'The minimum payment is a trap', es: "El pago mínimo es una trampa", fr: "Le paiement minimum est un piège" },
       body: {
         ru: 'Минимум обычно ~1-2% от баланса — рассчитан так, чтобы едва покрывать проценты. Платя только минимум, можно годами не уменьшать сам долг и переплатить в разы больше исходной суммы.',
-        en: 'The minimum is usually ~1-2% of the balance — designed to barely cover interest. Pay only the minimum and the principal can stay flat for years while you pay multiples of the original amount in interest.',
+        en: 'The minimum is usually ~1-2% of the balance — designed to barely cover interest. Pay only the minimum and the principal can stay flat for years while you pay multiples of the original amount in interest.', es: "El mínimo suele ser ~1–2% del saldo, pensado para apenas cubrir los intereses. Si pagas solo el mínimo, la deuda puede quedarse igual por años mientras pagas en intereses varias veces el monto original.", fr: "Le minimum représente souvent ~1–2 % du solde — juste de quoi couvrir les intérêts. En ne payant que lui, le capital peut stagner des années pendant que tu paies plusieurs fois la somme initiale en intérêts.",
       },
     },
     {
-      title: { ru: 'Загрузка кредита (utilization)', en: 'Credit utilization' },
+      title: { ru: 'Загрузка кредита (utilization)', en: 'Credit utilization', es: "Uso del crédito", fr: "Taux d’utilisation du crédit" },
       body: {
         ru: 'Это баланс делённый на лимит. Держите ниже 30%, чтобы не терять в скоринге заметно; для лучших скорингов — обычно однозначные проценты (<10%). Это ~30% веса в самом скоринге FICO.',
-        en: "That's your balance divided by your limit. Keep it under 30% to avoid a real score hit; the best scores usually sit under ~10%. This alone is about 30% of the FICO score itself.",
+        en: "That's your balance divided by your limit. Keep it under 30% to avoid a real score hit; the best scores usually sit under ~10%. This alone is about 30% of the FICO score itself.", es: "Es tu saldo dividido entre tu límite. Mantenlo bajo el 30% para no dañar tu puntaje; los mejores puntajes suelen estar bajo ~10%. Solo esto es cerca del 30% del puntaje FICO.", fr: "C’est ton solde divisé par ton plafond. Reste sous 30 % pour éviter un vrai impact sur ta cote ; les meilleures cotes sont souvent sous ~10 %. Ce seul facteur pèse environ 30 % du score FICO.",
       },
     },
     {
-      title: { ru: 'Из чего вообще состоит кредитный скоринг', en: "What actually makes up a credit score" },
+      title: { ru: 'Из чего вообще состоит кредитный скоринг', en: "What actually makes up a credit score", es: "De qué se compone un puntaje de crédito", fr: "De quoi se compose une cote de crédit" },
       body: {
         ru: 'История платежей вовремя — 35%, загрузка кредита — 30%, длина кредитной истории — 15%, новые кредиты — 10%, разнообразие кредитов — 10% (модель FICO).',
-        en: 'On-time payment history — 35%, utilization — 30%, length of credit history — 15%, new credit — 10%, credit mix — 10% (FICO model).',
+        en: 'On-time payment history — 35%, utilization — 30%, length of credit history — 15%, new credit — 10%, credit mix — 10% (FICO model).', es: "Historial de pagos a tiempo: 35%, uso del crédito: 30%, antigüedad del historial: 15%, crédito nuevo: 10%, mezcla de créditos: 10% (modelo FICO).", fr: "Historique de paiements à temps — 35 %, utilisation — 30 %, ancienneté du crédit — 15 %, nouveaux crédits — 10 %, diversité des crédits — 10 % (modèle FICO).",
       },
     },
   ]

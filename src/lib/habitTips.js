@@ -14,10 +14,10 @@ function buildCoffeeTip(avgAmount, count, windowDays) {
   const savings = Math.max(50, Math.round((annualOutSpend - homeAnnualCost) / 10) * 10)
   const amt = avgAmount.toFixed(2)
   return {
-    title: { ru: 'Заметили привычку: кофе навынос', en: 'Noticed a habit: takeout coffee' },
+    title: { ru: 'Заметили привычку: кофе навынос', en: 'Noticed a habit: takeout coffee', es: "Hábito detectado: café para llevar", fr: "Habitude repérée : café à emporter" },
     body: {
       ru: `За последний месяц вы купили кофе навынос ${count} раз(а) — в среднем по $${amt}. Пачка молотого кофе (2-3 кг) в Costco стоит около $25 и хватает примерно на 3 месяца при 2 чашках в день дома. По вашим тратам это может сэкономить около $${savings} в год.`,
-      en: `In the last month you bought takeout coffee ${count} time(s) — about $${amt} each. A 2-3kg bag of ground coffee at Costco runs about $25 and lasts roughly 3 months at 2 cups a day at home. Based on your spending, that could save around $${savings} a year.`,
+      en: `In the last month you bought takeout coffee ${count} time(s) — about $${amt} each. A 2-3kg bag of ground coffee at Costco runs about $25 and lasts roughly 3 months at 2 cups a day at home. Based on your spending, that could save around $${savings} a year.`, es: `El último mes compraste café para llevar ${count} vez/veces, unos $${amt} cada uno. Una bolsa de 2–3 kg de café molido en Costco cuesta unos $25 y dura unos 3 meses a 2 tazas al día en casa. Según tus gastos, podrías ahorrar unos $${savings} al año.`, fr: `Le mois dernier, tu as acheté un café à emporter ${count} fois — environ $${amt} chacun. Un sac de 2–3 kg de café moulu chez Costco coûte environ 25 $ et dure à peu près 3 mois à 2 tasses par jour à la maison. D’après tes dépenses, ça pourrait économiser environ $${savings} par an.`,
     },
   }
 }
@@ -27,10 +27,10 @@ function buildCafeTip(avgAmount, count, windowDays) {
   const savings = Math.max(50, Math.round(((avgAmount - homeMealCost) * count * (30 / windowDays) * 12) / 10) * 10)
   const amt = avgAmount.toFixed(2)
   return {
-    title: { ru: 'Заметили привычку: обеды/кафе', en: 'Noticed a habit: eating out' },
+    title: { ru: 'Заметили привычку: обеды/кафе', en: 'Noticed a habit: eating out', es: "Hábito detectado: comer fuera", fr: "Habitude repérée : manger dehors" },
     body: {
       ru: `За последний месяц вы оплатили кафе/рестораны ${count} раз(а) — в среднем по $${amt}. Готовка того же блюда дома обычно стоит в 2-3 раза дешевле. По вашим тратам это примерно $${savings} в год, если готовить хотя бы часть этих раз самому.`,
-      en: `In the last month you paid for cafes/restaurants ${count} time(s) — about $${amt} each. Cooking the same meal at home usually costs 2-3x less. Based on your spending, that's roughly $${savings} a year if you cook at least some of those meals yourself.`,
+      en: `In the last month you paid for cafes/restaurants ${count} time(s) — about $${amt} each. Cooking the same meal at home usually costs 2-3x less. Based on your spending, that's roughly $${savings} a year if you cook at least some of those meals yourself.`, es: `El último mes pagaste en cafés/restaurantes ${count} vez/veces, unos $${amt} cada vez. Cocinar lo mismo en casa suele costar 2–3 veces menos. Según tus gastos, son unos $${savings} al año si cocinas al menos parte de esas comidas.`, fr: `Le mois dernier, tu as payé au café/restaurant ${count} fois — environ $${amt} à chaque fois. Cuisiner le même plat à la maison coûte souvent 2 à 3 fois moins. D’après tes dépenses, c’est environ $${savings} par an si tu cuisines au moins une partie de ces repas.`,
     },
   }
 }
