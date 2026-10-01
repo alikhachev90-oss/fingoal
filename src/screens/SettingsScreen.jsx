@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Sun, Moon, MonitorSmartphone, Bell, RotateCcw, Trash2, LogOut, Mail, Info } from 'lucide-react'
+import { Sun, Moon, MonitorSmartphone, Bell, RotateCcw, Trash2, LogOut, Mail, Info, Share2 } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import { Card, Button, Input } from '../components/UI'
 import { useApp } from '../context/AppContext'
@@ -24,6 +24,7 @@ export default function SettingsScreen() {
   async function saveDigest(patch) {
     setUser(await db.saveUserMeta(user.id, { digest: { ...digest, ...patch } }))
   }
+  const [shareCopied, setShareCopied] = useState(false)
   const [notifStatus, setNotifStatus] = useState(typeof Notification !== 'undefined' ? Notification.permission : 'unsupported')
   const [toursReset, setToursReset] = useState(false)
   const [confirmingReset, setConfirmingReset] = useState(false)
@@ -86,6 +87,22 @@ export default function SettingsScreen() {
     TOUR_SCREENS.forEach((s) => resetTour(user.id, context, s))
     setToursReset(true)
     setTimeout(() => setToursReset(false), 3500)
+  }
+
+  // The phone's own share sheet (WhatsApp, Telegram, SMS…); where there
+  // isn't one, the link is copied instead.
+  async function shareApp() {
+    const url = window.location.origin
+    const text = t('settings.shareText')
+    if (navigator.share) {
+      try { await navigator.share({ text, url }) } catch { /* closed the sheet */ }
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(`${text} ${url}`)
+      setShareCopied(true)
+      setTimeout(() => setShareCopied(false), 2500)
+    } catch { /* clipboard blocked */ }
   }
 
   function openFeedback() {
@@ -259,6 +276,12 @@ export default function SettingsScreen() {
         <Card className="!p-3.5 space-y-2.5">
           <p className="text-xs font-bold tracking-wide text-muted uppercase flex items-center gap-1.5"><Mail size={13} /> {t('settings.feedback')}</p>
           <Button variant="secondary" onClick={openFeedback} type="button">{t('settings.feedbackBtn')}</Button>
+        </Card>
+
+        <Card className="!p-3.5 space-y-2.5">
+          <p className="text-xs font-bold tracking-wide text-muted uppercase flex items-center gap-1.5"><Share2 size={13} /> {t('settings.share')}</p>
+          <Button variant="secondary" onClick={shareApp} type="button">{t('settings.shareBtn')}</Button>
+          {shareCopied && <p className="text-xs text-savings">{t('settings.shareCopied')}</p>}
         </Card>
 
         <Card className="!p-3.5 space-y-2.5">
