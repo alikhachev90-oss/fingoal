@@ -30,6 +30,8 @@ import { TOURS } from '../lib/tours'
 import { computeAccountBalance, nextDateForDay, daysUntil } from '../lib/creditCards'
 import { getCoachAction } from '../lib/coach'
 import { toDate, todayStr } from '../lib/dates'
+import { saveRate } from '../lib/path'
+import { daysWord } from '../i18n/strings'
 import { useDataVersion } from '../lib/useDataVersion'
 
 function fmt(n) {
@@ -304,7 +306,16 @@ export default function DashboardScreen() {
 
   const openDebtTotal = (debts || []).reduce((sum, d) => sum + Math.max(0, Number(d.balance) || 0), 0)
 
-  const safeToday = computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, byGroup.wants)
+  // Today's limit is set at the start of the day (from wants before today);
+  // what's spent on wants today comes off it, so the number goes down as you spend.
+  const todayKey = todayStr()
+  const wantsToday = monthTx.filter((tx) => tx.group === 'wants' && tx.date === todayKey && !tx.is_payment).reduce((s, tx) => s + Number(tx.amount || 0), 0)
+  const safeStart = computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, byGroup.wants - wantsToday, new Date(), {
+    needsSpent: byGroup.needs,
+    // Pay-yourself-first comes off the top — or what was actually set aside, if more.
+    savingsReserve: Math.max((monthlyIncome * saveRate(user)) / 100, byGroup.savings),
+  })
+  const safeToday = { ...safeStart, safePerDay: safeStart.safePerDay - wantsToday }
 
   const billsFromNeeds = Object.entries(settings?.needs_budget || {})
     .filter(([, amount]) => amount > 0)
@@ -406,7 +417,7 @@ export default function DashboardScreen() {
             <Link to="/entry" aria-label={t('nav.entry')} className="glass rounded-full w-11 h-11 flex items-center justify-center text-primary shrink-0"><ArrowRight size={19} /></Link>
           </div>
           {monthlyIncome > 0
-            ? <p className="text-xs text-muted mt-4 leading-relaxed">{safeToday.safePerDay >= 0 ? `${t('dashboard.safeToSpendHintOk')} (${safeToday.daysRemaining} ${t('common.days')})` : t('dashboard.safeToSpendHintNeg')}</p>
+            ? <p className="text-xs text-muted mt-4 leading-relaxed">{safeToday.safePerDay >= 0 ? `${t('dashboard.safeToSpendHintOk')} (${safeToday.daysRemaining} ${daysWord(safeToday.daysRemaining, lang)})` : t('dashboard.safeToSpendHintNeg')}</p>
             : <p className="text-xs text-muted mt-4 leading-relaxed">{t('dashboard.noIncomeYetHint')}</p>}
         </Card>
         <Card className="flow-card !p-4" data-tour="dash-money-flow">
@@ -452,7 +463,7 @@ export default function DashboardScreen() {
         <Card className="home-habit" data-tour="dash-streak">
           <div className="home-habit-stat">
             <Flame size={23} strokeWidth={1.5} />
-            <div><p className="home-streak-number">{streak} {t(streak === 1 ? 'common.day' : 'common.days')}</p><p className="home-caption">{t('dashboard.streakLabel')} <InfoTag>{t('dashboard.streakInfo')}</InfoTag></p></div>
+            <div><p className="home-streak-number">{streak} {daysWord(streak, lang)}</p><p className="home-caption">{t('dashboard.streakLabel')} <InfoTag>{t('dashboard.streakInfo')}</InfoTag></p></div>
           </div>
           <div className="home-checkin">
             <p>{t('dashboard.checkinPrompt')}</p>

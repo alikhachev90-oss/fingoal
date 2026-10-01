@@ -9,7 +9,7 @@ import { tr } from './tr.js'
 const money = (n) => '$' + Math.round(Math.abs(n)).toLocaleString('en-US')
 const counts = (t) => t.group !== 'transfer' && !t.is_payment
 
-export function buildDigest({ transactions = [], settings, goals = [], day, lang = 'ru' }) {
+export function buildDigest({ transactions = [], settings, goals = [], day, lang = 'ru', saveRate = 5 }) {
   const L = (texts) => tr(lang, texts)
   const [y, m, d] = day.split('-').map(Number)
   const today = new Date(y, m - 1, d)
@@ -26,13 +26,18 @@ export function buildDigest({ transactions = [], settings, goals = [], day, lang
   const incomeToday = sum(todayTx.filter((t) => t.group === 'income'))
 
   const income = deriveMonthlyIncome(transactions, today)
+  // Same inputs as the home screen's limit: essentials actually spent, and the
+  // pay-yourself-first share (or what was actually saved, if more).
+  const needsSpent = sum(monthTx.filter((t) => t.group === 'needs'))
+  const savedMonth = sum(monthTx.filter((t) => t.group === 'savings'))
+  const opts = { needsSpent, savingsReserve: Math.max((income * (Number(saveRate) || 0)) / 100, savedMonth) }
   const needs = Object.values(settings?.needs_budget || {}).reduce((s, v) => s + (Number(v) || 0), 0)
   const lines = []
 
   if (!todayTx.length) {
     lines.push(L({ ru: 'Сегодня без записей — внеси траты, чтобы сводка была точной.', en: 'No entries today — log what you spent so the summary is accurate.', es: 'Hoy no hay registros — anota tus gastos para que el resumen sea exacto.', fr: 'Aucune saisie aujourd’hui — note tes dépenses pour un résumé exact.' }))
   } else if (income > 0) {
-    const limit = computeSafeToSpendToday(income, needs, wantsBefore, today).safePerDay
+    const limit = computeSafeToSpendToday(income, needs, wantsBefore, today, opts).safePerDay
     if (limit > 0) {
       const diff = limit - wantsToday
       const pct = Math.round((Math.abs(diff) / limit) * 100)
@@ -47,7 +52,7 @@ export function buildDigest({ transactions = [], settings, goals = [], day, lang
         lines.push(L({ ru: `Сверх лимита на ${money(diff)} (${pct}%).`, en: `Over today's limit by ${money(diff)} (${pct}%).`, es: `Te pasaste del límite de hoy por ${money(diff)} (${pct}%).`, fr: `Limite du jour dépassée de ${money(diff)} (${pct} %).` }))
       }
       if (tomorrow.getMonth() === today.getMonth()) {
-        const next = computeSafeToSpendToday(income, needs, wantsBefore + wantsToday, tomorrow).safePerDay
+        const next = computeSafeToSpendToday(income, needs, wantsBefore + wantsToday, tomorrow, opts).safePerDay
         const change = next - limit
         if (Math.abs(change) >= 1) {
           const delta = `${change > 0 ? '+' : '−'}${money(change)}`

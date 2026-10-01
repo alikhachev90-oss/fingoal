@@ -625,3 +625,18 @@ export function translate(key, lang, params) {
   }
   return str
 }
+
+// "1 день / 2 дня / 5 дней" — Russian needs three forms; the others two.
+export function daysWord(n, lang) {
+  const abs = Math.abs(Math.round(n))
+  if (lang === 'ru') {
+    const d10 = abs % 10
+    const d100 = abs % 100
+    if (d10 === 1 && d100 !== 11) return 'день'
+    if (d10 >= 2 && d10 <= 4 && (d100 < 12 || d100 > 14)) return 'дня'
+    return 'дней'
+  }
+  const one = { en: 'day', es: 'día', fr: 'jour' }
+  const many = { en: 'days', es: 'días', fr: 'jours' }
+  return abs === 1 ? (one[lang] || one.en) : (many[lang] || many.en)
+}

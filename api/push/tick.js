@@ -100,7 +100,7 @@ export default async function handler(req, res) {
             supabase.from('context_settings').select('*').eq('user_id', user.id).eq('context', 'personal').maybeSingle(),
             supabase.from('goals').select('*').eq('user_id', user.id).eq('context', 'personal').order('priority'),
           ])
-          const { title, body } = buildDigest({ transactions: tx || [], settings, goals: goals || [], day: local.day, lang: meta.lang })
+          const { title, body } = buildDigest({ transactions: tx || [], settings, goals: goals || [], day: local.day, lang: meta.lang, saveRate: Number.isFinite(Number(meta.save_rate)) ? Number(meta.save_rate) : 5 })
           due.push({ id: 'digest', title, body, url: '/dashboard' })
           goalLast.digest = local.day
         }
