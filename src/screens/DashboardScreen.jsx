@@ -18,7 +18,7 @@ import InfoTag from '../components/InfoTag'
 import ReminderButton from '../components/ReminderButton'
 import HabitTipModal from '../components/HabitTipModal'
 import TourGuide from '../components/TourGuide'
-import { Card, Button, StatTile, IconCircle, EmptyState } from '../components/UI'
+import { Card, Button, StatTile, IconCircle, EmptyState, ProgressBar } from '../components/UI'
 import { useApp } from '../context/AppContext'
 import * as db from '../lib/db'
 import { findCategory, pickLang, subLabel, subHint } from '../lib/categories'
@@ -30,7 +30,8 @@ import { TOURS } from '../lib/tours'
 import { computeAccountBalance, nextDateForDay, daysUntil } from '../lib/creditCards'
 import { getCoachAction } from '../lib/coach'
 import { toDate, todayStr } from '../lib/dates'
-import { saveRate } from '../lib/path'
+import { computePath, saveRate } from '../lib/path'
+import { computeWaterfall } from '../lib/waterfall'
 import { getReminders, upcomingBillsThisMonth } from '../lib/reminders'
 import { daysWord } from '../i18n/strings'
 import { useDataVersion } from '../lib/useDataVersion'
@@ -310,6 +311,30 @@ export default function DashboardScreen() {
 
   const openDebtTotal = (debts || []).reduce((sum, d) => sum + Math.max(0, Number(d.balance) || 0), 0)
 
+  const topGoal = goals[0]
+  const topGoalPlan = topGoal && settings ? computeGoalPlan(
+    { targetAmount: topGoal.target_amount, savedAmount: topGoal.saved_amount, deadline: topGoal.deadline },
+    { monthlyIncome, monthlyNeeds: monthlyNeedsBudget },
+  ) : null
+
+  // The month's waterfall: income (plus what carried over) fills the base,
+  // then pay-yourself-first, then the goal's monthly share; the rest is free.
+  const upcomingBills = upcomingBillsThisMonth(getReminders(user.id, context))
+  const essentialsNeed = Math.max(monthlyNeedsBudget, byGroup.needs + upcomingBills)
+  const rateNow = saveRate(user)
+  const goalMonthly = topGoalPlan && Number.isFinite(topGoalPlan.perMonth) ? Math.max(0, topGoalPlan.perMonth) : 0
+  const waterfall = computeWaterfall({
+    available: realIncomeThisMonth + Math.max(0, carryover),
+    needs: essentialsNeed,
+    pyfAmount: (realIncomeThisMonth * rateNow) / 100,
+    goalPerMonth: goalMonthly,
+  })
+  const pathStepKey = computePath({ transactions, settings, debts, goals }).current?.key
+  // The limit follows the same order: the goal's share is set aside too, as far
+  // as the month's income stretches after the base and pay-yourself-first.
+  const pyfMonthly = (monthlyIncome * rateNow) / 100
+  const goalReserve = Math.min(goalMonthly, Math.max(0, monthlyIncome - essentialsNeed - pyfMonthly))
+
   // Today's limit is set at the start of the day (from wants before today);
   // what's spent on wants today comes off it, so the number goes down as you spend.
   const todayKey = todayStr()
@@ -317,9 +342,10 @@ export default function DashboardScreen() {
   const safeStart = computeSafeToSpendToday(monthlyIncome, monthlyNeedsBudget, byGroup.wants - wantsToday, new Date(), {
     needsSpent: byGroup.needs,
     // Rent, a card payment… due later this month with a reminder set.
-    upcomingBills: upcomingBillsThisMonth(getReminders(user.id, context)),
-    // Pay-yourself-first comes off the top — or what was actually set aside, if more.
-    savingsReserve: Math.max((monthlyIncome * saveRate(user)) / 100, byGroup.savings),
+    upcomingBills,
+    // Pay-yourself-first and the goal's share come off the top — or what was
+    // actually set aside, if more.
+    savingsReserve: Math.max(pyfMonthly + goalReserve, byGroup.savings),
   })
   const safeToday = { ...safeStart, safePerDay: safeStart.safePerDay - wantsToday }
 
@@ -343,11 +369,6 @@ export default function DashboardScreen() {
     .filter((b) => b.amount > 0)
   const bills = [...billsFromNeeds, ...billsFromDebts, ...billsFromCards]
 
-  const topGoal = goals[0]
-  const topGoalPlan = topGoal && settings ? computeGoalPlan(
-    { targetAmount: topGoal.target_amount, savedAmount: topGoal.saved_amount, deadline: topGoal.deadline },
-    { monthlyIncome, monthlyNeeds: monthlyNeedsBudget },
-  ) : null
 
   const coachAction = getCoachAction({ settings, transactions, goals, debts, lang, checkedInToday })
 
@@ -443,6 +464,40 @@ export default function DashboardScreen() {
               {carryover !== 0 && <p className="text-[10px] text-muted mt-0.5 truncate">{t('dashboard.carryover', { amount: fmt(carryover) })}</p>}
             </div>
           </div>
+        </Card>
+
+        <Card className="!p-4 space-y-3" data-tour="dash-waterfall">
+          <p className="text-[10.5px] font-bold tracking-wide text-muted uppercase">{t('waterfall.title')}</p>
+          {realIncomeThisMonth + Math.max(0, carryover) <= 0 ? (
+            <p className="text-sm text-muted leading-relaxed">{t('waterfall.noIncome')}</p>
+          ) : (
+            <>
+              {[
+                { key: 'base', label: t('waterfall.base'), tier: waterfall.base, color: 'bg-needs' },
+                { key: 'pyf', label: t('waterfall.pyf', { step: pathStepKey ? t(`path.step.${pathStepKey}`) : '' }), tier: waterfall.pyf, color: 'bg-savings' },
+                { key: 'goal', label: topGoal ? t('waterfall.goal', { name: topGoal.name }) : t('waterfall.noGoal'), tier: waterfall.goal, color: 'bg-primary' },
+              ].filter((row) => row.tier.target > 0 || row.key === 'base').map((row) => (
+                <div key={row.key} className="space-y-1.5">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="text-sm min-w-0 truncate">{row.label}</p>
+                    <p className={`text-xs font-num shrink-0 ${row.tier.done ? 'text-savings' : 'text-muted'}`}>
+                      {row.tier.target <= 0 ? t('waterfall.setBase') : row.tier.done ? t('waterfall.done') : t('waterfall.need', { amt: fmt(row.tier.missing) })}
+                    </p>
+                  </div>
+                  {row.tier.target > 0 && <ProgressBar pct={(row.tier.filled / row.tier.target) * 100} colorClass={row.color} />}
+                </div>
+              ))}
+              <div className="flex items-baseline justify-between gap-2 pt-1 border-t border-border">
+                <p className="text-sm">{t('waterfall.free')}</p>
+                <p className="text-sm font-semibold font-num">{fmt(waterfall.free)}</p>
+              </div>
+              <p className="text-xs text-muted leading-relaxed">
+                {waterfall.next
+                  ? t('waterfall.next', { tier: waterfall.next === 'base' ? t('waterfall.baseShort') : waterfall.next === 'pyf' ? t('waterfall.pyfShort') : t('waterfall.goalShort') })
+                  : t('waterfall.allDone')}
+              </p>
+            </>
+          )}
         </Card>
 
         {coachAction && transactions.length >= 3 && (

@@ -124,6 +124,16 @@ export const TOURS = {
       },
     },
     {
+      id: 'dash-waterfall',
+      title: {"ru": "Куда идут деньги", "en": "Where the money goes", "es": "Adónde va el dinero", "fr": "Où va l’argent"},
+      body: {
+        ru: "Записываешь доход одной строкой — дальше он распределяется сам: сначала база (обязательные траты), потом «сначала себе» в текущий шаг Пути, потом месячная доля цели. Что осталось — свободно на жизнь, из этого и считается лимит дня.",
+        en: "Log income as one line and it splits itself: first the base (essentials), then pay-yourself-first into your current Path step, then the goal’s monthly share. What’s left is free to live on — that’s what the daily limit is spread from.",
+        es: "Registras el ingreso en una línea y se reparte solo: primero la base (lo esencial), luego «págate primero» al paso actual del Camino, luego la parte mensual de tu meta. Lo que queda es libre para vivir, y de ahí sale el límite diario.",
+        fr: "Note ton revenu en une ligne et il se répartit tout seul : d’abord la base (l’essentiel), puis « payez-vous d’abord » vers l’étape du Chemin, puis la part mensuelle de l’objectif. Le reste est libre pour vivre — c’est de là que vient la limite du jour.",
+      },
+    },
+    {
       id: 'dash-safe-to-spend',
       title: { ru: 'Можно потратить сегодня', en: 'Safe to spend today', es: "Puedes gastar hoy", fr: "Dépensable aujourd’hui" },
       body: {

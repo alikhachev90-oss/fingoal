@@ -13,6 +13,21 @@ export const LANGUAGES = [
 ]
 
 const STRINGS = {
+  'waterfall.title': { ru: 'Куда идут деньги этого месяца', en: 'Where this month’s money goes', es: 'Adónde va el dinero de este mes', fr: 'Où va l’argent de ce mois' },
+  'waterfall.base': { ru: 'База — обязательные траты', en: 'Base — essentials', es: 'Base: gastos esenciales', fr: 'Base — l’essentiel' },
+  'waterfall.pyf': { ru: 'Сначала себе → {step}', en: 'Pay yourself first → {step}', es: 'Págate primero → {step}', fr: 'Payez-vous d’abord → {step}' },
+  'waterfall.baseShort': { ru: 'базу (обязательные траты)', en: 'the base (essentials)', es: 'la base (lo esencial)', fr: 'la base (l’essentiel)' },
+  'waterfall.pyfShort': { ru: '«Сначала себе»', en: '“Pay yourself first”', es: '«Págate primero»', fr: '« Payez-vous d’abord »' },
+  'waterfall.goal': { ru: 'Цель «{name}» на этот месяц', en: 'Goal “{name}” this month', es: 'Meta «{name}» este mes', fr: 'Objectif « {name} » ce mois-ci' },
+  'waterfall.goalShort': { ru: 'цель', en: 'your goal', es: 'tu meta', fr: 'ton objectif' },
+  'waterfall.noGoal': { ru: 'Цель', en: 'Goal', es: 'Meta', fr: 'Objectif' },
+  'waterfall.free': { ru: 'Свободно на жизнь', en: 'Free to live on', es: 'Libre para vivir', fr: 'Libre pour vivre' },
+  'waterfall.done': { ru: 'закрыто ✅', en: 'covered ✅', es: 'cubierto ✅', fr: 'couvert ✅' },
+  'waterfall.need': { ru: 'нужно ещё {amt}', en: '{amt} to go', es: 'faltan {amt}', fr: 'encore {amt}' },
+  'waterfall.setBase': { ru: 'задай в настройках', en: 'set it in settings', es: 'defínela en ajustes', fr: 'à définir dans les réglages' },
+  'waterfall.next': { ru: 'Следующий доход пойдёт в: {tier}.', en: 'Your next income goes to: {tier}.', es: 'Tu próximo ingreso va a: {tier}.', fr: 'Ton prochain revenu ira à : {tier}.' },
+  'waterfall.allDone': { ru: 'Всё закрыто — дальше доход идёт в свободные деньги.', en: 'Everything’s covered — further income is free money.', es: 'Todo cubierto: lo que entre ahora es dinero libre.', fr: 'Tout est couvert — la suite des revenus est libre.' },
+  'waterfall.noIncome': { ru: 'Запиши доход одной строкой — он сам распределится: база → «сначала себе» → цель → свободные деньги.', en: 'Log income as one line — it splits itself: base → pay yourself first → goal → free money.', es: 'Registra el ingreso en una línea: se reparte solo: base → págate primero → meta → dinero libre.', fr: 'Note ton revenu en une ligne — il se répartit tout seul : base → payez-vous d’abord → objectif → argent libre.' },
   'dashboard.last7': { ru: '{n} из 7 дней за неделю', en: '{n} of the last 7 days', es: '{n} de los últimos 7 días', fr: '{n} des 7 derniers jours' },
   'debts.kind': { ru: 'Что это за долг', en: 'Type of debt', es: 'Tipo de deuda', fr: 'Type de dette' },
   'settings.country': { ru: 'Страна проживания', en: 'Country of residence', es: 'País de residencia', fr: 'Pays de résidence' },
