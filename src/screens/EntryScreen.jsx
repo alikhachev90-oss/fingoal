@@ -11,11 +11,13 @@ import { computePath, saveRate, HIGH_RATE } from '../lib/path'
 import { computeAccountBalance } from '../lib/creditCards'
 import { setCardReminder } from '../lib/cardReminders'
 import { syncServerReminders } from '../lib/serverReminders'
-import { computeGoalPlan, daysSavedByAmount, crossedMilestone, deriveMonthlyIncome } from '../lib/finance'
+import { computeGoalPlan, daysSavedByAmount, crossedMilestone, deriveMonthlyIncome, carryoverFromPreviousMonths } from '../lib/finance'
 import { parseQuickEntry } from '../lib/aiInsights'
 import { Wand2, X } from 'lucide-react'
 import { todayStr } from '../lib/dates'
 import { useDataVersion } from '../lib/useDataVersion'
+import { computeWaterfall } from '../lib/waterfall'
+import { getReminders, upcomingBillsThisMonth } from '../lib/reminders'
 import TourGuide from '../components/TourGuide'
 import AccountPicker from '../components/AccountPicker'
 import { TOURS } from '../lib/tours'
@@ -58,6 +60,7 @@ export default function EntryScreen() {
   // Pay yourself first: on by default, because the default is what people
   // keep (Madrian & Shea — 71% stayed with the saving they were enrolled in).
   const [payFirst, setPayFirst] = useState(true)
+  const [goalAuto, setGoalAuto] = useState(true)
   // Spending on a credit card: on by default, remind every day to pay it off.
   const [cardRemind, setCardRemind] = useState(true)
   const [debts, setDebts] = useState([])
@@ -427,6 +430,23 @@ export default function EntryScreen() {
         }
         setRoundUpNote(t('entry.payFirstNote', { amt: fmtMoney(payFirstAmount, { decimals: true }), step: t(`path.step.${pathNow.key}`) }))
       }
+      if (selected.group === 'income' && goalAuto && goalAutoAmount > 0 && topGoal) {
+        await db.addTransaction(user.id, context, {
+          amount: goalAutoAmount,
+          date,
+          comment: `${t('dashboard.checkinComment')}: ${topGoal.name}`,
+          group: 'savings',
+          category_key: 'goal',
+          sub: null,
+          account_id: parts[0].accountId || null,
+        })
+        const prevPct = goalPlan?.progressPct || 0
+        const updatedGoal = await db.addToGoalSavings(user.id, topGoal.id, goalAutoAmount)
+        const newPct = topGoal.target_amount > 0 ? Math.min(100, Math.round(((updatedGoal?.saved_amount || 0) / topGoal.target_amount) * 100)) : 0
+        milestone = crossedMilestone(prevPct, newPct)
+        if (milestone) setMilestoneHit({ pct: milestone, goalName: topGoal.name })
+        setRoundUpNote((note) => `${note ? `${note} ` : ''}${t('entry.goalAutoNote', { amt: fmtMoney(goalAutoAmount, { decimals: true }), name: topGoal.name })}`)
+      }
       if (selected.group === 'savings' && selected.key === 'debt_extra') {
         // Extra paid on debt comes off the debt first in payoff order
         // (expensive, then smallest), whatever step the Path is on.
@@ -439,7 +459,7 @@ export default function EntryScreen() {
         // Putting money toward savings is what the daily check-in/streak tracks.
         // Paying down debt isn't progress toward a goal like a trip — only
         // money actually put aside counts there.
-        if (topGoal && (selected.key === 'emergency' || selected.key === 'investments')) {
+        if (topGoal && (selected.key === 'emergency' || selected.key === 'investments' || selected.key === 'goal')) {
           const prevPct = goalPlan?.progressPct || 0
           const updatedGoal = await db.addToGoalSavings(user.id, topGoal.id, parseFloat(amount))
           const newPct = topGoal.target_amount > 0 ? Math.min(100, Math.round(((updatedGoal?.saved_amount || 0) / topGoal.target_amount) * 100)) : 0
@@ -488,6 +508,31 @@ export default function EntryScreen() {
     [recentTransactions, settings, debts, topGoal],
   )
   const payFirstAmount = Math.round((parseFloat(amount) || 0) * rate) / 100
+
+  // The goal's monthly share, taken from this income automatically — the same
+  // waterfall Home shows: base first, then pay-yourself-first, then the goal.
+  // Only what this income newly covers, minus what already went to the goal
+  // this month, so logging several incomes never double-counts.
+  const goalAutoAmount = useMemo(() => {
+    if (type !== 'income' || !topGoal || !goalPlan || !(parseFloat(amount) > 0)) return 0
+    const now = new Date()
+    const prefix = todayStr(now).slice(0, 7)
+    const monthTx = recentTransactions.filter((tx) => String(tx.date).startsWith(prefix))
+    const sum = (list) => list.reduce((acc, tx) => acc + Number(tx.amount || 0), 0)
+    const incomeBefore = sum(monthTx.filter((tx) => tx.group === 'income'))
+    const needsSpent = sum(monthTx.filter((tx) => tx.group === 'needs' && !tx.is_payment))
+    const budget = Object.values(settings?.needs_budget || {}).reduce((acc, v) => acc + (Number(v) || 0), 0)
+    const needs = Math.max(budget, needsSpent + upcomingBillsThisMonth(getReminders(user.id, context)))
+    const incomeAfter = incomeBefore + parseFloat(amount)
+    const wf = computeWaterfall({
+      available: incomeAfter + Math.max(0, carryoverFromPreviousMonths(recentTransactions, now)),
+      needs,
+      pyfAmount: (incomeAfter * rate) / 100,
+      goalPerMonth: Math.max(0, goalPlan.perMonth || 0),
+    })
+    const alreadyThisMonth = sum(monthTx.filter((tx) => tx.group === 'savings' && tx.category_key === 'goal'))
+    return Math.max(0, Math.round((wf.goal.filled - alreadyThisMonth) * 100) / 100)
+  }, [type, topGoal, goalPlan, amount, recentTransactions, settings, rate, user, context])
 
   // Money comes in TO an account and goes out FROM one.
   const accountTitle = type === 'expense' ? t('entry.accountLabelFrom') : t('entry.accountLabel')
@@ -684,6 +729,12 @@ export default function EntryScreen() {
                 {t('entry.payFirst', { rate, amt: fmtMoney(payFirstAmount, { decimals: true }), dest: t(`path.step.${pathNow.key}`) })}
               </span>
               <input type="checkbox" checked={payFirst} onChange={(e) => setPayFirst(e.target.checked)} className="w-4 h-4 accent-primary shrink-0" />
+            </label>
+          )}
+          {type === 'income' && goalAutoAmount > 0 && topGoal && (
+            <label className="flex items-center justify-between gap-3 text-sm pt-1 cursor-pointer">
+              <span className="text-muted">{t('entry.goalAuto', { amt: fmtMoney(goalAutoAmount, { decimals: true }), name: topGoal.name })}</span>
+              <input type="checkbox" checked={goalAuto} onChange={(e) => setGoalAuto(e.target.checked)} className="w-4 h-4 accent-primary shrink-0" />
             </label>
           )}
           {type === 'expense' && (split ? split.some((row) => accounts.find((a) => a.id === row.accountId)?.type === 'credit') : accounts.find((a) => a.id === accountId)?.type === 'credit') && (

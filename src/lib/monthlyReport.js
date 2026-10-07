@@ -112,7 +112,7 @@ export function computeMonthReport({ transactions, goals, monthDate, lang }) {
 
   // Goal progress made specifically this month: sum of savings tx tagged to
   // goal-relevant keys (matches EntryScreen's own goal-contribution keys).
-  const goalKeys = new Set(['emergency', 'investments', 'debt_extra'])
+  const goalKeys = new Set(['emergency', 'investments', 'debt_extra', 'goal'])
   const goalContribThisMonth = tx
     .filter((t) => t.group === 'savings' && goalKeys.has(t.category_key))
     .reduce((s, t) => s + t.amount, 0)

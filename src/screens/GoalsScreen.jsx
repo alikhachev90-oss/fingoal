@@ -135,7 +135,7 @@ export default function GoalsScreen() {
       date: todayStr(),
       comment: `${t('dashboard.checkinComment')}: ${goal.name}`,
       group: 'savings',
-      category_key: 'emergency',
+      category_key: 'goal',
       sub: null,
       account_id: getPayFrom(user.id, context, accounts || []) || null,
     })

@@ -126,7 +126,8 @@ export default function DashboardScreen() {
         date: todayStr(),
         comment: t('dashboard.checkinComment'),
         group: 'savings',
-        category_key: 'emergency',
+        // With a goal it's money for that goal; without one, the cushion.
+        category_key: topGoal ? 'goal' : 'emergency',
         sub: null,
         account_id: fromId || null,
       })

@@ -90,6 +90,7 @@ export const CATEGORY_TREE = {
   savings: [
     { key: 'emergency', label: { ru: 'Подушка безопасности', en: 'Emergency fund', es: "Fondo de emergencia", fr: "Fonds d’urgence" }, subs: [] },
     { key: 'investments', label: { ru: 'Инвестиции', en: 'Investments', es: "Inversiones", fr: "Investissements" }, subs: [] },
+    { key: 'goal', label: { ru: 'На цель', en: 'Toward a goal', es: 'Para una meta', fr: 'Pour un objectif' }, subs: [] },
     { key: 'debt_extra', label: { ru: 'Гашу долг сверх минимума', en: 'Paying off debt faster', es: "Pagar deuda más rápido", fr: "Rembourser plus vite" }, subs: [] },
   ],
   // Money coming in — tagged with a source account so accounts.jsx can show

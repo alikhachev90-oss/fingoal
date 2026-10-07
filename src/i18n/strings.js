@@ -13,6 +13,8 @@ export const LANGUAGES = [
 ]
 
 const STRINGS = {
+  'entry.goalAuto': { ru: 'В цель «{name}»: отложить {amt} автоматически', en: 'To “{name}”: set aside {amt} automatically', es: 'A «{name}»: apartar {amt} automáticamente', fr: 'Vers « {name} » : mettre {amt} de côté automatiquement' },
+  'entry.goalAutoNote': { ru: '+{amt} ушло в цель «{name}».', en: '+{amt} went to “{name}”.', es: '+{amt} fue a «{name}».', fr: '+{amt} envoyé vers « {name} ».' },
   'waterfall.title': { ru: 'Куда идут деньги этого месяца', en: 'Where this month’s money goes', es: 'Adónde va el dinero de este mes', fr: 'Où va l’argent de ce mois' },
   'waterfall.base': { ru: 'База — обязательные траты', en: 'Base — essentials', es: 'Base: gastos esenciales', fr: 'Base — l’essentiel' },
   'waterfall.pyf': { ru: 'Сначала себе → {step}', en: 'Pay yourself first → {step}', es: 'Págate primero → {step}', fr: 'Payez-vous d’abord → {step}' },
